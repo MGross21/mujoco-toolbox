@@ -1,0 +1,8 @@
+# Package Requirements
+
+mujoco
+mediapy
+matplotlib
+yaml
+numpy
+scipy
