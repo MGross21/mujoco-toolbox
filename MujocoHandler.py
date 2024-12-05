@@ -118,7 +118,7 @@ class MujocoHandler(object):
                 self._simData.setdefault(name, []).append(data)
 
     def _unwrapData(self):
-        for name, value in self.simData.items():
+        for name, value in self._simData.items():
             # If the data list contains numpy arrays, vstack them
             if isinstance(value[0], np.ndarray):
                 self._simData[name] = np.vstack(value)
@@ -273,7 +273,7 @@ def saveYAML(self, name="Model"):
 
     try:
         # Convert simData's NumPy arrays or lists to a YAML-friendly format
-        serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.simData.items()}
+        serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self._simData.items()}
 
         with open(name, "w") as f:
             yaml.dump(serialized_data, f, default_flow_style=False)
