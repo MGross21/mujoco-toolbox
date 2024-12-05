@@ -259,30 +259,25 @@ class MujocoHandler(object):
         self.controller = controller
         return self
 
-    def saveYAML(self, name="Model"):
-        """Save simulation data to a YAML file.
+def saveYAML(self, name="Model"):
+    """Save simulation data to a YAML file.
 
-        Args:
-            name (str): The filename for the YAML file.
+    Args:
+        name (str): The filename for the YAML file.
 
-        Returns:
-            None
-        """
-        if not name.endswith(".yml"):
-            name += ".yml"
+    Returns:
+        None
+    """
+    if not name.endswith(".yml"):
+        name += ".yml"
 
-        try:
-            out = {
-                "q": np.array(self.q).tolist(),
-                "w": np.array(self.w).tolist(),
-                "a": np.array(self.a).tolist(),
-                "xyz": np.array(self.xyz).tolist(),
-                "t": np.array(self.t).tolist(),
-                "simData": self.simData
-            }
+    try:
+        # Convert simData's NumPy arrays or lists to a YAML-friendly format
+        serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.simData.items()}
 
-            with open(name, "w") as f:
-                yaml.dump(out, f, default_flow_style=False)
-            print(f"Simulation data saved to {name}")
-        except Exception as e:
-            print(f"Failed to save data to YAML: {e}")
+        with open(name, "w") as f:
+            yaml.dump(serialized_data, f, default_flow_style=False)
+
+        print(f"Simulation data saved to {name}")
+    except Exception as e:
+        print(f"Failed to save data to YAML: {e}")
