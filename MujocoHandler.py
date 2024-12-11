@@ -32,7 +32,6 @@ class MujocoHandler(object):
         self.initCond = initConditions if initConditions else {}
         self.controller = controller
 
-        self.q, self.w, self.a, self.xyz, self.t = [], [], [], [], []
         self.frames = []
 
         self._simData = {}  # Stores all time-series sim data
@@ -91,8 +90,8 @@ class MujocoHandler(object):
     def _resetSimulation(self):
         mujoco.mj_resetData(self.model, self.data)
         self._setInitialConditions()
-        self.q, self.w, self.a, self.xyz, self.t = [], [], [], [], []
         self.frames = []
+        self._simData['time'] = []
 
     def _captureData(self, capture_params=None):
         """Capture MjData object and store all relevant simulation data into the simData dictionary."""
@@ -154,14 +153,14 @@ class MujocoHandler(object):
                         mujoco.mj_step(self.model, self.data)
                         
                         # Capture data at the specified rate
-                        if len(self.t) < self.data.time * data_rate:
+                        if len(self._simData['time']) < self.data.time * data_rate:
                             self._captureData(capture_params=capture_params)
 
                         if len(self.frames) < self.data.time * self.fps:
                             renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data,camera=camera)
                             self.frames.append(renderer.render())
             else:
-                while self.data.time < self.duration:
+                while len(self._simData['time']) < self.data.time * data_rate:
                     mujoco.mj_step(self.model, self.data)
                     self._captureData()
 
