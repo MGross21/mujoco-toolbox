@@ -138,12 +138,6 @@ class MujocoHandler(object):
         """
         try:
             mujoco.set_mjcb_control(self.controller)
-
-            # Experimental
-            # if nThreads >1 & nThreads<=16:
-            #     self.data.model.opt.threaded = True
-            #     self.data.model.opt.maxthreads = nThreads  # Number of threads
-
             self._resetSimulation()
 
             if render:
@@ -160,9 +154,10 @@ class MujocoHandler(object):
                             renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data,camera=camera)
                             self.frames.append(renderer.render())
             else:
-                while len(self._simData['time']) < self.data.time * data_rate:
+                while self.data.time < self.duration:
                     mujoco.mj_step(self.model, self.data)
-                    self._captureData()
+                    if len(self._simData['time']) < self.data.time * data_rate:
+                        self._captureData(capture_params=capture_params)
 
             self._unwrapData()
 
