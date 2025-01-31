@@ -1,8 +1,15 @@
-# Package Requirements
-
+# Core
 mujoco
+
+# Rendering Media
 mediapy
+
+# Data Processing
 matplotlib
 yaml
 numpy
 scipy
+
+# Progress bar
+tqdm
+ipywidgets
