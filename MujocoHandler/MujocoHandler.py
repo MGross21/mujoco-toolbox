@@ -12,54 +12,74 @@ class MujocoHandler(object):
     def __init__(self, xml, duration=10, fps=30, resolution = (400, 300), initConditions=None, controller=None):
         try:
             if xml.endswith(".xml"):
-                self.model = mujoco.MjModel.from_xml_path(xml)
+                self._model = mujoco.MjModel.from_xml_path(xml)
                 self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
             
             else:
-                self.model = mujoco.MjModel.from_xml_string(xml)
+                self._model = mujoco.MjModel.from_xml_string(xml)
                 self.xml = xml
 
         except Exception as e:
             raise ValueError(f"Failed to load the MuJoCo model. Error: {e}")
 
-        self.data = mujoco.MjData(self.model)
-        self._duration = max(1, duration)
-        self._fps = max(1, fps) 
-        self._resolution = resolution
-        self._width = max(1, self._resolution[0])
-        self._height = max(1, self._resolution[1])
+        self._data = mujoco.MjData(self._model)
+        self.duration = duration
+        self.fps = fps
+        self.resolution = resolution # recursively sets width and height
 
         self._initialConditions = initConditions if initConditions else {}
         self._controller = controller
 
         self._frames = []
 
-        self._simData = {}  # Stores all time-series sim data
+        self.simData = {}  # Stores all time-series sim data
         
-        self._timestep = self.model.opt.timestep
-        self._gravity = self.model.opt.gravity
-        self._n_bodies = self.model.nbody
-        self._n_joints = self.model.njnt
-        self._n_actuators = self.model.nu
+        self._ts = self._model.opt.timestep
+        self._gravity = self._model.opt.gravity
+        self._n_bodies = self._model.nbody
+        self._n_joints = self._model.njnt
+        self._n_actuators = self._model.nu
 
         self._body_names = [
-            self.model.names[self.model.name_bodyadr[i]:].split(b'\x00', 1)[0].decode('utf-8')
+            self._model.names[self._model.name_bodyadr[i]:].split(b'\x00', 1)[0].decode('utf-8')
             for i in range(self._n_bodies)
         ]
         self._joint_names = [
-            self.model.names[self.model.name_jntadr[i]:].split(b'\x00', 1)[0].decode('utf-8')
+            self._model.names[self._model.name_jntadr[i]:].split(b'\x00', 1)[0].decode('utf-8')
             for i in range(self._n_joints)
         ]
         self._actuator_names = [
-            self.model.names[self.model.name_actuatoradr[i]:].split(b'\x00', 1)[0].decode('utf-8')
+            self._model.names[self._model.name_actuatoradr[i]:].split(b'\x00', 1)[0].decode('utf-8')
             for i in range(self._n_actuators)
         ]
 
     @property
+    def model(self):
+        return self._model
+    
+    @property
+    def data(self):
+        return self._data
+
+    @property
     def simData(self):
-        if self._simData is None:
+        if self.simData is None:
             raise ValueError("No simulation data captured yet.")
-        return self._simData
+        return self.simData
+    
+    @simData.deleter
+    def simData(self):
+        self.simData = {}
+
+    @property
+    def frames(self):
+        if self._frames is None:
+            raise ValueError("No frames captured yet.")
+        return self._frames
+    
+    @frames.deleter
+    def frames(self):
+        self._frames = []
     
     @property
     def duration(self):
@@ -111,9 +131,11 @@ class MujocoHandler(object):
     def initialConditions(self, values):
         if not isinstance(values, dict):
             raise ValueError("Initial conditions must be a dictionary.")
-        for key in values.keys():
-            if key not in dir(self.data):
-                raise ValueError(f"Invalid initial condition attribute '{key}'.")
+        invalid_keys = [key for key in values.keys() if key not in dir(self.data)]
+        if invalid_keys:
+            valid_keys = [key for key in dir(self.data) if not key.startswith('_') and not callable(getattr(self.data, key))]
+            print(f"Valid initial condition attributes: {', '.join(valid_keys)}")
+            raise ValueError(f"Invalid initial condition attributes: {', '.join(invalid_keys)}")
         self._initialConditions = values
 
     @property
@@ -128,12 +150,12 @@ class MujocoHandler(object):
     
     
     def __str__(self):
-        return self.model.__str__()
+        return self._model.__str__()
 
     def __repr__(self):
         return (
             f"MujocoHandler(\n"
-            f"  Duration: {self._duration} [{self._fps} fps, timestep = {self._timestep:.0e}]\n"
+            f"  Duration: {self._duration} [{self._fps} fps, timestep = {self._ts:.0e}]\n"
             f"  Gravity: {self._gravity},\n"
             f"  Resolution: {self._width}x{self._height}\n"
             f"  Bodies ({self._n_bodies}): {', '.join(self._body_names)}\n"
@@ -153,13 +175,13 @@ class MujocoHandler(object):
                 print(f"Warning: '{key}' is not a valid attribute of MjData.")
 
     def _resetSimulation(self):
-        mujoco.mj_resetData(self.model, self.data)
+        mujoco.mj_resetData(self._model, self.data)
         self._setInitialConditions()
-        self._frames = []
-        self._simData['time'] = []
+        del self.frames
+        del self.simData
 
-    def _captureData(self, capture_params=None):
-        """Capture MjData object and store all relevant simulation data into the simData dictionary."""
+    def _captureDataSnapshot(self, capture_params=None):
+        """Capture MjData object and store all relevant simulation data at each simulation step into the simData dictionary."""
 
         if capture_params is None:
             capture_params = [name for name in dir(self.data) if not name.startswith('_') and not callable(getattr(self.data, name))]
@@ -176,19 +198,19 @@ class MujocoHandler(object):
 
             if hasattr(data, "copy"):
                 # Use the 'setdefault' method to initialize an empty list if the key is not already present
-                self._simData.setdefault(name, []).append(data.copy())
+                self.simData.setdefault(name, []).append(data.copy())
             else:
                 # For scalar values, append directly to the list
-                self._simData.setdefault(name, []).append(data)
+                self.simData.setdefault(name, []).append(data)
 
     def _unwrapData(self):
-        for name, value in self._simData.items():
+        for name, value in self.simData.items():
             # If the data list contains numpy arrays, vstack them
             if isinstance(value[0], np.ndarray):
-                self._simData[name] = np.vstack(value)
+                self.simData[name] = np.vstack(value)
             else:
                 # If not arrays, just store the list as it is (for scalars or other types)
-                self._simData[name] = value
+                self.simData[name] = value
 
     @lru_cache(maxsize=None)
     def runSim(self, render=False, camera=None, data_rate=100, capture_params=['time','qpos', 'qvel','qacc', 'xpos']):
@@ -203,19 +225,18 @@ class MujocoHandler(object):
             self: The current MujocoHandler object for method chaining.
         """
         try:
-
             mujoco.set_mjcb_control(self._controller)
             self._resetSimulation()
-            with tqdm(total=int(self._duration / self._timestep), desc="Running Simulation", unit="step",leave=False) as pbar:
+            with tqdm(total=int(self._duration / self._ts), desc="Running Simulation", unit="step",leave=False) as pbar:
                 if render:
-                    with mujoco.Renderer(self.model, width=self._width, height=self._height) as renderer:
+                    with mujoco.Renderer(self._model, width=self._width, height=self._height) as renderer:
                         # self._captureData() # capture time 0
                         while self.data.time < self._duration:
-                            mujoco.mj_step(self.model, self.data)
+                            mujoco.mj_step(self._model, self.data)
                             
                             # Capture data at the specified rate
-                            if len(self._simData['time']) < self.data.time * data_rate:
-                                self._captureData(capture_params=capture_params)
+                            if len(self.simData['time']) < self.data.time * data_rate:
+                                self._captureDataSnapshot(capture_params=capture_params)
 
                             if len(self._frames) < self.data.time * self._fps:
                                 renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data,camera=camera)
@@ -224,9 +245,9 @@ class MujocoHandler(object):
                             pbar.update(1)
                 else:
                     while self.data.time < self._duration:
-                        mujoco.mj_step(self.model, self.data)
-                        if len(self._simData['time']) < self.data.time * data_rate:
-                            self._captureData(capture_params=capture_params)
+                        mujoco.mj_step(self._model, self.data)
+                        if len(self.simData['time']) < self.data.time * data_rate:
+                            self._captureDataSnapshot(capture_params=capture_params)
                         
                         pbar.update(1)
 
@@ -321,7 +342,7 @@ class MujocoHandler(object):
         Returns:
             self: The current MujocoHandler object for method chaining.
         """
-        self._controller = controller
+        self.controller = controller
         return self
 
     def saveYAML(self, name="Model"):
@@ -338,7 +359,7 @@ class MujocoHandler(object):
 
         try:
             # Convert simData's NumPy arrays or lists to a YAML-friendly format
-            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self._simData.items()}
+            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.simData.items()}
 
             with open(name, "w") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
