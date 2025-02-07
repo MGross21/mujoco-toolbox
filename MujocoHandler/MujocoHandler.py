@@ -9,7 +9,7 @@ from tqdm.notebook import tqdm
 
 class MujocoHandler(object):
     """A class to handle MuJoCo simulations and data capture."""
-    def __init__(self, xml, duration=10, fps=30, resolution = (400, 300), initConditions=None, controller=None):
+    def __init__(self, xml, *args,**kwargs):
         try:
             if xml.endswith(".xml"):
                 self._model = mujoco.MjModel.from_xml_path(xml)
@@ -23,35 +23,36 @@ class MujocoHandler(object):
             raise ValueError(f"Failed to load the MuJoCo model. Error: {e}")
 
         self._data = mujoco.MjData(self._model)
-        self.duration = duration
-        self.fps = fps
-        self.resolution = resolution # recursively sets width and height
+        self.duration = kwargs.get('duration', 10)
+        self.fps = kwargs.get('fps', 30)
+        self.resolution = kwargs.get('resolution', (400, 300))  # recursively sets width and height
 
-        self._initialConditions = initConditions if initConditions else {}
-        self._controller = controller
+        self.initialConditions = kwargs.get('initialConditions', {})
+        self.controller = kwargs.get('controller', None)
+        self.ts = kwargs.get('ts', 1e-3)
 
-        self._frames = []
 
-        self.simData = {}  # Stores all time-series sim data
-        
-        self._ts = self._model.opt.timestep
-        self._gravity = self._model.opt.gravity
-        self._n_bodies = self._model.nbody
-        self._n_joints = self._model.njnt
-        self._n_actuators = self._model.nu
+        self._body_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
+        self._joint_names = [ self._model.joint(i).name for i in range(self._model.njnt)]
+        self._actuator_names = [ self._model.actuator(i).name for i in range(self._model.nu)]
 
-        self._body_names = [
-            self._model.names[self._model.name_bodyadr[i]:].split(b'\x00', 1)[0].decode('utf-8')
-            for i in range(self._n_bodies)
-        ]
-        self._joint_names = [
-            self._model.names[self._model.name_jntadr[i]:].split(b'\x00', 1)[0].decode('utf-8')
-            for i in range(self._n_joints)
-        ]
-        self._actuator_names = [
-            self._model.names[self._model.name_actuatoradr[i]:].split(b'\x00', 1)[0].decode('utf-8')
-            for i in range(self._n_actuators)
-        ]
+
+    def __str__(self):
+        return self._model.__str__()
+
+    def __repr__(self):
+        return (
+            f"MujocoHandler(\n"
+            f"  Duration: {self.duration} [fps={self.fps}, ts={self.ts:.0e}]\n"
+            f"  Gravity: {self.gravity},\n"
+            f"  Resolution: {self._width}x{self._height}\n"
+            f"  Bodies ({self.model.nbody}): {', '.join(self._body_names)}\n"
+            f"  Joints ({self.model.njnt}): {', '.join(self._joint_names)}\n"
+            f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names)}\n"
+            f"  Initial Conditions: {self.initialConditions}\n"
+            f"  Controller: {self.controller}\n" # Returns Name of the function or None
+            f")"
+        )
 
     @property
     def model(self):
@@ -63,13 +64,13 @@ class MujocoHandler(object):
 
     @property
     def simData(self):
-        if self.simData is None:
+        if self._simData is None:
             raise ValueError("No simulation data captured yet.")
-        return self.simData
+        return self._simData
     
     @simData.deleter
     def simData(self):
-        self.simData = {}
+        self._simData = {}    
 
     @property
     def frames(self):
@@ -147,25 +148,27 @@ class MujocoHandler(object):
         if value is not None and not callable(value):
             raise ValueError("Controller must be a callable function.")
         self._controller = value
-    
-    
-    def __str__(self):
-        return self._model.__str__()
 
-    def __repr__(self):
-        return (
-            f"MujocoHandler(\n"
-            f"  Duration: {self._duration} [{self._fps} fps, timestep = {self._ts:.0e}]\n"
-            f"  Gravity: {self._gravity},\n"
-            f"  Resolution: {self._width}x{self._height}\n"
-            f"  Bodies ({self._n_bodies}): {', '.join(self._body_names)}\n"
-            f"  Joints ({self._n_joints}): {', '.join(self._joint_names)}\n"
-            f"  Actuators ({self._n_actuators}): {', '.join(self._actuator_names)}\n"
-            f"  Initial Conditions: {self._initialConditions}\n"
-            f"  Controller Enabled: {bool(self._controller)}\n"
-            f")"
-        )
+    @property
+    def ts(self):
+        return self._model.opt.timestep
+    
+    @ts.setter
+    def ts(self, value):
+        if value <= 0:
+            raise ValueError("Timestep must be greater than 0.")
+        self._model.opt.timestep = value
 
+    @property
+    def gravity(self):
+        return self._model.opt.gravity
+    
+    @gravity.setter
+    def gravity(self, values):
+        if len(values) != 3:
+            raise ValueError("Gravity must be a 3D vector.")
+        self._model.opt.gravity = values
+    
 
     def _setInitialConditions(self):
         for key, value in self._initialConditions.items():
@@ -198,19 +201,19 @@ class MujocoHandler(object):
 
             if hasattr(data, "copy"):
                 # Use the 'setdefault' method to initialize an empty list if the key is not already present
-                self.simData.setdefault(name, []).append(data.copy())
+                self._simData.setdefault(name, []).append(data.copy())
             else:
                 # For scalar values, append directly to the list
-                self.simData.setdefault(name, []).append(data)
+                self._simData.setdefault(name, []).append(data)
 
     def _unwrapData(self):
-        for name, value in self.simData.items():
+        for name, value in self._simData.items():
             # If the data list contains numpy arrays, vstack them
             if isinstance(value[0], np.ndarray):
-                self.simData[name] = np.vstack(value)
+                self._simData[name] = np.vstack(value)
             else:
                 # If not arrays, just store the list as it is (for scalars or other types)
-                self.simData[name] = value
+                self._simData[name] = value
 
     @lru_cache(maxsize=None)
     def runSim(self, render=False, camera=None, data_rate=100, capture_params=['time','qpos', 'qvel','qacc', 'xpos']):
