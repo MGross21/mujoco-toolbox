@@ -6,35 +6,53 @@ import yaml
 import numpy as np
 import xml.etree.ElementTree as ET
 from tqdm.notebook import tqdm
+import numpy as np
+from datetime import datetime
+import tkinter as tk
+import os
+import sys
+assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
+assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
 
-class MujocoHandler(object):
+class MjWrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
     def __init__(self, xml, *args,**kwargs):
+    def __init__(self, xml, *args, **kwargs):
         try:
-            if xml.endswith(".xml"):
-                self._model = mujoco.MjModel.from_xml_path(xml)
-                self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
-            
-            else:
-                self._model = mujoco.MjModel.from_xml_string(xml)
-                self.xml = xml
+            match xml.split('.')[-1]: # Get the file extension
+                case "xml":
+                    self._model = mujoco.MjModel.from_xml_path(xml)
+                    self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
+                case "urdf":
+                    self._model = mujoco.MjModel.from_urdf_path(xml)
+                    self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
+                case _: # Assume it's an XML string
+                    self._model = mujoco.MjModel.from_xml_string(xml)
+                    self.xml = xml
 
         except Exception as e:
-            raise ValueError(f"Failed to load the MuJoCo model. Error: {e}")
+            raise ValueError(f"Failed to load the MuJoCo model. {e}")
 
         self._data = mujoco.MjData(self._model)
         self.duration = kwargs.get('duration', 10)
         self.fps = kwargs.get('fps', 30)
         self.resolution = kwargs.get('resolution', (400, 300))  # recursively sets width and height
-
         self.initialConditions = kwargs.get('initialConditions', {})
         self.controller = kwargs.get('controller', None)
-        self.ts = kwargs.get('ts', 1e-3)
 
+        # Predefined simulation parameters but can be overridden
+        self.ts = kwargs.get('ts', self._model.opt.timestep)
+        self.gravity = kwargs.get('gravity', self._model.opt.gravity)
 
-        self._body_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
+        # Auto-Populate the names of bodies, joints, and actuators
+        self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
+        self._geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
         self._joint_names = [ self._model.joint(i).name for i in range(self._model.njnt)]
         self._actuator_names = [ self._model.actuator(i).name for i in range(self._model.nu)]
+
+        self._captured_data = self.MjData()
+        self._frames = []
+        self.ALL_CAPTURABLE_PARAMS = self._get_all_capturable_params(self._model)
 
 
     def __str__(self):
@@ -50,7 +68,7 @@ class MujocoHandler(object):
             f"  Joints ({self.model.njnt}): {', '.join(self._joint_names)}\n"
             f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names)}\n"
             f"  Initial Conditions: {self.initialConditions}\n"
-            f"  Controller: {self.controller}\n" # Returns Name of the function or None
+            f"  Controller: {self.controller}\n" # Returns str name of the function
             f")"
         )
 
@@ -60,17 +78,19 @@ class MujocoHandler(object):
     
     @property
     def data(self):
+        """Read-only property to access the MjData single-step object."""
         return self._data
 
     @property
-    def simData(self):
-        if self._simData is None:
+    def captured_data(self):
+        """Read-only property to access the entire captured simulation data."""
+        if self._captured_data is None:
             raise ValueError("No simulation data captured yet.")
-        return self._simData
+        return self._captured_data.unwrap()
     
-    @simData.deleter
-    def simData(self):
-        self._simData = {}    
+    @captured_data.deleter
+    def captured_data(self):
+        del self._captured_data
 
     @property
     def frames(self):
@@ -113,16 +133,20 @@ class MujocoHandler(object):
         if values[0] < 1 or values[1] < 1:
             raise ValueError("Resolution must be at least 1x1 pixels.")
         
-        import tkinter as tk
-        with tk.Tk() as root:
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
+        root = tk.Tk()
+        root.withdraw()  # Hide the main window
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        root.destroy()
+
         for value in values:
             if value > screen_width or value > screen_height:
                 raise ValueError("Resolution must be less than the screen resolution.")
-        self._resolution = values
-        self._width = max(1, self._resolution[0])
-        self._height = max(1, self._resolution[1])
+        self._resolution = tuple(int(value) for value in values)
+        self._width, self._height = (max(1, val) for val in self._resolution)
+        # Match changes to the model's visual settings
+        self._model.vis.Global.offwidth = self._width
+        self._model.vis.Global.offheight = self._height
 
     @property
     def initialConditions(self):
@@ -132,22 +156,22 @@ class MujocoHandler(object):
     def initialConditions(self, values):
         if not isinstance(values, dict):
             raise ValueError("Initial conditions must be a dictionary.")
-        invalid_keys = [key for key in values.keys() if key not in dir(self.data)]
+        invalid_keys = [key for key in values.keys() if key not in self.ALL_CAPTURABLE_PARAMS]
         if invalid_keys:
-            valid_keys = [key for key in dir(self.data) if not key.startswith('_') and not callable(getattr(self.data, key))]
-            print(f"Valid initial condition attributes: {', '.join(valid_keys)}")
+            print(f"Valid initial condition attributes: {', '.join(self.ALL_CAPTURABLE_PARAMS)}")
             raise ValueError(f"Invalid initial condition attributes: {', '.join(invalid_keys)}")
         self._initialConditions = values
 
     @property
-    def controller(self):
+    def controller(self)->str:
+        """Controller Function Name"""
         return self._controller.__name__ if self._controller else None
     
     @controller.setter
-    def controller(self, value):
-        if value is not None and not callable(value):
+    def controller(self, func: callable):
+        if func is not None and not callable(func):
             raise ValueError("Controller must be a callable function.")
-        self._controller = value
+        self._controller = func
 
     @property
     def ts(self):
@@ -181,42 +205,10 @@ class MujocoHandler(object):
         mujoco.mj_resetData(self._model, self.data)
         self._setInitialConditions()
         del self.frames
-        del self.simData
+        del self.captured_data
 
-    def _captureDataSnapshot(self, capture_params=None):
-        """Capture MjData object and store all relevant simulation data at each simulation step into the simData dictionary."""
-
-        if capture_params is None:
-            capture_params = [name for name in dir(self.data) if not name.startswith('_') and not callable(getattr(self.data, name))]
-
-
-        # Loop over the attributes of the MjData object
-        for name in capture_params:
-            # Skip any private or internal attributes starting with '_'
-            if name.startswith('_') or callable(getattr(self.data, name)):
-                continue
-
-            # Access the attribute value from self.data (MjData object)
-            data = getattr(self.data, name)
-
-            if hasattr(data, "copy"):
-                # Use the 'setdefault' method to initialize an empty list if the key is not already present
-                self._simData.setdefault(name, []).append(data.copy())
-            else:
-                # For scalar values, append directly to the list
-                self._simData.setdefault(name, []).append(data)
-
-    def _unwrapData(self):
-        for name, value in self._simData.items():
-            # If the data list contains numpy arrays, vstack them
-            if isinstance(value[0], np.ndarray):
-                self._simData[name] = np.vstack(value)
-            else:
-                # If not arrays, just store the list as it is (for scalars or other types)
-                self._simData[name] = value
-
-    @lru_cache(maxsize=None)
-    def runSim(self, render=False, camera=None, data_rate=100, capture_params=['time','qpos', 'qvel','qacc', 'xpos']):
+    @lru_cache(maxsize=100)
+    def runSim(self, render=False, camera=None, data_rate=100):
         """Run the simulation with optional rendering and controlled data capture.
 
         Args:
@@ -225,36 +217,39 @@ class MujocoHandler(object):
             data_rate (int): How often to capture data, expressed as frames per second.
 
         Returns:
-            self: The current MujocoHandler object for method chaining.
+            self: The current MjWrapper object for method chaining.
         """
         try:
-            mujoco.set_mjcb_control(self._controller)
+            sim_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            mujoco.set_mjcb_control(self._controller) if self._controller else None
             self._resetSimulation()
-            with tqdm(total=int(self._duration / self._ts), desc="Running Simulation", unit="step",leave=False) as pbar:
-                if render:
-                    with mujoco.Renderer(self._model, width=self._width, height=self._height) as renderer:
-                        # self._captureData() # capture time 0
-                        while self.data.time < self._duration:
-                            mujoco.mj_step(self._model, self.data)
-                            
-                            # Capture data at the specified rate
-                            if len(self.simData['time']) < self.data.time * data_rate:
-                                self._captureDataSnapshot(capture_params=capture_params)
+            total_steps = int(self._duration / self.ts)
 
-                            if len(self._frames) < self.data.time * self._fps:
-                                renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data,camera=camera)
-                                self._frames.append(renderer.render())
+            with tqdm(total=total_steps, desc="Running Simulation", unit="Frame",leave=False) as pbar, mujoco.Renderer(self._model, width=self._width, height=self._height) as renderer:        
+                # self._captureDataSnapshot() # capture @ time=0
+                while self.data.time < self._duration:
+                    mujoco.mj_step(self._model, self.data)
+                    
+                    # Capture data at the specified rate
+                    if len(self._captured_data._data) < self.data.time * data_rate:
+                        self._captured_data.capture(self.data)
 
-                            pbar.update(1)
-                else:
-                    while self.data.time < self._duration:
-                        mujoco.mj_step(self._model, self.data)
-                        if len(self.simData['time']) < self.data.time * data_rate:
-                            self._captureDataSnapshot(capture_params=capture_params)
+                    if len(self._frames) < self.data.time * self._fps and render:
+                        renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data,camera=camera)
+                        self._frames.append(renderer.render())
+
+                    pbar.update(1)
+
+                    if os.path.exists("MUJOCO_LOG.TXT"):
+                        with open("MUJOCO_LOG.TXT", "r") as f:
+                            log_lines = f.readlines()
+                            for line in log_lines:
+                                log_time = datetime.strptime(line.split()[0].strip(), "%Y-%m-%d %H:%M:%S")
+                                if log_time > datetime.strptime(sim_start_time, "%Y-%m-%d %H:%M:%S"):
+                                    raise Exception(f"Simulation cancelled at {log_time}:\n{next(line)}")
                         
-                        pbar.update(1)
 
-            self._unwrapData()
+            self._captured_data.unwrap()
 
         except Exception as e:
             print(f"Simulation error: {e}")
@@ -291,7 +286,7 @@ class MujocoHandler(object):
         else:
             print("No frames captured to render.")
 
-    def renderMedia(self, codec="gif", title=None, save=False):
+    def renderMedia(self, codec="gif", title=None, save=False)->media:
         """Render the simulation as a video or GIF, with an option to save to a file.
 
         Args:
@@ -324,6 +319,7 @@ class MujocoHandler(object):
             # Show the media in a window
             media.show_video(self._frames, fps=self._fps, width=self._width, height=self._height, codec=codec, title=title)
 
+    @lru_cache(maxsize=100)
     def t2f(self, t):
         """Dynamically converts time-scale into frame-scale
 
@@ -335,18 +331,41 @@ class MujocoHandler(object):
         """
         total_frames = int(self._duration * self._fps)
         return min(int(t * self._fps), total_frames - 1)
-
-    def setController(self, controller=None):
-        """Set a new controller callback.
+    
+    def getBodyData(self, body_name:str, data_name=None)->np.ndarray:
+        """Get the data for a specific body in the simulation.
 
         Args:
-            controller (function or None): A callback for controlling the simulation.
+            body_name (str): The name of the body to retrieve data for.
+            data_name (str): The name of the data to retrieve.
 
         Returns:
-            self: The current MujocoHandler object for method chaining.
+            np.ndarray: The data for the specified body.
         """
-        self.controller = controller
-        return self
+        if body_name not in self._body_names:
+            raise ValueError(f"Body '{body_name}' not found in the model.")
+        else:
+            body_id = mujoco.mj_name2id(self._model, mujoco.mjtObj.mjOBJ_BODY, body_name)
+
+
+        if data_name is None:
+            return self._captured_data.unwrap()[body_id]
+        if data_name not in self._captured_data.unwrap():
+            raise ValueError(f"Data '{data_name}' not found for body '{body_name}'.")
+        return self._captured_data.unwrap()[body_id][data_name]
+    
+    def getID(self, id: int) -> str:
+        """Get the name of a body given its ID.
+
+        Args:
+            id (int): The ID of the body.
+
+        Returns:
+            str: The name of the body.
+        """
+        if id < 0 or id >= self._model.nbody:
+            raise ValueError(f"Invalid body ID: {id}")
+        return mujoco.mj_id2name(self._model, mujoco.mjtObj.mjOBJ_BODY, id)
 
     def saveYAML(self, name="Model"):
         """Save simulation data to a YAML file.
@@ -362,7 +381,7 @@ class MujocoHandler(object):
 
         try:
             # Convert simData's NumPy arrays or lists to a YAML-friendly format
-            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.simData.items()}
+            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self._simData.items()}
 
             with open(name, "w") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
