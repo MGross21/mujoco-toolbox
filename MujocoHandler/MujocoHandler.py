@@ -16,7 +16,55 @@ assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later.
 
 class MjWrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
-    def __init__(self, xml, *args,**kwargs):
+
+    CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'qacc', 'xpos']
+    
+    @staticmethod
+    def _get_public_keys(obj):
+        """Get all public keys of an object."""
+        return [name for name in dir(obj) if not name.startswith('_') and not callable(getattr(obj, name))]
+    
+    @staticmethod
+    def _copy_all_public(obj):
+        """Copy all public attributes of an object."""
+        return {name: getattr(obj, name).copy() if hasattr(getattr(obj, name), "copy") else getattr(obj, name) for name in MjWrapper._get_public_keys(obj)}
+    
+    @staticmethod
+    def _get_all_capturable_params(model):
+        """Get all capturable parameters of Mujoco MjData."""
+        return MjWrapper._get_public_keys(mujoco.MjData(model))
+    
+
+    class MjData:
+        """A class to store and manage simulation data."""
+        def __init__(self):
+            self._data = []
+
+        def capture(self, data):
+            """Capture MjData object and store all relevant simulation data at each simulation step."""
+            self._data.append(MjWrapper._copy_all_public(data) if MjWrapper.CAPTURE_PARAMETERS is all else MjWrapper._get_public_keys(MjWrapper.CAPTURE_PARAMETERS))
+
+        def unwrap(self):
+            """Unwrap the captured simulation data into a structured format."""
+            unwrapped_data = {}
+
+            for sim_data_dict in self._data:
+                for key, value in sim_data_dict.items():
+                    if key not in unwrapped_data:
+                        unwrapped_data[key] = []
+                    unwrapped_data[key].append(value)
+
+            # Convert lists of numpy arrays to stacked numpy arrays
+            for key in unwrapped_data:
+                if isinstance(unwrapped_data[key][0], np.ndarray):
+                    unwrapped_data[key] = np.vstack(unwrapped_data[key])
+
+            return unwrapped_data
+
+        def __del__(self):
+            self._data = []
+
+
     def __init__(self, xml, *args, **kwargs):
         try:
             match xml.split('.')[-1]: # Get the file extension
@@ -389,3 +437,114 @@ class MjWrapper(object):
             print(f"Simulation data saved to {name}")
         except Exception as e:
             print(f"Failed to save data to YAML: {e}")
+
+
+    ###########################
+    # Static Methods
+    ###########################
+
+    @staticmethod
+    def sineController(model,data,**kwargs):
+        """A simple sine wave controller for the simulation.
+
+        Args:
+            amplitude (float): The amplitude of the sine wave (default=1).
+            frequency (float): The frequency of the sine wave (default=1).
+            phase (float): The phase shift of the sine wave (default=0).
+            joint (list[int]): The joint to apply the sine wave to (default=all).
+            delay (float): The delay before applying the sine wave (default=0).
+
+        Returns:
+            None
+        """
+        amplitude = kwargs.get('amplitude', 1)
+        frequency = kwargs.get('frequency', 1)
+        phase = kwargs.get('phase', 0)
+        joint = kwargs.get('joint', None)
+        delay = kwargs.get('delay', 0)
+
+        if joint is None:
+            joint = range(model.nu)
+        if delay < 0:
+            raise ValueError("Delay must be non-negative.")
+        
+        if data.time < delay:
+            return
+        else:
+            for j in joint:
+                data.ctrl[j] = amplitude * np.sin(2 * np.pi * frequency * data.time + phase)
+
+    @staticmethod
+    def cosineController(model,data,**kwargs):
+        """A simple cosine wave controller for the simulation.
+
+        Args:
+            amplitude (float): The amplitude of the cosine wave (default=1).
+            frequency (float): The frequency of the cosine wave (default=1).
+            phase (float): The phase shift of the cosine wave (default=0).
+            joint (list[int]): The joint to apply the cosine wave to (default=all).
+            delay (float): The delay before applying the cosine wave (default=0).
+
+        Returns:
+            None
+        """
+        amplitude = kwargs.get('amplitude', 1)
+        frequency = kwargs.get('frequency', 1)
+        phase = kwargs.get('phase', 0)
+        joint = kwargs.get('joint', None)
+        delay = kwargs.get('delay', 0)
+
+        if joint is None:
+            joint = range(model.nu)
+        if delay < 0:
+            raise ValueError("Delay must be non-negative.")
+        
+        if data.time < delay:
+            return
+        else:
+            for j in joint:
+                data.ctrl[j] = amplitude * np.cos(2 * np.pi * frequency * data.time + phase)
+
+    @staticmethod
+    def randomController(model,data,**kwargs):
+        """A random controller for the simulation.
+
+        Args:
+            amplitude (float): The maximum amplitude of the random signal (default=1).
+            joint (list[int]): The joints to apply the random signal to (default=all).
+            axis (int): The axis to apply the random signal to (default=None).
+            delay (float): The delay before applying the random signal (default=0).
+
+        Returns:
+            None
+        """
+        amplitude = kwargs.get('amplitude', 1)
+        joint = kwargs.get('joint', None)
+        axis = kwargs.get('axis', None)
+        delay = kwargs.get('delay', 0)
+
+        if delay < 0:
+            raise ValueError("Delay must be non-negative.")
+        if joint is not None and axis is not None:
+            raise ValueError("Cannot specify both 'joint' and 'axis'.")
+        
+        if joint is None and axis is None:
+            joint = range(model.nu)
+        
+        if data.time < delay:
+            return
+        else:
+            if joint is not None:
+                for j in joint:
+                    if model.nu > 0:  # Check if there are actuators
+                        data.ctrl[j] = amplitude * np.random.rand()
+            elif axis is not None:
+                data.qpos[axis] = amplitude * np.random.rand()
+
+
+
+if __name__ == "__main__":
+    # Example usage
+    model = "./box_and_leg.xml"
+    sim = MjWrapper(xml=model, duration=10, fps=30, resolution=(800, 600), controller=MjWrapper.sineController, amplitude=1, frequency=1)
+    sim.runSim(render=True).renderMedia(codec="gif", title="sine_wave", save=True)

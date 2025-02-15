@@ -1,0 +1,49 @@
+<mujoco>
+    <option><flag gravity="enable" contact="enable" /></option>
+    <option timestep="1e-4"/>
+    <compiler angle="degree" />
+
+    <default>
+        <geom contype="1" conaffinity="1" condim="3" friction=".6 .3 .3" solimp=".999 .999 .001" solref=".001 1" margin="0.001" group="0"/>
+    </default>
+
+    <worldbody>
+        <light name="top" pos="0 0 3"/>
+
+        <!-- Main body -->
+        <body name="body_1" pos="0 0 0.05">
+            <joint name="prismatic_1" type="slide" axis="0 0 1" pos="0 0 0"/>
+            <geom type="box" size="0.025 0.025 0.025" pos="0 0 0" rgba="1 0 1 1" mass="0.01"/>
+
+            <!-- First leg attached to the main body -->
+            <body name="leg_1" pos="0.025 0 -0.025">
+                <joint name="joint_1" type="hinge" axis="0 1 0" pos="0 0 0" limited="true" range="0 180"/>
+                <geom type="box" size="0.025 0.0125 0.001" pos="0.025 0 0" rgba="0 1 1 1" mass="0.001"/>
+
+                <!-- Second leg attached to the first leg -->
+                <body name="leg_2" pos="0.05 0 0">
+                    <joint name="joint_2" type="hinge" axis="0 1 0" pos="0 0 0" stiffness="1" damping="0.01"/>
+                    <geom type="box" size="0.025 0.0125 0.001"  pos="0.025 0 0" rgba="0 0 1 1" mass="0.001"/>
+                </body>
+            </body>
+        </body>
+
+        <!-- Floor plane -->
+        <body name="floor" pos="0 0 0">
+            <geom pos="0 0 0" size="1 1 0.05" type="plane" rgba="1 1 1 1"/>
+        </body>
+    </worldbody>
+
+    <contact>
+        <exclude body1="body_1" body2="leg_1" />
+        <exclude body1="leg_1" body2="leg_2" />  
+    </contact>
+
+    <actuator>
+        <motor name="motor_1" joint="joint_1"/>
+    </actuator>
+
+    <sensor>
+        <framepos name="body_pos" objtype="body" objname="body_1"/>
+    </sensor>
+</mujoco>
