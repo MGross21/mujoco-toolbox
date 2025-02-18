@@ -540,11 +540,3 @@ class MjWrapper(object):
                         data.ctrl[j] = amplitude * np.random.rand()
             elif axis is not None:
                 data.qpos[axis] = amplitude * np.random.rand()
-
-
-
-if __name__ == "__main__":
-    # Example usage
-    model = "./box_and_leg.xml"
-    sim = MjWrapper(xml=model, duration=10, fps=30, resolution=(800, 600), controller=MjWrapper.sineController, amplitude=1, frequency=1)
-    sim.runSim(render=True).renderMedia(codec="gif", title="sine_wave", save=True)
