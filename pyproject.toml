@@ -6,21 +6,22 @@ build-backend = "setuptools.build_meta"
 name = "MjWrapper"
 version = "0.0.1"
 authors = [
-    { name = "MGross21", email = "MGross21<at>MGross21.com" }
+    { name = "MGross21", email = "MGross21@TODO.com" }
 ]
 description = "A modern package to handle Mujoco environments"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 dependencies = [
-    "mujoco",
-    "numpy",
-    "scipy",
-    "matplotlib",
-    "yaml",
-    "mediapy",
-    "tqdm",
-    "ipywidgets"
+    "mujoco==3.2.7",
+    "numpy==2.2.3",
+    "scipy==1.15.2",
+    "matplotlib==3.9.2",
+    "pyyaml==6.0.2",
+    "mediapy==1.2.2",
+    "tqdm==4.67.1",
+    "ipywidgets==8.1.5",
+    "ffmpeg==1.4"
 ]
 
 [project.urls]
