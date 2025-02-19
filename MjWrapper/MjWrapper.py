@@ -9,6 +9,7 @@ from tqdm.notebook import tqdm
 import numpy as np
 from datetime import datetime
 import tkinter as tk
+import trimesh
 import os
 import sys
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
@@ -64,16 +65,52 @@ class MjWrapper(object):
         def __del__(self):
             self._data = []
 
+        def __len__(self):
+            return len(self._data)
+        
+        def __str__(self):
+            return f"MjData({len(self)} steps captured)"
+        
+        def __repr__(self):
+            return self.__str__()
+
 
     def __init__(self, xml, *args, **kwargs):
+        def dae2stl(meshdir):
+            for filename in os.listdir(meshdir):
+                if filename.lower().endswith('.dae'):
+                    dae_path = os.path.join(meshdir, filename)
+                    stl_path = os.path.splitext(dae_path)[0] + '.stl'
+                    
+                    try:
+                        trimesh.load(dae_path).export(stl_path)
+                        print(f"Converted: {filename}")
+                    except Exception as e:
+                        print(f"Error converting {filename}: {str(e)}")
+
         try:
             match xml.split('.')[-1]: # Get the file extension
                 case "xml":
                     self._model = mujoco.MjModel.from_xml_path(xml)
                     self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
                 case "urdf":
-                    self._model = mujoco.MjModel.from_urdf_path(xml)
+
                     self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
+                    
+                    # Add MuJoCo tags inside the robot element
+                    # Documentation: https://mujoco.readthedocs.io/en/latest/XMLreference.html#compiler
+                    robot = ET.parse(xml).getroot()
+                    mujoco_tag = ET.Element("mujoco")
+                    meshdir = kwargs.get('meshdir', "meshes/")
+                    compiler_tag = ET.SubElement(mujoco_tag, "compiler", meshdir=meshdir, balanceinertia=kwargs.get("balanceinertia","true"), discardvisual="false")
+                    robot.insert(0, mujoco_tag)
+                    self.xml = ET.tostring(robot, encoding='unicode')
+
+                    # Convert DAE files to STL files
+                    dae2stl(meshdir)
+
+                    self._model = mujoco.MjModel.from_xml_path(xml)
+
                 case _: # Assume it's an XML string
                     self._model = mujoco.MjModel.from_xml_string(xml)
                     self.xml = xml
