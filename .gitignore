@@ -2,4 +2,8 @@
 __pycache__/
 *.pyc
 
+# Mujoco Logs
 *log*
+
+# Jupyter Notebook Output
+*.ipynb_checkpoints
