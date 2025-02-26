@@ -15,7 +15,7 @@ import sys
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
 
-from MjWrapper import CAPTURE_PARAMETERS
+from . import CAPTURE_PARAMETERS
 
 class MjWrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
