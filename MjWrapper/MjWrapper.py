@@ -15,10 +15,10 @@ import sys
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
 
+from MjWrapper import CAPTURE_PARAMETERS
+
 class MjWrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
-
-    CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'qacc', 'xpos']
     
     @staticmethod
     def _get_public_keys(obj):
@@ -43,7 +43,7 @@ class MjWrapper(object):
 
         def capture(self, data):
             """Capture MjData object and store all relevant simulation data at each simulation step."""
-            self._data.append(MjWrapper._copy_all_public(data) if MjWrapper.CAPTURE_PARAMETERS is all else MjWrapper._get_public_keys(MjWrapper.CAPTURE_PARAMETERS))
+            self._data.append(MjWrapper._copy_all_public(data) if CAPTURE_PARAMETERS is all else MjWrapper._get_public_keys(CAPTURE_PARAMETERS))
 
         def unwrap(self):
             """Unwrap the captured simulation data into a structured format."""
