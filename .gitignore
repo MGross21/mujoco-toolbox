@@ -1,3 +1,13 @@
 # Ignore Folder/Extensions:
 __pycache__/
 *.pyc
+
+# Mujoco Logs
+*log*
+
+# Jupyter Notebook Output
+*.ipynb_checkpoints
+
+# Other Output
+*.gif
+*.mp4
