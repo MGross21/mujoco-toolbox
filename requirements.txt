@@ -17,3 +17,4 @@ ipywidgets==8.1.5
 # Misc
 ffmpeg==1.4
 trimesh==4.6.2
+screeninfo==0.8.1

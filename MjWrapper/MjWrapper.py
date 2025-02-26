@@ -6,77 +6,20 @@ import yaml
 import numpy as np
 import xml.etree.ElementTree as ET
 from tqdm.notebook import tqdm
-import numpy as np
 from datetime import datetime
-import tkinter as tk
+from screeninfo import get_monitors
 import trimesh
 import os
 import sys
+
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
 
-from . import CAPTURE_PARAMETERS
-
 class MjWrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
-    
-    @staticmethod
-    def _get_public_keys(obj):
-        """Get all public keys of an object."""
-        return [name for name in dir(obj) if not name.startswith('_') and not callable(getattr(obj, name))]
-    
-    @staticmethod
-    def _copy_all_public(obj):
-        """Copy all public attributes of an object."""
-        return {name: getattr(obj, name).copy() if hasattr(getattr(obj, name), "copy") else getattr(obj, name) for name in MjWrapper._get_public_keys(obj)}
-    
-    @staticmethod
-    def _get_all_capturable_params(model):
-        """Get all capturable parameters of Mujoco MjData."""
-        return MjWrapper._get_public_keys(mujoco.MjData(model))
-    
-
-    class MjData:
-        """A class to store and manage simulation data."""
-        def __init__(self):
-            self._data = []
-
-        def capture(self, data):
-            """Capture MjData object and store all relevant simulation data at each simulation step."""
-            self._data.append(MjWrapper._copy_all_public(data) if CAPTURE_PARAMETERS is all else MjWrapper._get_public_keys(CAPTURE_PARAMETERS))
-
-        def unwrap(self):
-            """Unwrap the captured simulation data into a structured format."""
-            unwrapped_data = {}
-
-            for sim_data_dict in self._data:
-                for key, value in sim_data_dict.items():
-                    if key not in unwrapped_data:
-                        unwrapped_data[key] = []
-                    unwrapped_data[key].append(value)
-
-            # Convert lists of numpy arrays to stacked numpy arrays
-            for key in unwrapped_data:
-                if isinstance(unwrapped_data[key][0], np.ndarray):
-                    unwrapped_data[key] = np.vstack(unwrapped_data[key])
-
-            return unwrapped_data
-
-        def __del__(self):
-            self._data = []
-
-        def __len__(self):
-            return len(self._data)
-        
-        def __str__(self):
-            return f"MjData({len(self)} steps captured)"
-        
-        def __repr__(self):
-            return self.__str__()
-
 
     def __init__(self, xml, *args, **kwargs):
-        def dae2stl(meshdir):
+        def convert_dae_to_stl(meshdir):
             for filename in os.listdir(meshdir):
                 if filename.lower().endswith('.dae'):
                     dae_path = os.path.join(meshdir, filename)
@@ -89,12 +32,11 @@ class MjWrapper(object):
                         print(f"Error converting {filename}: {str(e)}")
 
         try:
-            match xml.split('.')[-1]: # Get the file extension
+            match xml.split('.')[-1]:  # Get the file extension
                 case "xml":
                     self._model = mujoco.MjModel.from_xml_path(xml)
                     self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
                 case "urdf":
-
                     self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
                     
                     # Add MuJoCo tags inside the robot element
@@ -102,16 +44,16 @@ class MjWrapper(object):
                     robot = ET.parse(xml).getroot()
                     mujoco_tag = ET.Element("mujoco")
                     meshdir = kwargs.get('meshdir', "meshes/")
-                    compiler_tag = ET.SubElement(mujoco_tag, "compiler", meshdir=meshdir, balanceinertia=kwargs.get("balanceinertia","true"), discardvisual="false")
+                    ET.SubElement(mujoco_tag, "compiler", meshdir=meshdir, balanceinertia=kwargs.get("balanceinertia","true"), discardvisual="false")
                     robot.insert(0, mujoco_tag)
                     self.xml = ET.tostring(robot, encoding='unicode')
 
                     # Convert DAE files to STL files
-                    dae2stl(meshdir)
+                    convert_dae_to_stl(meshdir)
 
                     self._model = mujoco.MjModel.from_xml_path(xml)
 
-                case _: # Assume it's an XML string
+                case _:  # Assume it's an XML string
                     self._model = mujoco.MjModel.from_xml_string(xml)
                     self.xml = xml
 
@@ -132,13 +74,11 @@ class MjWrapper(object):
         # Auto-Populate the names of bodies, joints, and actuators
         self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
         self._geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
-        self._joint_names = [ self._model.joint(i).name for i in range(self._model.njnt)]
-        self._actuator_names = [ self._model.actuator(i).name for i in range(self._model.nu)]
+        self._joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
+        self._actuator_names = [self._model.actuator(i).name for i in range(self._model.nu)]
 
-        self._captured_data = self.MjData()
+        self._captured_data = _MjData()
         self._frames = []
-        self.ALL_CAPTURABLE_PARAMS = self._get_all_capturable_params(self._model)
-
 
     def __str__(self):
         return self._model.__str__()
@@ -218,11 +158,8 @@ class MjWrapper(object):
         if values[0] < 1 or values[1] < 1:
             raise ValueError("Resolution must be at least 1x1 pixels.")
         
-        root = tk.Tk()
-        root.withdraw()  # Hide the main window
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        root.destroy()
+        monitor = get_monitors()[0]
+        screen_width, screen_height = monitor.width, monitor.height
 
         for value in values:
             if value > screen_width or value > screen_height:
@@ -241,9 +178,10 @@ class MjWrapper(object):
     def initialConditions(self, values):
         if not isinstance(values, dict):
             raise ValueError("Initial conditions must be a dictionary.")
-        invalid_keys = [key for key in values.keys() if key not in self.ALL_CAPTURABLE_PARAMS]
+        invalid_keys = [key for key in values.keys() if not hasattr(self._data, key)]
         if invalid_keys:
-            print(f"Valid initial condition attributes: {', '.join(self.ALL_CAPTURABLE_PARAMS)}")
+            valid_keys = _MjData._get_public_keys(self._data)
+            print(f"Valid initial condition attributes: {', '.join(valid_keys)}")
             raise ValueError(f"Invalid initial condition attributes: {', '.join(invalid_keys)}")
         self._initialConditions = values
 
@@ -289,8 +227,8 @@ class MjWrapper(object):
     def _resetSimulation(self):
         mujoco.mj_resetData(self._model, self.data)
         self._setInitialConditions()
-        del self.frames
-        del self.captured_data
+        self._frames = []
+        self._captured_data = _MjData()
 
     @lru_cache(maxsize=100)
     def runSim(self, render=False, camera=None, data_rate=100):
@@ -310,8 +248,8 @@ class MjWrapper(object):
             self._resetSimulation()
             total_steps = int(self._duration / self.ts)
 
-            with tqdm(total=total_steps, desc="Running Simulation", unit="Frame",leave=False) as pbar, mujoco.Renderer(self._model, width=self._width, height=self._height) as renderer:        
-                # self._captureDataSnapshot() # capture @ time=0
+            with tqdm(total=total_steps, desc="Running Simulation", unit="Frame", leave=False) as pbar, \
+                mujoco.Renderer(self._model, width=self._width, height=self._height) as renderer:
                 while self.data.time < self._duration:
                     mujoco.mj_step(self._model, self.data)
                     
@@ -320,7 +258,7 @@ class MjWrapper(object):
                         self._captured_data.capture(self.data)
 
                     if len(self._frames) < self.data.time * self._fps and render:
-                        renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data,camera=camera)
+                        renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data, camera=camera)
                         self._frames.append(renderer.render())
 
                     pbar.update(1)
@@ -332,7 +270,6 @@ class MjWrapper(object):
                                 log_time = datetime.strptime(line.split()[0].strip(), "%Y-%m-%d %H:%M:%S")
                                 if log_time > datetime.strptime(sim_start_time, "%Y-%m-%d %H:%M:%S"):
                                     raise Exception(f"Simulation cancelled at {log_time}:\n{next(line)}")
-                        
 
             self._captured_data.unwrap()
 
@@ -466,7 +403,7 @@ class MjWrapper(object):
 
         try:
             # Convert simData's NumPy arrays or lists to a YAML-friendly format
-            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self._simData.items()}
+            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.captured_data.items()}
 
             with open(name, "w") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
@@ -577,3 +514,62 @@ class MjWrapper(object):
                         data.ctrl[j] = amplitude * np.random.rand()
             elif axis is not None:
                 data.qpos[axis] = amplitude * np.random.rand()
+    
+class _MjData(object):
+    """A class to store and manage simulation data."""
+    def __init__(self):
+        self._data = []
+
+    def capture(self, data):
+        """Capture MjData object and store all relevant simulation data at each simulation step."""
+        from . import CAPTURE_PARAMETERS
+        self._data.append(_MjData._copy_all_public(data) if CAPTURE_PARAMETERS == 'all' else _MjData._get_selected_keys(data, CAPTURE_PARAMETERS))
+
+    def unwrap(self):
+        """Unwrap the captured simulation data into a structured format."""
+        unwrapped_data = {}
+
+        for sim_data_dict in self._data:
+            for key, value in sim_data_dict.items():
+                if key not in unwrapped_data:
+                    unwrapped_data[key] = []
+                unwrapped_data[key].append(value)
+
+        # Convert lists of numpy arrays to stacked numpy arrays
+        for key in unwrapped_data:
+            if isinstance(unwrapped_data[key][0], np.ndarray):
+                unwrapped_data[key] = np.vstack(unwrapped_data[key])
+
+        return unwrapped_data
+
+    def __del__(self):
+        self._data = []
+
+    def __len__(self):
+        return len(self._data)
+    
+    def __str__(self):
+        return f"{self.__class__.__name__}({len(self)} steps captured)"
+    
+    def __repr__(self):
+        return self.__str__()
+    
+    @staticmethod
+    def _get_public_keys(obj):
+        """Get all public keys of an object."""
+        return [name for name in dir(obj) if not name.startswith('_') and not callable(getattr(obj, name))]
+    
+    @staticmethod
+    def _copy_all_public(obj):
+        """Copy all public attributes of an object."""
+        return {name: getattr(obj, name).copy() if hasattr(getattr(obj, name), "copy") else getattr(obj, name) for name in _MjData._get_public_keys(obj)}
+    
+    @staticmethod
+    def _get_selected_keys(data, keys):
+        """Get selected keys from the data object."""
+        return {key: getattr(data, key).copy() if hasattr(getattr(data, key), "copy") else getattr(data, key) for key in keys if hasattr(data, key)}
+    
+    # @staticmethod
+    # def _get_all_capturable_params(model):
+    #     """Get all capturable parameters of Mujoco MjData."""
+    #     return _MjData._get_public_keys(mujoco.MjData(model))
