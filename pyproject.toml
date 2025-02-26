@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel", "twine"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "MjWrapper"
+name = "mujoco-toolbox"
 version = "0.0.1"
 authors = [
     { name = "MGross21", email = "MGross21@TODO.com" }
@@ -22,9 +22,10 @@ dependencies = [
     "tqdm==4.67.1",
     "ipywidgets==8.1.5",
     "ffmpeg==1.4",
-    "trimesh==4.6.2"
+    "trimesh==4.6.2",
+    "screeninfo==0.8.1"
 ]
 
 [project.urls]
-homepage = "https://github.com/MGross21/MjWrapper"
-bug_tracker = "https://github.com/MGross21/MjWrapper/issues"
+homepage = "https://github.com/MGross21/mujoco-toolbox"
+bug_tracker = "https://github.com/MGross21/mujoco-toolbox/issues"

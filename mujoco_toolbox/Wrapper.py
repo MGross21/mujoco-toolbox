@@ -15,7 +15,7 @@ import sys
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
 
-class MjWrapper(object):
+class Wrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
 
     def __init__(self, xml, *args, **kwargs):
@@ -240,7 +240,7 @@ class MjWrapper(object):
             data_rate (int): How often to capture data, expressed as frames per second.
 
         Returns:
-            self: The current MjWrapper object for method chaining.
+            self: The current Wrapper object for method chaining.
         """
         try:
             sim_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -411,109 +411,6 @@ class MjWrapper(object):
             print(f"Simulation data saved to {name}")
         except Exception as e:
             print(f"Failed to save data to YAML: {e}")
-
-
-    ###########################
-    # Static Methods
-    ###########################
-
-    @staticmethod
-    def sineController(model,data,**kwargs):
-        """A simple sine wave controller for the simulation.
-
-        Args:
-            amplitude (float): The amplitude of the sine wave (default=1).
-            frequency (float): The frequency of the sine wave (default=1).
-            phase (float): The phase shift of the sine wave (default=0).
-            joint (list[int]): The joint to apply the sine wave to (default=all).
-            delay (float): The delay before applying the sine wave (default=0).
-
-        Returns:
-            None
-        """
-        amplitude = kwargs.get('amplitude', 1)
-        frequency = kwargs.get('frequency', 1)
-        phase = kwargs.get('phase', 0)
-        joint = kwargs.get('joint', None)
-        delay = kwargs.get('delay', 0)
-
-        if joint is None:
-            joint = range(model.nu)
-        if delay < 0:
-            raise ValueError("Delay must be non-negative.")
-        
-        if data.time < delay:
-            return
-        else:
-            for j in joint:
-                data.ctrl[j] = amplitude * np.sin(2 * np.pi * frequency * data.time + phase)
-
-    @staticmethod
-    def cosineController(model,data,**kwargs):
-        """A simple cosine wave controller for the simulation.
-
-        Args:
-            amplitude (float): The amplitude of the cosine wave (default=1).
-            frequency (float): The frequency of the cosine wave (default=1).
-            phase (float): The phase shift of the cosine wave (default=0).
-            joint (list[int]): The joint to apply the cosine wave to (default=all).
-            delay (float): The delay before applying the cosine wave (default=0).
-
-        Returns:
-            None
-        """
-        amplitude = kwargs.get('amplitude', 1)
-        frequency = kwargs.get('frequency', 1)
-        phase = kwargs.get('phase', 0)
-        joint = kwargs.get('joint', None)
-        delay = kwargs.get('delay', 0)
-
-        if joint is None:
-            joint = range(model.nu)
-        if delay < 0:
-            raise ValueError("Delay must be non-negative.")
-        
-        if data.time < delay:
-            return
-        else:
-            for j in joint:
-                data.ctrl[j] = amplitude * np.cos(2 * np.pi * frequency * data.time + phase)
-
-    @staticmethod
-    def randomController(model,data,**kwargs):
-        """A random controller for the simulation.
-
-        Args:
-            amplitude (float): The maximum amplitude of the random signal (default=1).
-            joint (list[int]): The joints to apply the random signal to (default=all).
-            axis (int): The axis to apply the random signal to (default=None).
-            delay (float): The delay before applying the random signal (default=0).
-
-        Returns:
-            None
-        """
-        amplitude = kwargs.get('amplitude', 1)
-        joint = kwargs.get('joint', None)
-        axis = kwargs.get('axis', None)
-        delay = kwargs.get('delay', 0)
-
-        if delay < 0:
-            raise ValueError("Delay must be non-negative.")
-        if joint is not None and axis is not None:
-            raise ValueError("Cannot specify both 'joint' and 'axis'.")
-        
-        if joint is None and axis is None:
-            joint = range(model.nu)
-        
-        if data.time < delay:
-            return
-        else:
-            if joint is not None:
-                for j in joint:
-                    if model.nu > 0:  # Check if there are actuators
-                        data.ctrl[j] = amplitude * np.random.rand()
-            elif axis is not None:
-                data.qpos[axis] = amplitude * np.random.rand()
     
 class _MjData(object):
     """A class to store and manage simulation data."""
