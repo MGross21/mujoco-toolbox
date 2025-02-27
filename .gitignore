@@ -11,3 +11,9 @@ __pycache__/
 # Other Output
 *.gif
 *.mp4
+
+# Environment
+mujoco-env/
+
+# Local Testing
+local_tests/
