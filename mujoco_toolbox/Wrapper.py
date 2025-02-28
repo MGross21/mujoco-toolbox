@@ -12,6 +12,8 @@ from screeninfo import get_monitors
 import trimesh
 import os
 import sys
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple, Union, Optional, Callable, Any
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -20,46 +22,7 @@ class Wrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
 
     def __init__(self, xml, *args, **kwargs):
-        def convert_dae_to_stl(meshdir):
-            for filename in os.listdir(meshdir):
-                if filename.lower().endswith('.dae'):
-                    dae_path = os.path.join(meshdir, filename)
-                    stl_path = os.path.splitext(dae_path)[0] + '.stl'
-                    
-                    try:
-                        trimesh.load(dae_path).export(stl_path)
-                        print(f"Converted: {filename}")
-                    except Exception as e:
-                        print(f"Error converting {filename}: {str(e)}")
-
-        try:
-            match xml.split('.')[-1]:  # Get the file extension
-                case "xml":
-                    self._model = mujoco.MjModel.from_xml_path(xml)
-                    self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
-                case "urdf":
-                    self.xml = ET.tostring(ET.parse(xml).getroot(), encoding='unicode')
-                    
-                    # Add MuJoCo tags inside the robot element
-                    # Documentation: https://mujoco.readthedocs.io/en/latest/XMLreference.html#compiler
-                    robot = ET.parse(xml).getroot()
-                    mujoco_tag = ET.Element("mujoco")
-                    meshdir = kwargs.get('meshdir', "meshes/")
-                    ET.SubElement(mujoco_tag, "compiler", meshdir=meshdir, balanceinertia=kwargs.get("balanceinertia","true"), discardvisual="false")
-                    robot.insert(0, mujoco_tag)
-                    self.xml = ET.tostring(robot, encoding='unicode')
-
-                    # Convert DAE files to STL files
-                    convert_dae_to_stl(meshdir)
-
-                    self._model = mujoco.MjModel.from_xml_path(xml)
-
-                case _:  # Assume it's an XML string
-                    self._model = mujoco.MjModel.from_xml_string(xml)
-                    self.xml = xml
-
-        except Exception as e:
-            raise ValueError(f"Failed to load the MuJoCo model. {e}")
+        self._load_model(xml, **kwargs)
 
         self._data = mujoco.MjData(self._model)
         self.duration = kwargs.get('duration', 10)
@@ -72,14 +35,105 @@ class Wrapper(object):
         self.ts = kwargs.get('ts', self._model.opt.timestep)
         self.gravity = kwargs.get('gravity', self._model.opt.gravity)
 
+        self._captured_data = _MjData()
+        self._frames = []
+
         # Auto-Populate the names of bodies, joints, and actuators
         self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
         self._geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
         self._joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
         self._actuator_names = [self._model.actuator(i).name for i in range(self._model.nu)]
 
-        self._captured_data = _MjData()
-        self._frames = []
+    def _load_model(self,xml,**kwargs):
+        """Load a MuJoCo model from an XML file or string.
+        
+        Args:
+            xml: Path to XML file or XML string
+            **kwargs: Additional options for model loading
+        """
+        try:
+            # Determine file type and load accordingly
+            if isinstance(xml, str):
+                if os.path.exists(xml):
+                    extension = os.path.splitext(xml)[1].lower()[1:]
+                    
+                    if extension == "xml":
+                        self._model = mujoco.MjModel.from_xml_path(xml)
+                        with open(xml, 'r') as f:
+                            self.xml = f.read()
+                    elif extension == "urdf":
+                        # Process URDF file
+                        self._process_urdf(xml, **kwargs)
+                    else:
+                        # Try loading as XML string
+                        self._model = mujoco.MjModel.from_xml_string(xml)
+                        self.xml = xml
+                else:
+                    # Try loading as XML string
+                    self._model = mujoco.MjModel.from_xml_string(xml)
+                    self.xml = xml
+            else:
+                raise TypeError("Expected file path or XML string")
+
+        except Exception as e:
+            raise ValueError(f"Failed to load the MuJoCo model: {e}")
+    
+    def _process_urdf(self, urdf_path, **kwargs):
+        """Process a URDF file for use with MuJoCo.
+        
+        Args:
+            urdf_path: Path to the URDF file
+            **kwargs: Additional options for URDF processing
+        """
+        def convert_dae_to_stl(meshdir):
+            """Convert Collada (.dae) files to STL format.
+            
+            Args:
+                meshdir: Directory containing mesh files
+            """
+            if not os.path.exists(meshdir):
+                raise FileNotFoundError(f"Directory not found: {meshdir}")
+                
+            for filename in os.listdir(meshdir):
+                if filename.lower().endswith('.dae'):
+                    dae_path = os.path.join(meshdir, filename)
+                    stl_path = os.path.splitext(dae_path)[0] + '.stl'
+                    
+                    try:
+                        trimesh.load(dae_path).export(stl_path)
+                        print(f"Converted: {filename}")
+                    except Exception as e:
+                        raise ValueError(f"Error converting {filename}: {str(e)}")
+            
+        try:
+            # Load and modify the URDF file
+            robot = ET.parse(urdf_path).getroot()
+            
+            # Add MuJoCo-specific tags
+            mujoco_tag = ET.Element("mujoco")
+            meshdir = kwargs.get('meshdir', "meshes/")
+            
+            # Add MuJoCo tags inside the robot element
+            # Documentation: https://mujoco.readthedocs.io/en/latest/XMLreference.html#compiler
+            compiler_attrs = {
+                'meshdir': meshdir,
+                'balanceinertia': kwargs.get("balanceinertia", "true"),
+                'discardvisual': "false"
+            }
+            ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
+            
+            # Insert at the beginning
+            robot.insert(0, mujoco_tag)
+            self.xml = ET.tostring(robot, encoding='unicode')
+            
+            # Convert mesh files if needed
+            convert_dae_to_stl(meshdir)
+            
+            # Load the model
+            self._model = mujoco.MjModel.from_xml_string(self.xml)
+            
+        except Exception as e:
+            raise ValueError(f"Failed to process URDF file: {e}")
 
     def __str__(self):
         return self._model.__str__()
@@ -90,25 +144,32 @@ class Wrapper(object):
             f"  Duration: {self.duration} [fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
             f"  Resolution: {self._width}x{self._height}\n"
-            f"  Bodies ({self.model.nbody}): {', '.join(self._body_names)}\n"
-            f"  Joints ({self.model.njnt}): {', '.join(self._joint_names)}\n"
-            f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names)}\n"
-            f"  Initial Conditions: {self.initialConditions}\n"
-            f"  Controller: {self.controller}\n" # Returns str name of the function
+            f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}{' ...' if len(self._body_names) > 5 else ''}\n"
+            f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}{' ...' if len(self._joint_names) > 5 else ''}\n"
+            f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}{' ...' if len(self._actuator_names) > 5 else ''}\n"
+            f"  Controller: {self.controller.__name__}\n" # Returns str name of the function
             f")"
         )
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        mujoco.set_mjcb_control(None)
+        return
 
     @property
-    def model(self):
+    def model(self) -> mujoco.MjModel:
+        """Read-only property to access the MjModel object."""
         return self._model
     
     @property
-    def data(self):
+    def data(self) -> mujoco.MjData:
         """Read-only property to access the MjData single-step object."""
         return self._data
 
     @property
-    def captured_data(self):
+    def captured_data(self)->Dict[str, np.ndarray]:
         """Read-only property to access the entire captured simulation data."""
         if self._captured_data is None:
             raise ValueError("No simulation data captured yet.")
@@ -119,7 +180,8 @@ class Wrapper(object):
         del self._captured_data
 
     @property
-    def frames(self):
+    def frames(self)->List[np.ndarray]:
+        """Read-only property to access the captured frames."""
         if self._frames is None:
             raise ValueError("No frames captured yet.")
         return self._frames
@@ -129,27 +191,27 @@ class Wrapper(object):
         self._frames = []
     
     @property
-    def duration(self):
+    def duration(self)->float:
         return self._duration
 
     @duration.setter
     def duration(self, value):
-        if value < 1:
-            raise ValueError("Duration must be at least 1 second.")
+        if value < 0:
+            raise ValueError("Duration must be greater than zero.")
         self._duration = value
 
     @property
-    def fps(self):
+    def fps(self)->float:
         return self._fps
     
     @fps.setter
     def fps(self, value):
-        if value < 1:
-            raise ValueError("FPS must be at least 1.")
+        if value < 0:
+            raise ValueError("FPS must be greater than zero.")
         self._fps = value
 
     @property
-    def resolution(self):
+    def resolution(self)->Tuple[int, int]:
         return self._resolution
     
     @resolution.setter
@@ -187,9 +249,9 @@ class Wrapper(object):
         self._initialConditions = values
 
     @property
-    def controller(self)->str:
-        """Controller Function Name"""
-        return self._controller.__name__ if self._controller else None
+    def controller(self)->callable:
+        """Controller Function"""
+        return self._controller
     
     @controller.setter
     def controller(self, func: callable):
@@ -231,7 +293,6 @@ class Wrapper(object):
         self._frames = []
         self._captured_data = _MjData()
 
-    @lru_cache(maxsize=100)
     def runSim(self, render=False, camera=None, data_rate=100):
         """Run the simulation with optional rendering and controlled data capture.
 
@@ -306,12 +367,20 @@ class Wrapper(object):
         Returns:
             None
         """
-        if self._frames:
-            if frame != 0 and t != 0:
-                print("Can only specify singular time or frame parameter")
-                return
-            
-            elif t > 0:
+        if not self._frames:
+            raise ValueError("No frames captured to render.")
+            return
+        
+        if t < 0 or frame < 0:
+            raise ValueError("Time and frame index must be greater than or equal to zero.")
+            return
+        
+        if frame != 0 and t != 0:
+            raise ValueError("Can only specify singular time or frame parameter")
+            return
+        
+        try: 
+            if t > 0:
                 frame = self.t2f(t)  # Convert time to frame index
             else:
                 frame = int(frame)
@@ -320,8 +389,8 @@ class Wrapper(object):
             plt.axis('off')
             plt.title(title or f"Frame {frame}", loc='center')
             plt.show()
-        else:
-            print("No frames captured to render.")
+        except Exception as e:
+            raise ValueError(f"Failed to render frame: {e}")
 
     def renderMedia(self, codec="gif", title=None, save=False)->media:
         """Render the simulation as a video or GIF, with an option to save to a file.
@@ -332,44 +401,38 @@ class Wrapper(object):
             save (bool): Whether to save the media to a file.
         """
         if not self._frames:
-            print("No frames captured to create media.")
+            raise ValueError("No frames captured to create media.")
+            return
+        # Display the media in a window
+        if not save:
+            media.show_video(self._frames, fps=self._fps, width=self._width, height=self._height, codec=codec, title=title)
             return
 
-        if save:
-            # Validate and append file extension if missing
-            if not title:
-                print("Error: Title must be specified when saving media.")
-                return
-            if not title.endswith(f".{codec}"):
-                title += f".{codec}"
+        if not title.endswith(f".{codec}"):
+            title += f".{codec}"
 
-            # Save the frames to the specified file
-            if codec == "gif":
-                media.write_video(title, self._frames, fps=self._fps, codec=codec)
-            elif codec == "mp4":
-                media.write_video(title, self._frames, fps=self._fps)
-            else:
-                print(f"Error: Unsupported codec '{codec}'. Supported codecs are 'gif' and 'mp4'.")
-                return
-            print(f"Media saved to {title}")
+        # Save the frames to the specified file
+        available_codecs = ['gif', 'mp4', 'h264', 'hevc', 'vp9']
+        if codec in available_codecs:
+            media.write_video(title if not None else "render", self._frames, fps=self._fps, codec=codec)
         else:
-            # Show the media in a window
-            media.show_video(self._frames, fps=self._fps, width=self._width, height=self._height, codec=codec, title=title)
+            raise ValueError(f"Unsupported codec '{codec}'. Supported codecs are {', '.join(available_codecs)}")
+        print(f"Media saved to {title}")
 
     @lru_cache(maxsize=100)
-    def t2f(self, t):
+    def t2f(self, t:float)->int:
         """Dynamically converts time-scale into frame-scale
 
         Args:
             t (float): Time in seconds.
 
         Returns:
-            int: Corresponding frame index.
+            frame (int): Corresponding frame index.
         """
         total_frames = int(self._duration * self._fps)
         return min(int(t * self._fps), total_frames - 1)
     
-    def getBodyData(self, body_name:str, data_name=None)->np.ndarray:
+    def getBodyData(self, body_name:str, data_name:str=None)->np.ndarray:
         """Get the data for a specific body in the simulation.
 
         Args:
