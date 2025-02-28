@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import yaml
 import numpy as np
 import xml.etree.ElementTree as ET
-from tqdm.notebook import tqdm
+from tqdm import tqdm as barTerminal
+from tqdm.notebook import tqdm as barNotebook
 from datetime import datetime
 from screeninfo import get_monitors
 import trimesh
@@ -248,22 +249,34 @@ class Wrapper(object):
             self._resetSimulation()
             total_steps = int(self._duration / self.ts)
 
-            with tqdm(total=total_steps, desc="Running Simulation", unit="Frame", leave=False) as pbar, \
-                mujoco.Renderer(self._model, width=self._width, height=self._height) as renderer:
+            # Cache frequently used functions and objects for performance
+            mj_step = mujoco.mj_step
+            m = self._model
+            d = self._data
+
+            renderer = mujoco.Renderer(self._model, width=self._width, height=self._height) if render else None
+
+            import __main__ as main
+            if hasattr(main, '__file__'):
+                PBar = barTerminal
+            else:
+                PBar = barNotebook
+
+            with PBar(total=total_steps, desc="Running Simulation", unit="Step", leave=False) as pbar:
                 while self.data.time < self._duration:
-                    mujoco.mj_step(self._model, self.data)
+                    mj_step(m,d)
                     
                     # Capture data at the specified rate
                     if len(self._captured_data._data) < self.data.time * data_rate:
-                        self._captured_data.capture(self.data)
+                        self._captured_data.capture(d)
 
                     if len(self._frames) < self.data.time * self._fps and render:
-                        renderer.update_scene(self.data) if camera is None else renderer.update_scene(self.data, camera=camera)
-                        self._frames.append(renderer.render())
+                        renderer.update_scene(d) if camera is None else renderer.update_scene(d, camera)
+                        self._frames.append(renderer.render().copy())
 
                     pbar.update(1)
 
-                    if os.path.exists("MUJOCO_LOG.TXT"):
+                    if os.path.exists("MUJOCO_LOG.TXT") and pbar.n % 100 == 0:
                         with open("MUJOCO_LOG.TXT", "r") as f:
                             log_lines = f.readlines()
                             for line in log_lines:
@@ -272,6 +285,8 @@ class Wrapper(object):
                                     raise Exception(f"Simulation cancelled at {log_time}:\n{next(line)}")
 
             self._captured_data.unwrap()
+            if render:
+                del renderer
 
         except Exception as e:
             print(f"Simulation error: {e}")
