@@ -13,17 +13,17 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 dependencies = [
-    "mujoco==3.2.7",
-    "numpy==2.2.3",
-    "scipy==1.15.2",
-    "matplotlib==3.9.2",
-    "pyyaml==6.0.2",
-    "mediapy==1.2.2",
-    "tqdm==4.67.1",
-    "ipywidgets==8.1.5",
-    "ffmpeg==1.4",
-    "trimesh==4.6.2",
-    "screeninfo==0.8.1"
+    "mujoco",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pyyaml",
+    "mediapy",
+    "tqdm",
+    "ipywidgets",
+    "ffmpeg",
+    "trimesh",
+    "screeninfo"
 ]
 
 [project.urls]
