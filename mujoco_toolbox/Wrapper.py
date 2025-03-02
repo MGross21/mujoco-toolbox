@@ -354,7 +354,7 @@ class Wrapper(object):
 
         return self
 
-    def renderFrame(self, t=0, frame=0, title=None):
+    def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.
 
         Args:
@@ -416,7 +416,10 @@ class Wrapper(object):
             media.write_video(title if not None else "render", self._frames, fps=self._fps, codec=codec)
         else:
             raise ValueError(f"Unsupported codec '{codec}'. Supported codecs are {', '.join(available_codecs)}")
-        print(f"Media saved to {title}")
+        
+        path = os.path.abspath(title)
+        print(f"Media saved to {path}")
+        return path
 
     @lru_cache(maxsize=100)
     def t2f(self, t:float)->int:
