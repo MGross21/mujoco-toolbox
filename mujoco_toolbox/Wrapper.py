@@ -126,7 +126,7 @@ class Wrapper(object):
 
     def __repr__(self):
         return (
-            f"MujocoHandler(\n"
+            f"{self.__class__.__name__}(\n"
             f"  Duration: {self.duration} [fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
             f"  Resolution: {self._width}x{self._height}\n"
