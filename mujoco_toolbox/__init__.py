@@ -26,6 +26,7 @@ This package is still under development. Report any issues to https://github.com
 
 from .Wrapper import Wrapper
 from .Controller import sineController, cosineController, randomController, stepController
+from .Utils import print_warning
 import os
 
 __version__ = "0.0.1"
@@ -48,4 +49,4 @@ CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'x
 VERBOSITY = True
 
 if VERBOSITY:
-    print(f"WARNING: {__package__} ({__version__}) is still under development. Report any issues to https://github.com/MGross21/{__github_repo__}/issues")
+    print_warning(f"{__package__} ({__version__}) is still under development.",f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues")

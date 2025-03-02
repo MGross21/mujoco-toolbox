@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Union, Optional, Callable, Any
 
-from .Utils import timer
+from .Utils import timer, print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -36,8 +36,6 @@ class Wrapper(object):
         self.gravity = kwargs.get('gravity', self._model.opt.gravity)
 
         self._data = mujoco.MjData(self._model)
-        self._captured_data = _MjData()
-        self._frames = []
 
         # Auto-Populate the names of bodies, joints, and actuators
         self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
@@ -163,7 +161,7 @@ class Wrapper(object):
     
     @captured_data.deleter
     def captured_data(self):
-        del self._captured_data
+        self._captured_data = None
 
     @property
     def frames(self)->List[np.ndarray]:
@@ -231,7 +229,7 @@ class Wrapper(object):
             raise ValueError("Initial conditions must be a dictionary.")
         invalid_keys = [key for key in values.keys() if not hasattr(mujoco.MjData(self._model), key)]
         if invalid_keys:
-            valid_keys = _MjData._get_public_keys(self._data)
+            valid_keys = SimulationData._get_public_keys(self._data)
             print(f"Valid initial condition attributes: {', '.join(valid_keys)}")
             raise ValueError(f"Invalid initial condition attributes: {', '.join(invalid_keys)}")
         self._initcond = values
@@ -273,13 +271,13 @@ class Wrapper(object):
             if hasattr(self._data, key):
                 setattr(self._data, key, value)
             else:
-                print(f"Warning: '{key}' is not a valid attribute of MjData.")
+                print_warning(f"'{key}' is not a valid attribute of MjData.")
 
     def _resetSimulation(self):
         mujoco.mj_resetData(self._model, self._data)
         self._setInitialConditions()
         self._frames = []
-        self._captured_data = _MjData()
+        self._captured_data = SimulationData()
 
     @timer
     def runSim(self, render=False, camera=None, data_rate=100, multi_thread=False):
@@ -303,9 +301,8 @@ class Wrapper(object):
             m = self._model
             d = self._data
             capture_rate = data_rate * self.ts
+            capture_interval = max(1, int(1.0 / capture_rate))
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
-
-            renderer = mujoco.Renderer(self._model, width=self._width, height=self._height) if render else None
 
             import __main__ as main
             if hasattr(main, '__file__'):
@@ -317,13 +314,14 @@ class Wrapper(object):
                num_threads =  os.cpu_count()
                # TODO: Implement multi-threading
 
-            with PBar(total=total_steps, desc="Simulation", unit=" step", leave=False) as pbar:
+            with PBar(total=total_steps, desc="Simulation", unit=" step", leave=False) as pbar,\
+                mujoco.Renderer(self._model, self._height, self._width) as renderer:
                 step = 0
                 while d.time < self._duration:
                     mj_step(m,d)
                     
                     # Capture data at the specified rate
-                    if step % capture_rate == 0:
+                    if step % capture_interval == 0:
                         self._captured_data.capture(d)
 
                     if render and step % render_interval == 0:
@@ -336,14 +334,10 @@ class Wrapper(object):
                     # if verbose:
                     #     for warning in mujoco.mjtWarning:
                     #         if d.warning[warning].number > 0:
-                    #             print(f"MuJoCo Warning: {warning.name} - {d.warning[warning].number} occurrences")
+                    #             print_warning(f"{warning.name} - {d.warning[warning].number} occurrences")
                     # else:
                     #     if any(d.warning[warning].number > 0 for warning in mujoco.mjtWarning):
-                    #         print("MuJoCo Warning: Please check MUJOCO_LOG.txt for more details.")
-
-            self._captured_data.unwrap()
-            if render:
-                del renderer
+                    #         print_warning("Please check MUJOCO_LOG.txt for more details.")
 
         except Exception as e:
             print(f"Simulation error: {e}")
@@ -484,41 +478,81 @@ class Wrapper(object):
         except Exception as e:
             print(f"Failed to save data to YAML: {e}")
     
-class _MjData(object):
+from collections import defaultdict
+class SimulationData(object):
     """A class to store and manage simulation data."""
     def __init__(self):
-        self._data = []
-
-    def capture(self, data):
-        """Capture MjData object and store all relevant simulation data at each simulation step."""
-        from . import CAPTURE_PARAMETERS
-        self._data.append(_MjData._copy_all_public(data) if CAPTURE_PARAMETERS == 'all' else _MjData._get_selected_keys(data, CAPTURE_PARAMETERS))
-
-    def unwrap(self):
-        """Unwrap the captured simulation data into a structured format."""
+        self._d = defaultdict(list)
+        
+    def capture(self, mj_data: mujoco.MjData):
+        """Capture data from MjData object, storing specified or all public simulation data."""
+        from . import CAPTURE_PARAMETERS  # Import here to avoid circular dependency
+        if CAPTURE_PARAMETERS == 'all':
+            keys = self._get_public_keys(mj_data)
+        else:
+            keys = CAPTURE_PARAMETERS  # Use the provided keys directly
+            
+        for key in keys:
+            try:
+                value = getattr(mj_data, key)
+                # Check if value is a numpy array and copy if needed
+                if isinstance(value, np.ndarray):
+                    self._d[key].append(value.copy())
+                elif hasattr(value, 'copy') and callable(value.copy):
+                    # Copy if it has a copy method (e.g., MuJoCo's MjArray)
+                    self._d[key].append(value.copy())
+                else:
+                    # Otherwise, append the value directly (e.g., scalar values)
+                    self._d[key].append(value)
+            except AttributeError:
+                print_warning(f"Key '{key}' not found in MjData. Skipping.")
+            except Exception as e:
+                print(f"An error occurred while capturing '{key}': {e}")
+                
+    def unwrap(self) -> Dict[str, np.ndarray]:
+        """Unwrap the captured simulation data into a structured format with NumPy arrays."""
         unwrapped_data = {}
-
-        for sim_data_dict in self._data:
-            for key, value in sim_data_dict.items():
-                if key not in unwrapped_data:
-                    unwrapped_data[key] = []
-                unwrapped_data[key].append(value)
-
-        # Convert lists of numpy arrays to stacked numpy arrays
-        array_keys = [k for k, v in unwrapped_data.items() if isinstance(v[0], np.ndarray)]
-        for key in array_keys:
-            unwrapped_data[key] = np.vstack(unwrapped_data[key])
-
+        
+        for key, value_list in self._d.items():
+            if not value_list:  # Skip empty lists
+                unwrapped_data[key] = np.array([])
+                continue
+                
+            try:
+                # Check if all items in the list have the same shape for array data
+                if isinstance(value_list[0], np.ndarray):
+                    # Check if arrays have consistent shapes
+                    shapes = [arr.shape for arr in value_list]
+                    if all(shape == shapes[0] for shape in shapes):
+                        unwrapped_data[key] = np.stack(value_list)
+                    else:
+                        # For arrays with different shapes, keep as a list
+                        unwrapped_data[key] = value_list
+                else:
+                    # Convert to a NumPy array if it's a list of scalars
+                    unwrapped_data[key] = np.array(value_list)
+            except ValueError as e:
+                print(f"ValueError while unwrapping key '{key}': {e}. Keeping as list.")
+                unwrapped_data[key] = value_list  # Store as a list if conversion fails
+            except Exception as e:
+                print(f"Error processing key '{key}': {e}")
+                unwrapped_data[key] = value_list
+                
         return unwrapped_data
-
+        
     def __del__(self):
-        self._data = []
-
+        self._d.clear()
+        import gc
+        gc.collect()
+        
     def __len__(self):
-        return len(self._data)
+        if not self._d:
+            return 0
+        # Return the length of one of the data lists (assuming all have same length)
+        return len(next(iter(self._d.values())))
     
     def __str__(self):
-        return f"{self.__class__.__name__}({len(self)} steps captured)"
+        return f"{self.__class__.__name__}({len(self)} Step(s) Captured)"
     
     def __repr__(self):
         return self.__str__()
@@ -527,18 +561,3 @@ class _MjData(object):
     def _get_public_keys(obj):
         """Get all public keys of an object."""
         return [name for name in dir(obj) if not name.startswith('_') and not callable(getattr(obj, name))]
-    
-    @staticmethod
-    def _copy_all_public(obj):
-        """Copy all public attributes of an object."""
-        return {name: getattr(obj, name).copy() if hasattr(getattr(obj, name), "copy") else getattr(obj, name) for name in _MjData._get_public_keys(obj)}
-    
-    @staticmethod
-    def _get_selected_keys(data, keys):
-        """Get selected keys from the data object."""
-        return {key: getattr(data, key).copy() if hasattr(getattr(data, key), "copy") else getattr(data, key) for key in keys if hasattr(data, key)}
-    
-    # @staticmethod
-    # def _get_all_capturable_params(model):
-    #     """Get all capturable parameters of Mujoco MjData."""
-    #     return _MjData._get_public_keys(mujoco.MjData(model))
