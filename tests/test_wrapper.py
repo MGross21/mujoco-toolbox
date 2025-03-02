@@ -5,7 +5,7 @@ import os
 def test_wrapper():
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
 
-    model = os.path.join(os.getcwd(), "models", "box_and_leg.xml")
+    model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
 
     mjtb.VERBOSITY = True
   
