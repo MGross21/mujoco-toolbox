@@ -31,7 +31,6 @@ import os
 
 __version__ = "0.0.1"
 __author__ = "Michael Gross"
-__package__ = "mujoco_toolbox"
 __github_repo__ = "mujoco-toolbox"
 __license__ =  "MIT"
 __status__ = "Development"
@@ -46,7 +45,7 @@ __all__ = [ 'Wrapper',
 
 CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata'] # MjData default fields to capture during simulation
 
-VERBOSITY = True
+VERBOSITY = False
 
-if VERBOSITY:
+if True:
     print_warning(f"{__package__} ({__version__}) is still under development.",f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues")

@@ -550,7 +550,29 @@ class SimulationData(object):
                 unwrapped_data[key] = value_list
                 
         return unwrapped_data
+    
+    @property
+    def shape(self):
+        """TODO: Implement a method to return the shape of the captured data."""
+        if not self._d:
+            return None
         
+        self.unwrap()  # Ensure data is unwrapped before checking shape
+
+        for key, value in self._d.items():
+            try:
+                if isinstance(value, np.ndarray):
+                    print(f"{key}: {value.shape}")
+                elif isinstance(value, list):
+                    print(f"{key}: {len(value)}")
+                elif isinstance(value, dict):
+                    print(f"{key}: {len(value)}")
+                else:  # Handle any other types
+                    print(f"{key}: {type(value)}")
+
+            except Exception as e:
+                pass
+
     def __del__(self):
         self._d.clear()
         import gc
