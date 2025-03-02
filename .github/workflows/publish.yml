@@ -20,6 +20,15 @@ jobs:
         with:
           python-version: "3.10"
 
+      # Cache Python dependencies
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       # Install build tools
       - name: Install build tools
         run: |
@@ -34,11 +43,18 @@ jobs:
       # Run tests
       - name: Run tests
         run: |
-          python -m unittest discover tests
+          pytest tests/ --maxfail=1 --disable-warnings -q
 
       # Build the package
       - name: Build package
         run: python -m build
+
+      # Save build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist/
 
       # Publish to PyPI
       - name: Publish to PyPI
