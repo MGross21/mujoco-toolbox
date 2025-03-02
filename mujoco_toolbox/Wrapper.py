@@ -256,6 +256,12 @@ class Wrapper(object):
         self._model.opt.timestep = value
 
     @property
+    def data_rate(self):
+        if self._dr is None:
+            raise ValueError(f"Use '{self.runSim.__name__}' first in order to access this value.")
+        return self._dr
+
+    @property
     def gravity(self):
         return self._model.opt.gravity
     
@@ -300,6 +306,8 @@ class Wrapper(object):
             mj_step = mujoco.mj_step
             m = self._model
             d = self._data
+
+            self._dr = data_rate
             capture_rate = data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
