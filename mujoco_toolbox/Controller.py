@@ -1,4 +1,4 @@
-import numpy as np
+from numpy import sin, cos, pi, random
 
 def sineController(model,data,**kwargs):
     """A simple sine wave controller for the simulation.
@@ -28,7 +28,7 @@ def sineController(model,data,**kwargs):
         return
     else:
         for j in joint:
-            data.ctrl[j] = amplitude * np.sin(2 * np.pi * frequency * data.time + phase)
+            data.ctrl[j] = amplitude * sin(2 * pi * frequency * data.time + phase)
 
 
 def cosineController(model,data,**kwargs):
@@ -59,7 +59,7 @@ def cosineController(model,data,**kwargs):
         return
     else:
         for j in joint:
-            data.ctrl[j] = amplitude * np.cos(2 * np.pi * frequency * data.time + phase)
+            data.ctrl[j] = amplitude * cos(2 * pi * frequency * data.time + phase)
 
 def randomController(model,data,**kwargs):
     """A random controller for the simulation.
@@ -92,6 +92,6 @@ def randomController(model,data,**kwargs):
         if joint is not None:
             for j in joint:
                 if model.nu > 0:  # Check if there are actuators
-                    data.ctrl[j] = amplitude * np.random.rand()
+                    data.ctrl[j] = amplitude * random.rand()
         elif axis is not None:
-            data.qpos[axis] = amplitude * np.random.rand()
+            data.qpos[axis] = amplitude * random.rand()

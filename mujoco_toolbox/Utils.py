@@ -1,12 +1,12 @@
-import time
+from time import time
 from functools import wraps
 
 def timer(func):
     @wraps(func)
     def time_wrapper(*args, **kwargs):
-        start_time = time.time()
+        start_time = time()
         result = func(*args, **kwargs)
-        end_time = time.time()
+        end_time = time()
         total_time = end_time - start_time
 
         from . import VERBOSITY
