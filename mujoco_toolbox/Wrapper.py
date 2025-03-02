@@ -207,8 +207,12 @@ class Wrapper(object):
         if values[0] < 1 or values[1] < 1:
             raise ValueError("Resolution must be at least 1x1 pixels.")
         
-        monitor = get_monitors()[0]
-        screen_width, screen_height = monitor.width, monitor.height
+        try:
+            monitor = get_monitors()[0]
+            screen_width, screen_height = monitor.width, monitor.height
+        except Exception as e:
+            screen_width, screen_height = 1920, 1080
+            print_warning(f"Failed to get screen resolution: {e}. Defaulting to 1920x1080.")
 
         if values[0] > screen_width or values[1] > screen_height:
             raise ValueError("Resolution must be less than the screen resolution.")
