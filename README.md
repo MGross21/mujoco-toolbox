@@ -9,6 +9,40 @@ git clone https://github.com/MGross21/mujoco-toolbox
 pip install -e ./mujoco-toolbox/
 ```
 
+## Installation Help
+
+### FFMPEG
+
+Required for mediapy dependency
+
+#### Windows
+
+```bash
+winget install ffmpeg
+ffmpeg -version
+```
+
+#### Linux
+
+```bash
+sudo apt update && sudo apt install ffmpeg
+ffmpeg -version
+```
+
+#### MacOS
+
+Using Homebrew:
+```bash
+brew install ffmpeg
+ffmpeg -version
+```
+
+Using MacPorts:
+```bash
+sudo port install ffmpeg
+ffmpeg -version
+```
+
 ## To Run in Scripts
 
 ```python
