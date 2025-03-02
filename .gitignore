@@ -1,6 +1,7 @@
 # Ignore Folder/Extensions:
 __pycache__/
 *.pyc
+build/
 
 # Mujoco Logs
 *log*
@@ -13,7 +14,7 @@ __pycache__/
 *.mp4
 
 # Environment
-mujoco-env/
+*env/
 *.egg-info
 
 # Local Testing
