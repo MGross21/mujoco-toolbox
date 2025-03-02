@@ -11,6 +11,6 @@ def timer(func):
 
         from . import VERBOSITY
         if VERBOSITY:
-            print(f"Function {func.__name__} took {total_time:.4f} seconds")
+            print(f"Function '{func.__name__}' took {total_time:.4f} seconds")
         return result
     return time_wrapper
