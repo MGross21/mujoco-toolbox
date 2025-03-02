@@ -8,7 +8,7 @@ version = "0.0.1"
 authors = [
     { name = "MGross21", email = "MGross21@TODO.com" }
 ]
-description = "A modern package to handle Mujoco environments"
+description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
