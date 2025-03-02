@@ -25,7 +25,7 @@ This package is still under development. Report any issues to https://github.com
 """
 
 from .Wrapper import Wrapper
-from .Controller import sineController, cosineController, randomController
+from .Controller import sineController, cosineController, randomController, stepController
 import os
 
 __version__ = "0.0.1"
