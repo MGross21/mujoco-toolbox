@@ -30,6 +30,10 @@ import os
 
 __version__ = "0.0.1"
 __author__ = "Michael Gross"
+__package__ = "mujoco_toolbox"
+__github_repo__ = "mujoco-toolbox"
+__license__ =  "MIT"
+__status__ = "Development"
 
 # `from mujoco_toolbox import *` will import these objects
 __all__ = [ 'Wrapper',
@@ -44,5 +48,4 @@ CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'x
 VERBOSITY = True
 
 if VERBOSITY:
-    package_name = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
-    print(f"WARNING: {package_name} ({__version__}) is still under development. Report any issues to https://github.com/MGross21/{package_name}/issues")
+    print(f"WARNING: {__package__} ({__version__}) is still under development. Report any issues to https://github.com/MGross21/{__github_repo__}/issues")
