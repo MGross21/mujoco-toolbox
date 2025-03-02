@@ -32,12 +32,14 @@ ffmpeg -version
 #### MacOS
 
 Using Homebrew:
+
 ```bash
 brew install ffmpeg
 ffmpeg -version
 ```
 
 Using MacPorts:
+
 ```bash
 sudo port install ffmpeg
 ffmpeg -version
