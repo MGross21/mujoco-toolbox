@@ -32,3 +32,6 @@ bug_tracker = "https://github.com/MGross21/mujoco-toolbox/issues"
 
 [tool.setuptools]
 packages = ["mujoco_toolbox"]  # Explicitly include only mujoco_toolbox
+
+[tool.poetry.dependencies]
+python = ">=3.10"
