@@ -1,5 +1,7 @@
 [![Python 3.10](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg?branch=main&event=push&matrix=python-version=3.10)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml)  [![Python 3.11](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg?branch=main&event=push&matrix=python-version=3.11)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml)    [![Python 3.12](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg?branch=main&event=push&matrix=python-version=3.12)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml)  [![Python 3.13](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg?branch=main&event=push&matrix=python-version=3.13)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml)
 
+[![PyPI](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml)
+
 # Streamlines the MuJoCo Physics Simulator
 
 ## For Local Install

@@ -44,8 +44,13 @@ jobs:
     - name: System Level Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg
+        sudo apt install -y libosmesa6-dev xvfb libglew-dev patchelf ffmpeg
         ffmpeg -version
+    
+    - name: Set environment variables for Mujoco headless mode
+      run: |
+        echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
+        echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
     - name: Run tests from 'tests/' directory
       run: |

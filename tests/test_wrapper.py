@@ -5,8 +5,6 @@ import os
 def test_wrapper():
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
 
-    os.environ["MUJOCO_GL"] = "osmesa"  # Ensure offscreen rendering for GitHub Actions
-
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
 
     mjtb.VERBOSITY = True
