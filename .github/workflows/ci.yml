@@ -40,6 +40,12 @@ jobs:
         poetry install
         pip install pytest
         pip install . --no-cache-dir
+    
+    - name: System Level Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+        ffmpeg -version
 
     - name: Run tests from 'tests/' directory
       run: |
