@@ -1,6 +1,7 @@
 # Ignore Folder/Extensions:
 __pycache__/
 *.pyc
+build/
 
 # Mujoco Logs
 *log*
@@ -11,3 +12,10 @@ __pycache__/
 # Other Output
 *.gif
 *.mp4
+
+# Environment
+*env/
+*.egg-info
+
+# Local Testing
+local_tests/
