@@ -1,17 +1,16 @@
 [build-system]
-requires = ["setuptools", "wheel", "twine"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "mujoco-toolbox"
 version = "0.0.1"
+description = "A modern package to handle MuJoCo environments"
+readme = "README.md"
+license = { text = "MIT" }
 authors = [
     { name = "MGross21", email = "MGross21@TODO.com" }
 ]
-description = "A modern package to handle MuJoCo environments"
-readme = "README.md"
-license = {text = "MIT"}
-requires-python = ">=3.10"
 dependencies = [
     "mujoco",
     "numpy",
@@ -25,13 +24,70 @@ dependencies = [
     "trimesh",
     "screeninfo"
 ]
+requires-python = ">=3.10"
+keywords = ["MuJoCo", "robotics", "simulation", "toolbox", "wrapper"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy"
+]
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
-bug_tracker = "https://github.com/MGross21/mujoco-toolbox/issues"
+repository = "https://github.com/MGross21/mujoco-toolbox"
+documentation = "https://github.com/MGross21/mujoco-toolbox"
+bug-tracker = "https://github.com/MGross21/mujoco-toolbox/issues"
 
-[tool.setuptools]
-packages = ["mujoco_toolbox"]  # Explicitly include only mujoco_toolbox
+[tool.poetry]
+packages = [{ include = "mujoco_toolbox" }]
 
-[tool.poetry.dependencies]
-python = ">=3.10"
+[tool.semantic-release]
+version_variable = [
+    "pyproject.toml:version",
+    "mujoco_toolbox/__init__.py:__version__"
+]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+build_command = "pip install poetry && poetry build"
+dist_path = "dist/"
+upload_to_pypi = true
+upload_to_release = true
+commit_version_number = true
+commit_message = "chore(release): ${version}"
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = [
+    "build",
+    "chore",
+    "ci",
+    "docs",
+    "feat",
+    "fix",
+    "perf",
+    "style",
+    "refactor",
+    "test"
+]
+
+[tool.ruff]
+line-length = 120
+# Enable additional rules or plugins (if needed)
+select = ["E", "F", "W"]  # Select error, warning, and flake8 rules
+ignore = []                # If there are specific rules you want to ignore, add them here
+fix = true                 # Enable auto-fixing of issues when running ruff check
+
+[tool.mypy]
+ignore_missing_imports = true
+# Add additional MyPy configuration options
+disallow_untyped_calls = true  # Ensures all function calls have types
+disallow_untyped_defs = true   # Ensures all function definitions have types
+strict_optional = true         # Treat None as a type and enforce stricter checking
