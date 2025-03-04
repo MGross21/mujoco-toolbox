@@ -7,18 +7,79 @@
 
 Streamlines the MuJoCo Physics Simulator
 
-## For Local Install
-
-Navigate to the Directory that you wish to place the package
+## PyPI Package
 
 ```bash
+pip install -U mujoco-toolbox
+```
+
+## For Local Install
+
+*Navigate to the Directory that you wish to place the package*
+
+<details>
+<summary><b>JUPYTER NOTEBOOK</b></summary>
+</br>
+*Place Commands Inside Cell*
+
+One-Time Install:
+
+```python
+!git clone https://github.com/MGross21/mujoco-toolbox
+!pip install -U ./mujoco-toolbox
+```
+
+Check for Updates:
+
+```python
+!git pull origin main
+```
+
+Install/Check for Updates:
+
+```python
 folder = "mujoco-toolbox"
 repo_url = f"https://github.com/MGross21/{folder}"
-
 
 !if [ -d "{folder}" ]; then cd {folder} && git pull && cd ..; else git clone {repo_url}; fi
 !pip install -U ./{folder}
 ```
+
+</details>
+</br>
+
+<details>
+<summary><b>BASH WINDOW</b></summary>
+</br>
+One-Time Install:
+
+```bash
+git clone https://github.com/MGross21/mujoco-toolbox
+pip install -U ./mujoco-toolbox
+```
+
+Check for Updates:
+```bash
+git pull origin main
+```
+
+Install/Check for Updates:
+
+```bash
+REPO_DIR="mujoco-toolbox"
+REPO_URL="https://github.com/MGross21/mujoco-toolbox"
+
+if [ -d "$REPO_DIR" ]; then
+  cd "$REPO_DIR" && git fetch origin && git pull origin main
+else
+  git clone $REPO_URL
+  cd "$REPO_DIR"
+fi
+
+pip install -U ./mujoco-toolbox
+```
+
+</details>
 
 ## Extra Packages
 
@@ -77,7 +138,13 @@ Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
 
 ## Pre-Made Controllers
 
-* Sine
-* Cosine
-* Single Step
-* Random
+```python
+import mujoco_toolbox as mjtb
+
+mjtb.sineController(m,d,**kwargs)
+mjtb.cosineController(m,d,**kwargs)
+mjtb.stepController(m,d,**kwargs)
+mjtb.randomController(m,d,**kwargs)
+
+# Wrapper can use custom controllers as well!
+```
