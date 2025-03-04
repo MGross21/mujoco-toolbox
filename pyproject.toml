@@ -80,6 +80,14 @@ allowed_tags = [
 
 [tool.ruff]
 line-length = 120
+# Enable additional rules or plugins (if needed)
+select = ["E", "F", "W"]  # Select error, warning, and flake8 rules
+ignore = []                # If there are specific rules you want to ignore, add them here
+fix = true                 # Enable auto-fixing of issues when running ruff check
 
 [tool.mypy]
 ignore_missing_imports = true
+# Add additional MyPy configuration options
+disallow_untyped_calls = true  # Ensures all function calls have types
+disallow_untyped_defs = true   # Ensures all function definitions have types
+strict_optional = true         # Treat None as a type and enforce stricter checking
