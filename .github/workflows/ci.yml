@@ -69,7 +69,7 @@ jobs:
 
     - name: Run Ruff Linter (w/ Auto-Fix)
       run: |
-        ruff check . --fix
+        ruff check . --fix --unsafe-fixes
         ruff format . --check 
   
     - name: Commit Ruff Fixes (if needed)
