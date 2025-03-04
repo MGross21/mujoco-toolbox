@@ -12,8 +12,12 @@ Streamlines the MuJoCo Physics Simulator
 Navigate to the Directory that you wish to place the package
 
 ```bash
-git clone https://github.com/MGross21/mujoco-toolbox
-pip install -e ./mujoco-toolbox/
+folder = "mujoco-toolbox"
+repo_url = f"https://github.com/MGross21/{folder}"
+
+
+!if [ -d "{folder}" ]; then cd {folder} && git pull && cd ..; else git clone {repo_url}; fi
+!pip install -U ./{folder}
 ```
 
 ## Extra Packages
@@ -60,10 +64,14 @@ ffmpeg -version
 ## To Run in Scripts
 
 ```python
-import mujoco_tools as mjtb
-from mujoco_tools import Wrapper
+import mujoco_toolbox as mjtb
+from mujoco_toolbox import Wrapper
 
-# Sample
+# Optional Global Variables
+mjtb.VERBOSITY = True # Additional Performance and Debugging Print Statements (Default=False)
+mjtb.CAPTURE_PARAMETERS = "all" # MjData Simulation Parameters (Default = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata']) 
+
+# Example Code
 Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
 ```
 
