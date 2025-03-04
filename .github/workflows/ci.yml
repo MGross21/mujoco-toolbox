@@ -35,23 +35,26 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: setup
     steps:
       - name: Call Lint Workflow
-        uses: ./.github/workflows/lint.yml
+        run: |
+          gh workflow run .github/workflows/lint.yml
 
   type-checking:
     name: Type Checking
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: lint
     steps:
       - name: Call Type Checking Workflow
-        uses: ./.github/workflows/type-checking.yml
+        run: |
+          gh workflow run .github/workflows/type-checking.yml
 
   test:
     name: Test
     runs-on: ubuntu-latest
-    needs: [type-checking]
+    needs: type-checking
     steps:
       - name: Call Test Workflow
-        uses: ./.github/workflows/test.yml
+        run: |
+          gh workflow run .github/workflows/test.yml
