@@ -24,14 +24,14 @@ pip install -U mujoco-toolbox
 
 One-Time Install:
 
-```bash
+```python
 !git clone https://github.com/MGross21/mujoco-toolbox
 !pip install -U ./mujoco-toolbox
 ```
 
 Check for Updates:
 
-```bash
+```python
 !git pull origin main
 ```
 
@@ -66,32 +66,16 @@ git pull origin main
 Install/Check for Updates:
 
 ```bash
-# Define the repo directory and remote URL
 REPO_DIR="mujoco-toolbox"
 REPO_URL="https://github.com/MGross21/mujoco-toolbox"
-BRANCH="main"  # Change this to 'master' if needed
 
-# Check if the repository exists and is up-to-date
 if [ -d "$REPO_DIR" ]; then
-  echo "Repository exists. Pulling latest changes..."
-  cd "$REPO_DIR"
-  git fetch origin  # Get latest changes without checking out the branch
-  LOCAL_HASH=$(git rev-parse HEAD)
-  REMOTE_HASH=$(git rev-parse origin/$BRANCH)
-
-  if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-    echo "Local repository is outdated. Updating..."
-    git pull origin $BRANCH
-  else
-    echo "Local repository is up to date."
-  fi
+  cd "$REPO_DIR" && git fetch origin && git pull origin main
 else
-  echo "Repository not found. Cloning..."
   git clone $REPO_URL
   cd "$REPO_DIR"
 fi
 
-# Install or update the package
 pip install -U ./mujoco-toolbox
 ```
 
