@@ -60,10 +60,22 @@ jobs:
         echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
         echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
-    - name: Run Ruff Linter
+        - name: Run Ruff Linter (w/ Auto-Fix)
+        run: |
+          ruff check . --fix
+          ruff format --check .
+  
+    - name: Commit Ruff Fixes (if needed)
       run: |
-        ruff check .
-        ruff format --check .
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        if git diff --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "chore: auto-fix lint issues via Ruff"
+          git push
+        fi
 
     - name: Run Type Checking
       run: |
