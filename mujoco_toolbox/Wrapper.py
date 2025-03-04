@@ -11,8 +11,7 @@ from screeninfo import get_monitors
 import trimesh
 import os
 import sys
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Union, Optional, Callable, Any
+from typing import Dict, List, Tuple, Optional, Any
 
 from .Utils import timer, print_warning
 
@@ -323,8 +322,9 @@ class Wrapper(object):
                 PBar = barNotebook
 
             if multi_thread:
-               num_threads =  os.cpu_count()
+            #    num_threads =  os.cpu_count()
                # TODO: Implement multi-threading
+               print("Multi-threading not yet implemented. Running simulation in single-thread mode.")
 
             with PBar(total=total_steps, desc="Simulation", unit=" step", leave=False) as pbar,\
                 mujoco.Renderer(self._model, self._height, self._width) as renderer:
@@ -574,7 +574,7 @@ class SimulationData(object):
                 else:  # Handle any other types
                     print(f"{key}: {type(value)}")
 
-            except Exception as e:
+            except Exception:
                 pass
 
     def __del__(self):

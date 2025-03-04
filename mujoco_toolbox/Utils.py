@@ -1,5 +1,6 @@
 from time import time
 from functools import wraps
+from sys import platform
 
 def timer(func):
     @wraps(func)
@@ -14,8 +15,6 @@ def timer(func):
             print(f"Function '{func.__name__}' took {total_time:.4f} seconds")
         return result
     return time_wrapper
-
-from sys import platform
 
 def print_warning(*args) -> None:
     """
