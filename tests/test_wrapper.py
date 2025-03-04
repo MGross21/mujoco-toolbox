@@ -22,7 +22,8 @@ def test_urdf1():
     model = os.path.join(os.getcwd(), "tests", "models", "UR5","UR5.urdf")
     print(model)
 
-    meshdir = os.path.join(os.getcwd(), "tests", "models", "UR5","meshes","collision")
+    meshdir = (os.path.join(os.getcwd(), "tests", "models", "UR5","meshes","collision"),
+               os.path.join(os.getcwd(), "tests", "models", "UR5","meshes","visual"))
     print(meshdir)
 
     ic = {

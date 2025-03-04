@@ -77,11 +77,19 @@ class Wrapper(object):
         except Exception as e:
             raise Exception(f"Unexpected error while loading the MuJoCo model: {e}") from e
     
-    def _load_xml_file(self, xml: str) -> None:
+    def _load_xml_file(self, xml: str, **kwargs) -> None:
         """Load a MuJoCo model from an XML file."""
-        self._model = mujoco.MjModel.from_xml_path(xml)
         with open(xml, 'r') as f:
             self.xml = f.read()
+        template = kwargs.get('template', None)
+        if template:
+            try:
+                self.xml = self.xml.format(**template)
+            except KeyError as e:
+                raise ValueError(f"Template key error: {e}. Ensure the template keys match the placeholders in the XML.")
+            except Exception as e:
+                raise ValueError(f"Error formatting XML with template: {e}")
+        self._model = mujoco.MjModel.from_xml_string(self.xml)
 
     def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
         """Process and load a URDF file for use with MuJoCo."""
@@ -97,26 +105,38 @@ class Wrapper(object):
                         print(f"Converted: {filename}")
                     except Exception as e:
                         raise ValueError(f"Error converting {filename}: {str(e)}")
-
+                        
         try:
             robot = ET.parse(urdf_path).getroot()
             mujoco_tag = ET.Element("mujoco")
             
+            # Handle multiple mesh directories
             meshdirs = kwargs.get('meshdir', ("meshes/",))  # Default as tuple
             if isinstance(meshdirs, (str, bytes)):  # Ensure not a single string
                 meshdirs = [meshdirs]  # Convert single string to list
-
+                
+            # Process each meshdir
             for meshdir in meshdirs:
+                # Ensure meshdir is absolute path or is relative to the URDF location
+                if not os.path.isabs(meshdir):
+                    urdf_dir = os.path.dirname(os.path.abspath(urdf_path))
+                    full_meshdir = os.path.join(urdf_dir, meshdir)
+                else:
+                    full_meshdir = meshdir
+                    
                 compiler_attrs = {
-                    'meshdir': meshdir,
+                    'meshdir': meshdir,  # Keep original path for MuJoCo
                     'balanceinertia': kwargs.get("balanceinertia", "true"),
                     'discardvisual': "false"
                 }
                 ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
-
+                
+                # Convert DAE files in the specific directory
+                if os.path.exists(full_meshdir):
+                    convert_dae_to_stl(full_meshdir)
+                    
             robot.insert(0, mujoco_tag)
             self.xml = ET.tostring(robot, encoding='unicode')
-            convert_dae_to_stl(meshdir)
             self._model = mujoco.MjModel.from_xml_string(self.xml)
         except Exception as e:
             raise ValueError(f"Failed to process URDF file: {e}")
