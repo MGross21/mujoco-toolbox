@@ -1,0 +1,44 @@
+name: Lint and Format
+
+on:
+  workflow_run:
+    workflows: ["Setup Python Environment"]
+    types:
+      - completed
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Run Ruff Linter (w/ Auto-Fix)
+        run: |
+          ruff check . --fix --unsafe-fixes
+          ruff format . --check
+        continue-on-error: true
+
+      - name: Run Black Formatter
+        run: |
+          black . --check
+        continue-on-error: true
+
+      - name: Run Isort (Import Sorter)
+        run: |
+          isort . --check-only
+        continue-on-error: true
+
+      - name: Run Flake8 (Code Style Checker)
+        run: |
+          flake8 .
+        continue-on-error: true
+
+      - name: Run Bandit (Security Linter)
+        run: |
+          bandit -r . --quiet
+        continue-on-error: true
+
+      - name: Run Pylint (Code Analyzer)
+        run: |
+          pylint **/*.py
+        continue-on-error: true

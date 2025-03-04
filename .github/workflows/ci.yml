@@ -1,7 +1,4 @@
-name: Integration Tests
-permissions:
-  contents: read
-  pull-requests: write
+name: CI Workflow
 
 on:
   push:
@@ -20,80 +17,19 @@ on:
       - '.github/workflows/ci.yml'
 
 jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        python-version: ['3.10', '3.11', '3.12','3.13']
+  setup:
+    uses: ./.github/workflows/setup.yml
+    with:
+      python-versions: ['3.10', '3.11', '3.12', '3.13']
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  lint:
+    uses: ./.github/workflows/lint.yml
+    needs: setup
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache Python dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-python-${{ matrix.python-version }}-pip-
+  type-checking:
+    uses: ./.github/workflows/type-checking.yml
+    needs: lint
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libosmesa6-dev \
-          xvfb \
-          libglew-dev \
-          patchelf \
-          ffmpeg
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install poetry
-        poetry install || (sleep 5 && poetry install)
-        pip install ruff mypy pytest
-        pip install . --no-cache-dir
-
-    - name: Set Mujoco environment variables
-      run: |
-        echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
-        echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
-
-    - name: Run Ruff Linter (w/ Auto-Fix)
-      run: |
-        ruff check . --fix --unsafe-fixes
-        ruff format . --check
-      continue-on-error: true
-  
-    - name: Commit Ruff Fixes (if needed)
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
-        if git diff --quiet; then
-          echo "No changes to commit."
-        else
-          git commit -m --allow-empty "chore: auto-fix lint issues via Ruff"
-          git push origin ${{ github.head_ref }}
-        fi
-
-    - name: Run Type Checking
-      run: |
-        mypy .
-
-    - name: Run Tests
-      run: |
-        pytest tests/ --cov=your_package_name --cov-report=xml --maxfail=3 -v
-
-    - name: Upload Coverage
-      uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: true
+  test:
+    uses: ./.github/workflows/test.yml
+    needs: type-checking

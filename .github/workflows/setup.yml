@@ -1,0 +1,56 @@
+name: Setup Python Environment
+
+on:
+  workflow_call:
+    inputs:
+      python-versions:
+        description: 'List of Python versions to test'
+        required: true
+        type: array
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ${{ inputs.python-versions }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-pip-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libosmesa6-dev \
+            xvfb \
+            libglew-dev \
+            patchelf \
+            ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install || (sleep 5 && poetry install)
+          pip install ruff mypy pytest pytypes black isort flake8 bandit pylint tox
+          pip install . --no-cache-dir
+
+      - name: Set Mujoco environment variables
+        run: |
+          echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
+          echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
