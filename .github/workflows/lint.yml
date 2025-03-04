@@ -1,4 +1,7 @@
 name: Lint and Format
+permissions:
+  contents: read
+  pull-requests: write
 
 on:
   workflow_call:
