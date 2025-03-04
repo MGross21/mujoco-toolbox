@@ -1,4 +1,4 @@
-name: Publish Package to PyPI
+name: PyPI Package
 permissions:
   contents: read
   pull-requests: write
