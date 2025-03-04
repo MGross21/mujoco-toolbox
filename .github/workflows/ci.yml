@@ -21,18 +21,37 @@ on:
 
 jobs:
   setup:
-    uses: ./.github/workflows/setup.yml
-    with:
-      python-versions: ['3.10', '3.11', '3.12', '3.13']
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
   lint:
-    uses: ./.github/workflows/lint.yml
-    needs: setup
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: [setup]
+    steps:
+      - name: Call Lint Workflow
+        uses: ./.github/workflows/lint.yml
 
   type-checking:
-    uses: ./.github/workflows/type-checking.yml
-    needs: lint
+    name: Type Checking
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Call Type Checking Workflow
+        uses: ./.github/workflows/type-checking.yml
 
   test:
-    uses: ./.github/workflows/test.yml
-    needs: type-checking
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [type-checking]
+    steps:
+      - name: Call Test Workflow
+        uses: ./.github/workflows/test.yml

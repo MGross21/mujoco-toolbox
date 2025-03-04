@@ -9,9 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    needs: type-checking
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run Tests
         run: |
           pytest tests/ --cov=your_package_name --cov-report=xml --maxfail=3 -v

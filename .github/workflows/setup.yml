@@ -2,14 +2,14 @@ name: Setup Python Environment
 permissions:
   contents: read
   pull-requests: write
-  
+
 on:
   workflow_call:
     inputs:
       python-versions:
         description: 'List of Python versions to test'
         required: true
-        type: array
+        type: string
 
 jobs:
   setup:

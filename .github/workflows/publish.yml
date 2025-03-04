@@ -6,29 +6,25 @@ permissions:
 on:
   push:
     branches:
-      - main  # Triggers the workflow when changes are pushed to the `main` branch
-  workflow_dispatch:  # Allows manual triggering of the workflow
+      - main
+  workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # Only run the workflow when a release is created or a workflow is manually triggered
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
 
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for semantic release
+          fetch-depth: 0
 
-      # Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -46,14 +42,12 @@ jobs:
           semantic-release version
           semantic-release publish
 
-      # Build the package
       - name: Build package
         run: python -m build
 
-      # Publish to PyPI
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }} 
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           twine upload dist/*

@@ -9,9 +9,11 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    needs: setup
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run Ruff Linter (w/ Auto-Fix)
         run: |
           ruff check . --fix --unsafe-fixes
