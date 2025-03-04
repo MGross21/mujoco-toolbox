@@ -22,16 +22,17 @@ assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later.
 class Wrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
 
-    def __init__(self, xml, *args, **kwargs):
+    def __init__(self, xml, duration=10, fps=30, resolution=(400,300), initialConditions=None, controller=None, *args, **kwargs):
         self._load_model(xml, **kwargs)
 
-        self.duration = kwargs.get('duration', 10)
-        self.fps = kwargs.get('fps', 30)
-        self.resolution = kwargs.get('resolution', (400, 300))  # recursively sets width and height
-        self.init_conditions = kwargs.get('initialConditions', {})
-        self.controller = kwargs.get('controller', None)
+        self.duration = duration
+        self.fps = fps
+        self.resolution = resolution  # recursively sets width and height
+        self.init_conditions = initialConditions or {}
+        self.controller = controller
 
         # Predefined simulation parameters but can be overridden
+        # TODO: Currently Causing Bugs when occluded from XML Code
         self.ts = kwargs.get('ts', self._model.opt.timestep)
         self.gravity = kwargs.get('gravity', self._model.opt.gravity)
 
@@ -100,13 +101,19 @@ class Wrapper(object):
         try:
             robot = ET.parse(urdf_path).getroot()
             mujoco_tag = ET.Element("mujoco")
-            meshdir = kwargs.get('meshdir', "meshes/")
-            compiler_attrs = {
-                'meshdir': meshdir,
-                'balanceinertia': kwargs.get("balanceinertia", "true"),
-                'discardvisual': "false"
-            }
-            ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
+            
+            meshdirs = kwargs.get('meshdir', ("meshes/",))  # Default as tuple
+            if isinstance(meshdirs, (str, bytes)):  # Ensure not a single string
+                meshdirs = [meshdirs]  # Convert single string to list
+
+            for meshdir in meshdirs:
+                compiler_attrs = {
+                    'meshdir': meshdir,
+                    'balanceinertia': kwargs.get("balanceinertia", "true"),
+                    'discardvisual': "false"
+                }
+                ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
+
             robot.insert(0, mujoco_tag)
             self.xml = ET.tostring(robot, encoding='unicode')
             convert_dae_to_stl(meshdir)
@@ -131,7 +138,7 @@ class Wrapper(object):
             f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}{' ...' if len(self._body_names) > 5 else ''}\n"
             f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}{' ...' if len(self._joint_names) > 5 else ''}\n"
             f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}{' ...' if len(self._actuator_names) > 5 else ''}\n"
-            f"  Controller: {self.controller.__name__}\n" # Returns str name of the function
+            f"  Controller: {self.controller.__name__ if self.controller else None}\n" # Returns str name of the function
             f")"
         )
     
@@ -496,16 +503,16 @@ class Wrapper(object):
 from collections import defaultdict
 class SimulationData(object):
     """A class to store and manage simulation data."""
+
+    __slots__ = ['_d']
+
     def __init__(self):
         self._d = defaultdict(list)
         
     def capture(self, mj_data: mujoco.MjData):
         """Capture data from MjData object, storing specified or all public simulation data."""
-        from . import CAPTURE_PARAMETERS  # Import here to avoid circular dependency
-        if CAPTURE_PARAMETERS == 'all':
-            keys = self._get_public_keys(mj_data)
-        else:
-            keys = CAPTURE_PARAMETERS  # Use the provided keys directly
+        from . import CAPTURE_PARAMETERS,VERBOSITY  # Import here to avoid circular dependency
+        keys = self._get_public_keys(mj_data) if CAPTURE_PARAMETERS == 'all' else CAPTURE_PARAMETERS
             
         for key in keys:
             try:
@@ -513,16 +520,17 @@ class SimulationData(object):
                 # Check if value is a numpy array and copy if needed
                 if isinstance(value, np.ndarray):
                     self._d[key].append(value.copy())
+                elif np.isscalar(value):
+                    self._d[key].append(value)
                 elif hasattr(value, 'copy') and callable(value.copy):
                     # Copy if it has a copy method (e.g., MuJoCo's MjArray)
                     self._d[key].append(value.copy())
                 else:
-                    # Otherwise, append the value directly (e.g., scalar values)
                     self._d[key].append(value)
             except AttributeError:
-                print_warning(f"Key '{key}' not found in MjData. Skipping.")
+                print_warning(f"Key '{key}' not found in MjData. Skipping.") if VERBOSITY else None
             except Exception as e:
-                print(f"An error occurred while capturing '{key}': {e}")
+                print(f"An error occurred while capturing '{key}': {e}") if VERBOSITY else None
                 
     def unwrap(self) -> Dict[str, np.ndarray]:
         """Unwrap the captured simulation data into a structured format with NumPy arrays."""
