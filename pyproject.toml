@@ -1,37 +1,80 @@
 [build-system]
-requires = ["setuptools", "wheel", "twine"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "mujoco-toolbox"
 version = "0.0.1"
-authors = [
-    { name = "MGross21", email = "MGross21@TODO.com" }
-]
+authors = ["MGross21 <MGross21@TODO.com>"]
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
-license = {text = "MIT"}
-requires-python = ">=3.10"
-dependencies = [
-    "mujoco",
-    "numpy",
-    "scipy",
-    "matplotlib",
-    "pyyaml",
-    "mediapy",
-    "tqdm",
-    "ipywidgets",
-    "ffmpeg",
-    "trimesh",
-    "screeninfo"
+license = "MIT"
+packages = [{include = "mujoco_toolbox"}]
+homepage = "https://github.com/MGross21/mujoco-toolbox"
+repository = "https://github.com/MGross21/mujoco-toolbox"
+documentation = "https://github.com/MGross21/mujoco-toolbox"
+keywords = ["MuJoCo", "robotics", "simulation", "toolbox","wrapper"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries"
 ]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+mujoco = "*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+pyyaml = "*"
+mediapy = "*"
+tqdm = "*"
+ipywidgets = "*"
+ffmpeg = "*"
+trimesh = "*"
+screeninfo = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+ruff = "*"
+mypy = "*"
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 bug_tracker = "https://github.com/MGross21/mujoco-toolbox/issues"
 
-[tool.setuptools]
-packages = ["mujoco_toolbox"]  # Explicitly include only mujoco_toolbox
+[tool.semantic-release]
+version_variable = [
+    "pyproject.toml:version",
+    "mujoco_toolbox/__init__.py:__version__"
+]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+build_command = "pip install poetry && poetry build"
+dist_path = "dist/"
+upload_to_pypi = true
+upload_to_release = true
+commit_version_number = true
+commit_message = "chore(release): ${version}"
 
-[tool.poetry.dependencies]
-python = ">=3.10"
+[tool.semantic_release.commit_parser_options]
+allowed_tags = [
+    "build",
+    "chore",
+    "ci",
+    "docs",
+    "feat",
+    "fix",
+    "perf",
+    "style",
+    "refactor",
+    "test"
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.mypy]
+ignore_missing_imports = true
