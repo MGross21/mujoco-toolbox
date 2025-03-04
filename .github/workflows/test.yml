@@ -1,10 +1,7 @@
 name: Run Tests
 
 on:
-  workflow_run:
-    workflows: ["Type Checking and Annotation"]
-    types:
-      - completed
+  workflow_call:
 
 jobs:
   test:

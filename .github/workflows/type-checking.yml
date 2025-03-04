@@ -1,10 +1,7 @@
 name: Type Checking and Annotation
 
 on:
-  workflow_run:
-    workflows: ["Lint and Format"]
-    types:
-      - completed
+  workflow_call:
 
 jobs:
   type-checking:
