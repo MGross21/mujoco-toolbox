@@ -1,4 +1,4 @@
-name: Python CI
+name: Integration Tests
 permissions:
   contents: read
   pull-requests: write
