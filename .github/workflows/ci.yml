@@ -60,10 +60,10 @@ jobs:
         echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
         echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
-        - name: Run Ruff Linter (w/ Auto-Fix)
-        run: |
-          ruff check . --fix
-          ruff format --check .
+    - name: Run Ruff Linter (w/ Auto-Fix)
+      run: |
+        ruff check . --fix
+        ruff format --check .
   
     - name: Commit Ruff Fixes (if needed)
       run: |
