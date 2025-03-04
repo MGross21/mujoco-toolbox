@@ -35,7 +35,14 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-python-${{ matrix.python-version }}-pip-
 
     - name: Install system dependencies
       run: |
@@ -51,7 +58,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install
+        poetry install || (sleep 5 && poetry install)
         pip install ruff mypy pytest
         pip install . --no-cache-dir
 
@@ -63,7 +70,7 @@ jobs:
     - name: Run Ruff Linter (w/ Auto-Fix)
       run: |
         ruff check . --fix
-        ruff format --check .
+        ruff format . --check 
   
     - name: Commit Ruff Fixes (if needed)
       run: |
@@ -73,8 +80,8 @@ jobs:
         if git diff --quiet; then
           echo "No changes to commit."
         else
-          git commit -m "chore: auto-fix lint issues via Ruff"
-          git push
+          git commit -m --allow-empty "chore: auto-fix lint issues via Ruff"
+          git push origin ${{ github.head_ref }}
         fi
 
     - name: Run Type Checking

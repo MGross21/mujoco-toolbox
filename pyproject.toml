@@ -81,9 +81,10 @@ allowed_tags = [
 [tool.ruff]
 line-length = 120
 # Enable additional rules or plugins (if needed)
-select = ["E", "F", "W"]  # Select error, warning, and flake8 rules
-ignore = []                # If there are specific rules you want to ignore, add them here
-fix = true                 # Enable auto-fixing of issues when running ruff check
+select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules
+ignore = []                      # If there are specific rules you want to ignore, add them here
+fix = true                       # Enable auto-fixing of issues when running ruff check
+fixable = ["ALL"]                # Enable auto-fixing for all fixable issues
 
 [tool.mypy]
 ignore_missing_imports = true
