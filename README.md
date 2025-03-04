@@ -7,18 +7,95 @@
 
 Streamlines the MuJoCo Physics Simulator
 
-## For Local Install
-
-Navigate to the Directory that you wish to place the package
+## PyPI Package
 
 ```bash
+pip install -U mujoco-toolbox
+```
+
+## For Local Install
+
+*Navigate to the Directory that you wish to place the package*
+
+<details>
+<summary><b>JUPYTER NOTEBOOK</b></summary>
+</br>
+*Place Commands Inside Cell*
+
+One-Time Install:
+
+```bash
+!git clone https://github.com/MGross21/mujoco-toolbox
+!pip install -U ./mujoco-toolbox
+```
+
+Check for Updates:
+
+```bash
+!git pull origin main
+```
+
+Install/Check for Updates:
+
+```python
 folder = "mujoco-toolbox"
 repo_url = f"https://github.com/MGross21/{folder}"
-
 
 !if [ -d "{folder}" ]; then cd {folder} && git pull && cd ..; else git clone {repo_url}; fi
 !pip install -U ./{folder}
 ```
+
+</details>
+</br>
+
+<details>
+<summary><b>BASH WINDOW</b></summary>
+</br>
+One-Time Install:
+
+```bash
+git clone https://github.com/MGross21/mujoco-toolbox
+pip install -U ./mujoco-toolbox
+```
+
+Check for Updates:
+```bash
+git pull origin main
+```
+
+Install/Check for Updates:
+
+```bash
+# Define the repo directory and remote URL
+REPO_DIR="mujoco-toolbox"
+REPO_URL="https://github.com/MGross21/mujoco-toolbox"
+BRANCH="main"  # Change this to 'master' if needed
+
+# Check if the repository exists and is up-to-date
+if [ -d "$REPO_DIR" ]; then
+  echo "Repository exists. Pulling latest changes..."
+  cd "$REPO_DIR"
+  git fetch origin  # Get latest changes without checking out the branch
+  LOCAL_HASH=$(git rev-parse HEAD)
+  REMOTE_HASH=$(git rev-parse origin/$BRANCH)
+
+  if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+    echo "Local repository is outdated. Updating..."
+    git pull origin $BRANCH
+  else
+    echo "Local repository is up to date."
+  fi
+else
+  echo "Repository not found. Cloning..."
+  git clone $REPO_URL
+  cd "$REPO_DIR"
+fi
+
+# Install or update the package
+pip install -U ./mujoco-toolbox
+```
+
+</details>
 
 ## Extra Packages
 
@@ -77,7 +154,13 @@ Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
 
 ## Pre-Made Controllers
 
-* Sine
-* Cosine
-* Single Step
-* Random
+```python
+import mujoco_toolbox as mjtb
+
+mjtb.sineController(m,d,**kwargs)
+mjtb.cosineController(m,d,**kwargs)
+mjtb.stepController(m,d,**kwargs)
+mjtb.randomController(m,d,**kwargs)
+
+# Wrapper can use custom controllers as well!
+```
