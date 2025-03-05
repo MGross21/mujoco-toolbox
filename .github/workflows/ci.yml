@@ -38,8 +38,7 @@ jobs:
     needs: setup
     steps:
       - name: Call Lint Workflow
-        run: |
-          gh workflow run .github/workflows/lint.yml
+        uses: ./.github/workflows/lint.yml
 
   type-checking:
     name: Type Checking
@@ -47,8 +46,7 @@ jobs:
     needs: lint
     steps:
       - name: Call Type Checking Workflow
-        run: |
-          gh workflow run .github/workflows/type-checking.yml
+        uses: ./.github/workflows/type-checking.yml
 
   test:
     name: Test
@@ -56,5 +54,4 @@ jobs:
     needs: type-checking
     steps:
       - name: Call Test Workflow
-        run: |
-          gh workflow run .github/workflows/test.yml
+        uses: ./.github/workflows/test.yml
