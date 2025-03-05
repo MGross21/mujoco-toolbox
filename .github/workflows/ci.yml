@@ -29,7 +29,6 @@ jobs:
     name: Lint
     needs: setup
     uses: ./.github/workflows/lint.yml
-    continue-on-error: true
     permissions:
       contents: write
       pull-requests: write
@@ -38,7 +37,6 @@ jobs:
     name: Type Checking
     needs: lint
     uses: ./.github/workflows/type-checking.yml
-    continue-on-error: true
     permissions:
       contents: write
       pull-requests: write
