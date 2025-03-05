@@ -4,7 +4,7 @@ __pycache__/
 build/
 
 # Mujoco Logs
-*log*
+MUJOCO_LOG.txt
 
 # Jupyter Notebook Output
 *.ipynb_checkpoints
