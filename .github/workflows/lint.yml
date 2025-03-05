@@ -11,6 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black isort flake8 bandit pylint
 
       - name: Run Linters
         run: |
@@ -23,6 +36,7 @@ jobs:
           pylint **/*.py
 
       - name: Commit Fixes if Needed
+        if: github.event_name == 'pull_request'  # Only run on PRs
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -30,6 +44,6 @@ jobs:
           if git diff --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore: auto-fix lint issues"
-            git push origin ${{ github.head_ref }}
+            git commit -m "chore: auto-fix issues"
+            git push "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.head_ref }}
           fi
