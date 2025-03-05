@@ -37,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Call Lint Workflow
         uses: ./.github/workflows/lint.yml
 
@@ -45,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Call Type Checking Workflow
         uses: ./.github/workflows/type-checking.yml
 
@@ -53,5 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: type-checking
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Call Test Workflow
         uses: ./.github/workflows/test.yml
