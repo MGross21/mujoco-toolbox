@@ -9,26 +9,29 @@ on:
 jobs:
   type-checking:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Run Type Checking with MyPy
+        id: mypy_check
+        continue-on-error: false
         run: |
-          mypy . || echo "MyPy found errors"
-        continue-on-error: true
+          mypy . || echo "MyPy found errors" && exit 1
 
-      - name: Automatically Add Type Annotations with Pytypes (if MyPy errors found)
+      - name: Automatically Add Type Annotations with Pytypes
         if: failure()
         run: |
           pytypes --check --annotate .
 
-      - name: Commit all Changes (Ruff and Pytypes) if needed
-        if: failure()
+      - name: Commit Fixes if Needed
+        if: success() || failure()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git diff --exit-code || git commit -m "chore: auto-fix lint issues and add type annotations"
-          git push origin ${{ github.head_ref }}
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: auto-fix type issues with Pytypes"
+            git push origin ${{ github.head_ref }}
+          fi

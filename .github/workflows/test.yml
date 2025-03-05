@@ -1,7 +1,6 @@
-name: Run Tests
+name: Test
 permissions:
   contents: read
-  pull-requests: write
 
 on:
   workflow_call:
@@ -9,16 +8,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Run Tests
         run: |
           pytest tests/ --cov=your_package_name --cov-report=xml --maxfail=3 -v
 
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v5
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true

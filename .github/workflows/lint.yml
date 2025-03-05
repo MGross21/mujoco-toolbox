@@ -9,47 +9,27 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install ruff black isort flake8 bandit pylint
-
-      - name: Run Ruff Linter (w/ Auto-Fix)
+      - name: Run Linters
         run: |
           ruff check . --fix --unsafe-fixes
           ruff format . --check
-        continue-on-error: true
-
-      - name: Run Black Formatter
-        run: |
           black . --check
-        continue-on-error: true
-
-      - name: Run Isort (Import Sorter)
-        run: |
           isort . --check-only
-        continue-on-error: true
-
-      - name: Run Flake8 (Code Style Checker)
-        run: |
           flake8 .
-        continue-on-error: true
-
-      - name: Run Bandit (Security Linter)
-        run: |
           bandit -r . --quiet
-        continue-on-error: true
-
-      - name: Run Pylint (Code Analyzer)
-        run: |
           pylint **/*.py
-        continue-on-error: true
+
+      - name: Commit Fixes if Needed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: auto-fix lint issues"
+            git push origin ${{ github.head_ref }}
+          fi

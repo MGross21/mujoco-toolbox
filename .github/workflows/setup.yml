@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       python-versions:
-        description: 'List of Python versions to test'
+        description: "List of Python versions to test"
         required: true
         type: string
 
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ${{ inputs.python-versions }}
+        python-version: ${{ fromJson(inputs.python-versions) }}
 
     steps:
       - name: Checkout code
@@ -26,14 +26,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry  # Enable Poetry cache for faster installs
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          key: python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python-version }}-pip-
+            python-${{ matrix.python-version }}-pip-
 
       - name: Install system dependencies
         run: |
@@ -45,15 +46,21 @@ jobs:
             patchelf \
             ffmpeg
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies via Poetry
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
-          poetry install || (sleep 5 && poetry install)
-          pip install ruff mypy pytest pytypes black isort flake8 bandit pylint tox
+          pip install poetry tox
+          poetry install --no-interaction --no-root || (sleep 5 && poetry install --no-interaction --no-root)
           pip install . --no-cache-dir
 
       - name: Set Mujoco environment variables
         run: |
           echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
           echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
+
+      - name: Verify Environment Setup
+        run: |
+          python --version
+          poetry --version
+          pytest --version
+          mypy --version
