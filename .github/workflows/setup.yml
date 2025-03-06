@@ -76,5 +76,5 @@ jobs:
         run: |
           python --version
           poetry --version
-          pytest --version
-          mypy --version
+          poetry run pytest --version
+          poetry run mypy --version

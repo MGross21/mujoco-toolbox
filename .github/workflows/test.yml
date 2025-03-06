@@ -69,6 +69,7 @@ jobs:
 
       - name: Run Tests
         run: |
+          poetry run pip install pytest pytest-cov
           poetry run pytest tests/ --cov=mujoco_toolbox --cov-report=xml --maxfail=3 -v
 
       - name: Upload Coverage Report
