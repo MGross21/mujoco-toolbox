@@ -1,9 +1,24 @@
 name: Test
-permissions:
-  contents: read
 
 on:
-  workflow_call:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -28,6 +43,21 @@ jobs:
           key: python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: |
             python-${{ matrix.python-version }}-pip-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libosmesa6-dev \
+            xvfb \
+            libglew-dev \
+            patchelf \
+            ffmpeg
+
+      - name: Set Mujoco environment variables
+        run: |
+          echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
+          echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
       - name: Install Poetry and dependencies
         run: |

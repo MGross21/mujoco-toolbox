@@ -1,49 +1,17 @@
-name: CI Workflow
-permissions:
-  contents: read
-  pull-requests: write
+name: CI Status
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - '**.py'
-      - 'pyproject.toml'
-      - '.github/workflows/ci.yml'
+    branches: [main]
+    paths: ['**.py', 'pyproject.toml', '.github/workflows/**']
   pull_request:
-    branches:
-      - main
-    paths:
-      - '**.py'
-      - 'pyproject.toml'
-      - '.github/workflows/ci.yml'
+    branches: [main]
+    paths: ['**.py', 'pyproject.toml', '.github/workflows/**']
+  workflow_dispatch:
 
 jobs:
-  setup:
-    uses: ./.github/workflows/setup.yml
-    with:
-      python-versions: '["3.10", "3.11", "3.12", "3.13"]'
-
-  lint:
-    name: Lint
-    needs: setup
-    uses: ./.github/workflows/lint.yml
-    permissions:
-      contents: write
-      pull-requests: write
-
-  type-checking:
-    name: Type Checking
-    needs: lint
-    uses: ./.github/workflows/type-checking.yml
-    permissions:
-      contents: write
-      pull-requests: write
-
-  test:
-    name: Test
-    needs: type-checking
-    uses: ./.github/workflows/test.yml
-    permissions:
-      contents: read
+  ci-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI Status Check
+        run: echo "All CI workflows must pass independently"

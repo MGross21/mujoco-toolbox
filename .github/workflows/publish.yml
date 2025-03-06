@@ -1,12 +1,12 @@
 name: PyPI Package
-permissions:
-  contents: write
-  pull-requests: write
 
 on:
   release:
     types: [created]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   publish:
@@ -36,7 +36,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-interaction
-          pip install python-semantic-release
+          # Use a specific version for semantic-release
+          pip install python-semantic-release==8.3.0
 
       - name: Run Semantic Release
         env:

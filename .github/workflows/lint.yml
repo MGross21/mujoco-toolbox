@@ -1,10 +1,25 @@
 name: Lint and Format
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
 permissions:
   contents: write
   pull-requests: write
-
-on:
-  workflow_call:
 
 jobs:
   lint:
@@ -35,6 +50,7 @@ jobs:
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
           poetry install --no-interaction
+          # Better practice: add these to pyproject.toml dev dependencies
           poetry add --group dev ruff black isort flake8 bandit pylint
 
       - name: Run Linters
