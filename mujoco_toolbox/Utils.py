@@ -2,6 +2,7 @@ from time import time
 from functools import wraps
 from sys import platform
 
+
 def timer(func):
     @wraps(func)
     def time_wrapper(*args, **kwargs):
@@ -11,10 +12,13 @@ def timer(func):
         total_time = end_time - start_time
 
         from . import VERBOSITY
+
         if VERBOSITY:
             print(f"Function '{func.__name__}' took {total_time:.4f} seconds")
         return result
+
     return time_wrapper
+
 
 def print_warning(*args) -> None:
     """
@@ -31,6 +35,7 @@ def print_warning(*args) -> None:
         if platform.startswith("win"):
             try:
                 from colorama import init, Fore, Style
+
                 init()  # Initialize colorama
                 print(f"{Fore.YELLOW}{message}{Style.RESET_ALL}", end=" ")  # Yellow color for warning
                 print(*args[1:], end="")  # No newline, print all args separated by spaces

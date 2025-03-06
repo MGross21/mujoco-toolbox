@@ -31,21 +31,29 @@ from .Utils import print_warning
 __version__ = "0.0.1"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
-__license__ =  "MIT"
+__license__ = "MIT"
 __status__ = "Development"
 
 # `from mujoco_toolbox import *` will import these objects
-__all__ = [ 'Wrapper',
-            'sineController',
-            'cosineController',
-            'randomController',
-            'stepController',
-            'timer'
-           ]
+__all__ = ["Wrapper", "sineController", "cosineController", "randomController", "stepController", "timer"]
 
-CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata'] # MjData default fields to capture during simulation
+CAPTURE_PARAMETERS = [
+    "time",
+    "qpos",
+    "qvel",
+    "act",
+    "qacc",
+    "xpos",
+    "xquat",
+    "xmat",
+    "ctrl",
+    "sensordata",
+]  # MjData default fields to capture during simulation
 
 VERBOSITY = False
 
 if True:
-    print_warning(f"{__package__} ({__version__}) is still under development.",f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues")
+    print_warning(
+        f"{__package__} ({__version__}) is still under development.",
+        f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
+    )

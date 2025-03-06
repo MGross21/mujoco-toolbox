@@ -12,11 +12,13 @@ import trimesh
 import os
 import sys
 from typing import Dict, List, Tuple, Optional, Any
+from collections import defaultdict
 
 from .Utils import timer, print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
+
 
 class Wrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
@@ -24,15 +26,15 @@ class Wrapper(object):
     def __init__(self, xml, *args, **kwargs):
         self._load_model(xml, **kwargs)
 
-        self.duration = kwargs.get('duration', 10)
-        self.fps = kwargs.get('fps', 30)
-        self.resolution = kwargs.get('resolution', (400, 300))  # recursively sets width and height
-        self.init_conditions = kwargs.get('initialConditions', {})
-        self.controller = kwargs.get('controller', None)
+        self.duration = kwargs.get("duration", 10)
+        self.fps = kwargs.get("fps", 30)
+        self.resolution = kwargs.get("resolution", (400, 300))  # recursively sets width and height
+        self.init_conditions = kwargs.get("initialConditions", {})
+        self.controller = kwargs.get("controller", None)
 
         # Predefined simulation parameters but can be overridden
-        self.ts = kwargs.get('ts', self._model.opt.timestep)
-        self.gravity = kwargs.get('gravity', self._model.opt.gravity)
+        self.ts = kwargs.get("ts", self._model.opt.timestep)
+        self.gravity = kwargs.get("gravity", self._model.opt.gravity)
 
         self._data = mujoco.MjData(self._model)
 
@@ -64,7 +66,9 @@ class Wrapper(object):
                 if "<mujoco>" in xml or "<robot>" in xml:
                     self._load_xml_string(xml)
                 else:
-                    raise FileNotFoundError(f"Model file not found: {xml_path}. Ensure the file path is correct and accessible.")
+                    raise FileNotFoundError(
+                        f"Model file not found: {xml_path}. Ensure the file path is correct and accessible."
+                    )
 
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Failed to load the MuJoCo model: {e}") from e
@@ -78,18 +82,19 @@ class Wrapper(object):
     def _load_xml_file(self, xml: str) -> None:
         """Load a MuJoCo model from an XML file."""
         self._model = mujoco.MjModel.from_xml_path(xml)
-        with open(xml, 'r') as f:
+        with open(xml, "r") as f:
             self.xml = f.read()
 
     def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
         """Process and load a URDF file for use with MuJoCo."""
+
         def convert_dae_to_stl(meshdir: str) -> None:
             if not os.path.exists(meshdir):
                 raise FileNotFoundError(f"Directory not found: {meshdir}")
             for filename in os.listdir(meshdir):
-                if filename.lower().endswith('.dae'):
+                if filename.lower().endswith(".dae"):
                     dae_path = os.path.join(meshdir, filename)
-                    stl_path = os.path.splitext(dae_path)[0] + '.stl'
+                    stl_path = os.path.splitext(dae_path)[0] + ".stl"
                     try:
                         trimesh.load(dae_path).export(stl_path)
                         print(f"Converted: {filename}")
@@ -99,15 +104,15 @@ class Wrapper(object):
         try:
             robot = ET.parse(urdf_path).getroot()
             mujoco_tag = ET.Element("mujoco")
-            meshdir = kwargs.get('meshdir', "meshes/")
+            meshdir = kwargs.get("meshdir", "meshes/")
             compiler_attrs = {
-                'meshdir': meshdir,
-                'balanceinertia': kwargs.get("balanceinertia", "true"),
-                'discardvisual': "false"
+                "meshdir": meshdir,
+                "balanceinertia": kwargs.get("balanceinertia", "true"),
+                "discardvisual": "false",
             }
             ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
             robot.insert(0, mujoco_tag)
-            self.xml = ET.tostring(robot, encoding='unicode')
+            self.xml = ET.tostring(robot, encoding="unicode")
             convert_dae_to_stl(meshdir)
             self._model = mujoco.MjModel.from_xml_string(self.xml)
         except Exception as e:
@@ -130,7 +135,7 @@ class Wrapper(object):
             f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}{' ...' if len(self._body_names) > 5 else ''}\n"
             f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}{' ...' if len(self._joint_names) > 5 else ''}\n"
             f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}{' ...' if len(self._actuator_names) > 5 else ''}\n"
-            f"  Controller: {self.controller.__name__}\n" # Returns str name of the function
+            f"  Controller: {self.controller.__name__}\n"  # Returns str name of the function
             f")"
         )
 
@@ -152,7 +157,7 @@ class Wrapper(object):
         return self._data
 
     @property
-    def captured_data(self)->Dict[str, np.ndarray]:
+    def captured_data(self) -> Dict[str, np.ndarray]:
         """Read-only property to access the entire captured simulation data."""
         if self._captured_data is None:
             raise ValueError("No simulation data captured yet.")
@@ -163,7 +168,7 @@ class Wrapper(object):
         self._captured_data = None
 
     @property
-    def frames(self)->List[np.ndarray]:
+    def frames(self) -> List[np.ndarray]:
         """Read-only property to access the captured frames."""
         if self._frames is None:
             raise ValueError("No frames captured yet.")
@@ -173,10 +178,11 @@ class Wrapper(object):
     def frames(self):
         self._frames.clear()
         import gc
+
         gc.collect()
 
     @property
-    def duration(self)->float:
+    def duration(self) -> float:
         return self._duration
 
     @duration.setter
@@ -186,7 +192,7 @@ class Wrapper(object):
         self._duration = value
 
     @property
-    def fps(self)->float:
+    def fps(self) -> float:
         return self._fps
 
     @fps.setter
@@ -196,7 +202,7 @@ class Wrapper(object):
         self._fps = value
 
     @property
-    def resolution(self)->Tuple[int, int]:
+    def resolution(self) -> Tuple[int, int]:
         return self._resolution
 
     @resolution.setter
@@ -238,7 +244,7 @@ class Wrapper(object):
         self._initcond = values
 
     @property
-    def controller(self)->callable:
+    def controller(self) -> callable:
         """Controller Function"""
         return self._controller
 
@@ -273,7 +279,6 @@ class Wrapper(object):
         if len(values) != 3:
             raise ValueError("Gravity must be a 3D vector.")
         self._model.opt.gravity = values
-
 
     def _setInitialConditions(self):
         for key, value in self._initcond.items():
@@ -316,21 +321,24 @@ class Wrapper(object):
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
 
             import __main__ as main
-            if hasattr(main, '__file__'):
+
+            if hasattr(main, "__file__"):
                 PBar = barTerminal
             else:
                 PBar = barNotebook
 
             if multi_thread:
-            #    num_threads =  os.cpu_count()
-               # TODO: Implement multi-threading
-               print("Multi-threading not yet implemented. Running simulation in single-thread mode.")
+                #    num_threads =  os.cpu_count()
+                # TODO: Implement multi-threading
+                print("Multi-threading not yet implemented. Running simulation in single-thread mode.")
 
-            with PBar(total=total_steps, desc="Simulation", unit=" step", leave=False) as pbar,\
-                mujoco.Renderer(self._model, self._height, self._width) as renderer:
+            with (
+                PBar(total=total_steps, desc="Simulation", unit=" step", leave=False) as pbar,
+                mujoco.Renderer(self._model, self._height, self._width) as renderer,
+            ):
                 step = 0
                 while d.time < self._duration:
-                    mj_step(m,d)
+                    mj_step(m, d)
 
                     # Capture data at the specified rate
                     if step % capture_interval == 0:
@@ -385,8 +393,8 @@ class Wrapper(object):
                 frame = int(frame)
 
             plt.imshow(self._frames[frame])
-            plt.axis('off')
-            plt.title(title or f"Frame {frame}", loc='center')
+            plt.axis("off")
+            plt.title(title or f"Frame {frame}", loc="center")
             plt.show()
 
         except IndexError as e:
@@ -396,7 +404,7 @@ class Wrapper(object):
         except Exception as e:
             raise RuntimeError(f"Unexpected error while rendering frame: {e}")
 
-    def renderMedia(self, codec="gif", title=None, save=False)->media:
+    def renderMedia(self, codec="gif", title=None, save=False) -> media:
         """Render the simulation as a video or GIF, with an option to save to a file.
 
         Args:
@@ -408,14 +416,16 @@ class Wrapper(object):
             raise ValueError("No frames captured to create media.")
         # Display the media in a window
         if not save:
-            media.show_video(self._frames, fps=self._fps, width=self._width, height=self._height, codec=codec, title=title)
+            media.show_video(
+                self._frames, fps=self._fps, width=self._width, height=self._height, codec=codec, title=title
+            )
             return
 
         if not title.endswith(f".{codec}"):
             title += f".{codec}"
 
         # Save the frames to the specified file
-        available_codecs = ['gif', 'mp4', 'h264', 'hevc', 'vp9']
+        available_codecs = ["gif", "mp4", "h264", "hevc", "vp9"]
         if codec in available_codecs:
             media.write_video(title if not None else "render", self._frames, fps=self._fps, codec=codec)
         else:
@@ -426,16 +436,16 @@ class Wrapper(object):
         return path
 
     @lru_cache(maxsize=100)
-    def t2f(self, t:float)->int:
+    def t2f(self, t: float) -> int:
         """Convert time to frame index."""
-        return min(int(t * self._fps), int(self._duration * self._fps) - 1) # Subtract 1 to convert to 0-based index
+        return min(int(t * self._fps), int(self._duration * self._fps) - 1)  # Subtract 1 to convert to 0-based index
 
     @lru_cache(maxsize=100)
     def f2t(self, frame: int) -> float:
         """Convert frame index to time."""
         return frame / self._fps
 
-    def getBodyData(self, body_name:str, data_name:str=None)->np.ndarray:
+    def getBodyData(self, body_name: str, data_name: str = None) -> np.ndarray:
         """Get the data for a specific body in the simulation.
 
         Args:
@@ -449,7 +459,6 @@ class Wrapper(object):
             raise ValueError(f"Body '{body_name}' not found in the model.")
         else:
             body_id = mujoco.mj_name2id(self._model, mujoco.mjtObj.mjOBJ_BODY, body_name)
-
 
         if data_name is None:
             return self._captured_data.unwrap()[body_id]
@@ -484,7 +493,9 @@ class Wrapper(object):
 
         try:
             # Convert simData's NumPy arrays or lists to a YAML-friendly format
-            serialized_data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.captured_data.items()}
+            serialized_data = {
+                k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.captured_data.items()
+            }
 
             with open(name, "w") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
@@ -493,16 +504,19 @@ class Wrapper(object):
         except Exception as e:
             print(f"Failed to save data to YAML: {e}")
 
-from collections import defaultdict
+
+
 class SimulationData(object):
     """A class to store and manage simulation data."""
+
     def __init__(self):
         self._d = defaultdict(list)
 
     def capture(self, mj_data: mujoco.MjData):
         """Capture data from MjData object, storing specified or all public simulation data."""
         from . import CAPTURE_PARAMETERS  # Import here to avoid circular dependency
-        if CAPTURE_PARAMETERS == 'all':
+
+        if CAPTURE_PARAMETERS == "all":
             keys = self._get_public_keys(mj_data)
         else:
             keys = CAPTURE_PARAMETERS  # Use the provided keys directly
@@ -513,7 +527,7 @@ class SimulationData(object):
                 # Check if value is a numpy array and copy if needed
                 if isinstance(value, np.ndarray):
                     self._d[key].append(value.copy())
-                elif hasattr(value, 'copy') and callable(value.copy):
+                elif hasattr(value, "copy") and callable(value.copy):
                     # Copy if it has a copy method (e.g., MuJoCo's MjArray)
                     self._d[key].append(value.copy())
                 else:
@@ -580,6 +594,7 @@ class SimulationData(object):
     def __del__(self):
         self._d.clear()
         import gc
+
         gc.collect()
 
     def __len__(self):
@@ -597,4 +612,4 @@ class SimulationData(object):
     @staticmethod
     def _get_public_keys(obj):
         """Get all public keys of an object."""
-        return [name for name in dir(obj) if not name.startswith('_') and not callable(getattr(obj, name))]
+        return [name for name in dir(obj) if not name.startswith("_") and not callable(getattr(obj, name))]

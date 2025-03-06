@@ -1,5 +1,6 @@
 from numpy import sin, cos, pi, random
 
+
 def _apply_control(model, data, value, joint=None, axis=None, delay=0):
     """Common helper function for controller logic to reduce redundancy.
 
@@ -39,10 +40,10 @@ def stepController(model, data, **kwargs):
     Returns:
         None
     """
-    amplitude = kwargs.get('amplitude', 1)
-    joint = kwargs.get('joint', None)
-    axis = kwargs.get('axis', None)
-    delay = kwargs.get('delay', 0)
+    amplitude = kwargs.get("amplitude", 1)
+    joint = kwargs.get("joint", None)
+    axis = kwargs.get("axis", None)
+    delay = kwargs.get("delay", 0)
 
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
@@ -65,11 +66,11 @@ def sineController(model, data, **kwargs):
     Returns:
         None
     """
-    amplitude = kwargs.get('amplitude', 1)
-    frequency = kwargs.get('frequency', 1)
-    phase = kwargs.get('phase', 0)
-    joint = kwargs.get('joint', None)
-    delay = kwargs.get('delay', 0)
+    amplitude = kwargs.get("amplitude", 1)
+    frequency = kwargs.get("frequency", 1)
+    phase = kwargs.get("phase", 0)
+    joint = kwargs.get("joint", None)
+    delay = kwargs.get("delay", 0)
 
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
@@ -91,11 +92,11 @@ def cosineController(model, data, **kwargs):
     Returns:
         None
     """
-    amplitude = kwargs.get('amplitude', 1)
-    frequency = kwargs.get('frequency', 1)
-    phase = kwargs.get('phase', 0)
-    joint = kwargs.get('joint', None)
-    delay = kwargs.get('delay', 0)
+    amplitude = kwargs.get("amplitude", 1)
+    frequency = kwargs.get("frequency", 1)
+    phase = kwargs.get("phase", 0)
+    joint = kwargs.get("joint", None)
+    delay = kwargs.get("delay", 0)
 
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
@@ -116,10 +117,10 @@ def randomController(model, data, **kwargs):
     Returns:
         None
     """
-    amplitude = kwargs.get('amplitude', 1)
-    joint = kwargs.get('joint', None)
-    axis = kwargs.get('axis', None)
-    delay = kwargs.get('delay', 0)
+    amplitude = kwargs.get("amplitude", 1)
+    joint = kwargs.get("joint", None)
+    axis = kwargs.get("axis", None)
+    delay = kwargs.get("delay", 0)
 
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
