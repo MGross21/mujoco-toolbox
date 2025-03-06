@@ -50,6 +50,10 @@ bug-tracker = "https://github.com/MGross21/mujoco-toolbox/issues"
 [tool.poetry]
 packages = [{ include = "mujoco_toolbox" }]
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.15.0"
+pytypes = "^1.0b10"
+
 [tool.semantic-release]
 version_variable = [
     "pyproject.toml:version",
