@@ -62,7 +62,7 @@ jobs:
 
       - name: Install package
         run: |
-          pip install . --no-cache-dir
+          pip install .
 
       - name: Set Mujoco environment variables
         run: |
