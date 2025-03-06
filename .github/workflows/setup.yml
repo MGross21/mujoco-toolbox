@@ -22,20 +22,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history
-          clean: true     # Ensure clean workspace
+          fetch-depth: 0
+          clean: true
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry  # Enable Poetry cache for faster installs
 
-      - name: Cache Python dependencies
+      - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml', '**/poetry.lock') }}
+          key: python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: |
             python-${{ matrix.python-version }}-pip-
 
@@ -49,20 +48,17 @@ jobs:
             patchelf \
             ffmpeg
 
-      - name: Install Poetry
+      - name: Install Poetry and dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-
-      - name: Install dependencies
-        run: |
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
 
       - name: Install package
         run: |
-          pip install .
+          pip install . --no-cache-dir
 
       - name: Set Mujoco environment variables
         run: |
