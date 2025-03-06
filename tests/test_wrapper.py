@@ -1,6 +1,7 @@
+import os
+
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import Wrapper
-import os
 
 
 def test_wrapper():
@@ -20,8 +21,12 @@ def test_wrapper():
         frequency=1e3,
     ).runSim()
 
-    assert test1.captured_data.__len__() == mjtb.CAPTURE_PARAMETERS.__len__(), "Captured data is not complete."
-    assert test1._captured_data.__len__() == (test1.duration * test1.data_rate) + 1, "Captured data is not complete."
+    assert (
+        test1.captured_data.__len__() == mjtb.CAPTURE_PARAMETERS.__len__()
+    ), "Captured data is not complete."
+    assert (
+        test1._captured_data.__len__() == (test1.duration * test1.data_rate) + 1
+    ), "Captured data is not complete."
     # assert os.path.exists(test1.renderMedia(codec="gif", title="sine_wave", save=True)), "Media file not found."
 
 

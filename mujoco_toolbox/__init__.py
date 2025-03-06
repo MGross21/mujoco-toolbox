@@ -24,9 +24,10 @@ Notes:
 This package is still under development. Report any issues to https://github.com/MGross21/mujoco-toolbox/issues.
 """
 
-from .Wrapper import Wrapper
-from .Controller import sineController, cosineController, randomController, stepController
+from .Controller import (cosineController, randomController, sineController,
+                         stepController)
 from .Utils import print_warning
+from .Wrapper import Wrapper
 
 __version__ = "0.0.1"
 __author__ = "Michael Gross"
@@ -35,7 +36,14 @@ __license__ = "MIT"
 __status__ = "Development"
 
 # `from mujoco_toolbox import *` will import these objects
-__all__ = ["Wrapper", "sineController", "cosineController", "randomController", "stepController", "timer"]
+__all__ = [
+    "Wrapper",
+    "sineController",
+    "cosineController",
+    "randomController",
+    "stepController",
+    "timer",
+]
 
 CAPTURE_PARAMETERS = [
     "time",

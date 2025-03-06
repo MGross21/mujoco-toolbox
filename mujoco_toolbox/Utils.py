@@ -1,6 +1,6 @@
-from time import time
 from functools import wraps
 from sys import platform
+from time import time
 
 
 def timer(func):
@@ -34,11 +34,15 @@ def print_warning(*args) -> None:
         # Check if we're on Windows or a Unix-like system for color support
         if platform.startswith("win"):
             try:
-                from colorama import init, Fore, Style
+                from colorama import Fore, Style, init
 
                 init()  # Initialize colorama
-                print(f"{Fore.YELLOW}{message}{Style.RESET_ALL}", end=" ")  # Yellow color for warning
-                print(*args[1:], end="")  # No newline, print all args separated by spaces
+                print(
+                    f"{Fore.YELLOW}{message}{Style.RESET_ALL}", end=" "
+                )  # Yellow color for warning
+                print(
+                    *args[1:], end=""
+                )  # No newline, print all args separated by spaces
             except ImportError:
                 # If colorama is not available, print without color
                 print(message, end=" ")

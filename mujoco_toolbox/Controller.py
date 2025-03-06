@@ -1,4 +1,4 @@
-from numpy import sin, cos, pi, random
+from numpy import cos, pi, random, sin
 
 
 def _apply_control(model, data, value, joint=None, axis=None, delay=0):
