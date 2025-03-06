@@ -19,7 +19,7 @@ def timer(func):
 def print_warning(*args) -> None:
     """
     Prints the first argument as an orange warning message and prints the other arguments in regular text, all on the same line.
-    
+
     Args:
         *args: First argument is printed as an orange warning, other arguments are printed normally.
     """
