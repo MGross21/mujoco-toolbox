@@ -505,7 +505,6 @@ class Wrapper(object):
             print(f"Failed to save data to YAML: {e}")
 
 
-
 class SimulationData(object):
     """A class to store and manage simulation data."""
 

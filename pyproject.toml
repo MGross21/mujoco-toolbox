@@ -84,11 +84,12 @@ allowed_tags = [
 
 [tool.ruff]
 line-length = 120
-# Enable additional rules or plugins (if needed)
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules
 ignore = []                      # If there are specific rules you want to ignore, add them here
-fix = true                       # Enable auto-fixing of issues when running ruff check
 fixable = ["ALL"]                # Enable auto-fixing for all fixable issues
+extend-select = ["I", "B", "Q", "S"]
 
 [tool.mypy]
 ignore_missing_imports = true
