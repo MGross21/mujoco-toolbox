@@ -14,11 +14,11 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0):
     # Don't apply control until after delay
     if data.time < delay:
         return
-    
+
     # Determine targets if not explicitly provided
     if joint is None and axis is None:
         joint = range(model.nu)
-    
+
     # Apply control to joints or specific axis
     if joint is not None and model.nu > 0:
         for j in joint:
@@ -43,12 +43,12 @@ def stepController(model, data, **kwargs):
     joint = kwargs.get('joint', None)
     axis = kwargs.get('axis', None)
     delay = kwargs.get('delay', 0)
-    
+
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
     if joint is not None and axis is not None:
         raise ValueError("Cannot specify both 'joint' and 'axis'.")
-    
+
     _apply_control(model, data, amplitude, joint=joint, axis=axis, delay=delay)
 
 
@@ -70,10 +70,10 @@ def sineController(model, data, **kwargs):
     phase = kwargs.get('phase', 0)
     joint = kwargs.get('joint', None)
     delay = kwargs.get('delay', 0)
-    
+
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
-    
+
     value = amplitude * sin(2 * pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
@@ -96,10 +96,10 @@ def cosineController(model, data, **kwargs):
     phase = kwargs.get('phase', 0)
     joint = kwargs.get('joint', None)
     delay = kwargs.get('delay', 0)
-    
+
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
-    
+
     value = amplitude * cos(2 * pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
@@ -120,11 +120,11 @@ def randomController(model, data, **kwargs):
     joint = kwargs.get('joint', None)
     axis = kwargs.get('axis', None)
     delay = kwargs.get('delay', 0)
-    
+
     if delay < 0:
         raise ValueError("Delay must be non-negative.")
     if joint is not None and axis is not None:
         raise ValueError("Cannot specify both 'joint' and 'axis'.")
-    
+
     value = amplitude * random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)

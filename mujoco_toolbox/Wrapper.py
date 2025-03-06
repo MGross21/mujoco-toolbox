@@ -65,7 +65,7 @@ class Wrapper(object):
                     self._load_xml_string(xml)
                 else:
                     raise FileNotFoundError(f"Model file not found: {xml_path}. Ensure the file path is correct and accessible.")
-        
+
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Failed to load the MuJoCo model: {e}") from e
 
@@ -74,7 +74,7 @@ class Wrapper(object):
 
         except Exception as e:
             raise Exception(f"Unexpected error while loading the MuJoCo model: {e}") from e
-    
+
     def _load_xml_file(self, xml: str) -> None:
         """Load a MuJoCo model from an XML file."""
         self._model = mujoco.MjModel.from_xml_path(xml)
@@ -133,10 +133,10 @@ class Wrapper(object):
             f"  Controller: {self.controller.__name__}\n" # Returns str name of the function
             f")"
         )
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
         mujoco.set_mjcb_control(None)
         return
@@ -145,7 +145,7 @@ class Wrapper(object):
     def model(self) -> mujoco.MjModel:
         """Read-only property to access the MjModel object."""
         return self._model
-    
+
     @property
     def data(self) -> mujoco.MjData:
         """Read-only property to access the MjData single-step object."""
@@ -157,7 +157,7 @@ class Wrapper(object):
         if self._captured_data is None:
             raise ValueError("No simulation data captured yet.")
         return self._captured_data.unwrap()
-    
+
     @captured_data.deleter
     def captured_data(self):
         self._captured_data = None
@@ -168,13 +168,13 @@ class Wrapper(object):
         if self._frames is None:
             raise ValueError("No frames captured yet.")
         return self._frames
-    
+
     @frames.deleter
     def frames(self):
         self._frames.clear()
         import gc
         gc.collect()
-    
+
     @property
     def duration(self)->float:
         return self._duration
@@ -188,7 +188,7 @@ class Wrapper(object):
     @property
     def fps(self)->float:
         return self._fps
-    
+
     @fps.setter
     def fps(self, value):
         if value < 0:
@@ -198,14 +198,14 @@ class Wrapper(object):
     @property
     def resolution(self)->Tuple[int, int]:
         return self._resolution
-    
+
     @resolution.setter
     def resolution(self, values):
         if len(values) != 2:
             raise ValueError("Resolution must be a tuple of width and height.")
         if values[0] < 1 or values[1] < 1:
             raise ValueError("Resolution must be at least 1x1 pixels.")
-        
+
         try:
             monitor = get_monitors()[0]
             screen_width, screen_height = monitor.width, monitor.height
@@ -215,7 +215,7 @@ class Wrapper(object):
 
         if values[0] > screen_width or values[1] > screen_height:
             raise ValueError("Resolution must be less than the screen resolution.")
-        
+
         self._resolution = tuple(int(value) for value in values)
         self._width, self._height = self._resolution
         # Match changes to the model's visual settings
@@ -225,7 +225,7 @@ class Wrapper(object):
     @property
     def init_conditions(self):
         return self._initcond
-    
+
     @init_conditions.setter
     def init_conditions(self, values):
         if not isinstance(values, dict):
@@ -241,7 +241,7 @@ class Wrapper(object):
     def controller(self)->callable:
         """Controller Function"""
         return self._controller
-    
+
     @controller.setter
     def controller(self, func: callable):
         if func is not None and not callable(func):
@@ -251,7 +251,7 @@ class Wrapper(object):
     @property
     def ts(self):
         return self._model.opt.timestep
-    
+
     @ts.setter
     def ts(self, value):
         if value <= 0:
@@ -267,13 +267,13 @@ class Wrapper(object):
     @property
     def gravity(self):
         return self._model.opt.gravity
-    
+
     @gravity.setter
     def gravity(self, values):
         if len(values) != 3:
             raise ValueError("Gravity must be a 3D vector.")
         self._model.opt.gravity = values
-    
+
 
     def _setInitialConditions(self):
         for key, value in self._initcond.items():
@@ -331,7 +331,7 @@ class Wrapper(object):
                 step = 0
                 while d.time < self._duration:
                     mj_step(m,d)
-                    
+
                     # Capture data at the specified rate
                     if step % capture_interval == 0:
                         self._captured_data.capture(d)
@@ -371,14 +371,14 @@ class Wrapper(object):
         """
         if not self._frames:
             raise ValueError("No frames captured to render.")
-        
+
         if t < 0 or frame < 0:
             raise ValueError("Time and frame index must be greater than or equal to zero.")
-        
+
         if frame and t:
             raise ValueError("Can only specify singular time or frame parameter")
-        
-        try: 
+
+        try:
             if t > 0:
                 frame = self.t2f(t)  # Convert time to frame index
             else:
@@ -388,14 +388,14 @@ class Wrapper(object):
             plt.axis('off')
             plt.title(title or f"Frame {frame}", loc='center')
             plt.show()
-            
+
         except IndexError as e:
             raise ValueError(f"Invalid frame index: {e}")
         except TypeError as e:
             raise ValueError(f"Invalid type for time or frame: {e}")
         except Exception as e:
             raise RuntimeError(f"Unexpected error while rendering frame: {e}")
-        
+
     def renderMedia(self, codec="gif", title=None, save=False)->media:
         """Render the simulation as a video or GIF, with an option to save to a file.
 
@@ -420,7 +420,7 @@ class Wrapper(object):
             media.write_video(title if not None else "render", self._frames, fps=self._fps, codec=codec)
         else:
             raise ValueError(f"Unsupported codec '{codec}'. Supported codecs are {', '.join(available_codecs)}")
-        
+
         path = os.path.abspath(title)
         print(f"Media saved to {path}")
         return path
@@ -429,12 +429,12 @@ class Wrapper(object):
     def t2f(self, t:float)->int:
         """Convert time to frame index."""
         return min(int(t * self._fps), int(self._duration * self._fps) - 1) # Subtract 1 to convert to 0-based index
-    
+
     @lru_cache(maxsize=100)
     def f2t(self, frame: int) -> float:
         """Convert frame index to time."""
         return frame / self._fps
-    
+
     def getBodyData(self, body_name:str, data_name:str=None)->np.ndarray:
         """Get the data for a specific body in the simulation.
 
@@ -456,7 +456,7 @@ class Wrapper(object):
         if data_name not in self._captured_data.unwrap():
             raise ValueError(f"Data '{data_name}' not found for body '{body_name}'.")
         return self._captured_data.unwrap()[body_id][data_name]
-    
+
     def getID(self, id: int) -> str:
         """Get the name of a body given its ID.
 
@@ -492,13 +492,13 @@ class Wrapper(object):
             print(f"Simulation data saved to {name}")
         except Exception as e:
             print(f"Failed to save data to YAML: {e}")
-    
+
 from collections import defaultdict
 class SimulationData(object):
     """A class to store and manage simulation data."""
     def __init__(self):
         self._d = defaultdict(list)
-        
+
     def capture(self, mj_data: mujoco.MjData):
         """Capture data from MjData object, storing specified or all public simulation data."""
         from . import CAPTURE_PARAMETERS  # Import here to avoid circular dependency
@@ -506,7 +506,7 @@ class SimulationData(object):
             keys = self._get_public_keys(mj_data)
         else:
             keys = CAPTURE_PARAMETERS  # Use the provided keys directly
-            
+
         for key in keys:
             try:
                 value = getattr(mj_data, key)
@@ -523,16 +523,16 @@ class SimulationData(object):
                 print_warning(f"Key '{key}' not found in MjData. Skipping.")
             except Exception as e:
                 print(f"An error occurred while capturing '{key}': {e}")
-                
+
     def unwrap(self) -> Dict[str, np.ndarray]:
         """Unwrap the captured simulation data into a structured format with NumPy arrays."""
         unwrapped_data = {}
-        
+
         for key, value_list in self._d.items():
             if not value_list:  # Skip empty lists
                 unwrapped_data[key] = np.array([])
                 continue
-                
+
             try:
                 # Check if all items in the list have the same shape for array data
                 if isinstance(value_list[0], np.ndarray):
@@ -552,15 +552,15 @@ class SimulationData(object):
             except Exception as e:
                 print(f"Error processing key '{key}': {e}")
                 unwrapped_data[key] = value_list
-                
+
         return unwrapped_data
-    
+
     @property
     def shape(self):
         """TODO: Implement a method to return the shape of the captured data."""
         if not self._d:
             return None
-        
+
         self.unwrap()  # Ensure data is unwrapped before checking shape
 
         for key, value in self._d.items():
@@ -581,19 +581,19 @@ class SimulationData(object):
         self._d.clear()
         import gc
         gc.collect()
-        
+
     def __len__(self):
         if not self._d:
             return 0
         # Return the length of one of the data lists (assuming all have same length)
         return len(next(iter(self._d.values())))
-    
+
     def __str__(self):
         return f"{self.__class__.__name__}({len(self)} Step(s) Captured)"
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     @staticmethod
     def _get_public_keys(obj):
         """Get all public keys of an object."""

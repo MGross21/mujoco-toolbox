@@ -8,7 +8,7 @@ def test_wrapper():
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
 
     mjtb.VERBOSITY = True
-  
+
     test1 = Wrapper(xml=model, duration=10, fps=30, resolution=(800, 600), controller=mjtb.sineController, amplitude=1e2, frequency=1e3).runSim()
 
     assert test1.captured_data.__len__() == mjtb.CAPTURE_PARAMETERS.__len__(), "Captured data is not complete."

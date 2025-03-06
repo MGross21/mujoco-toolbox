@@ -41,7 +41,7 @@ __all__ = [ 'Wrapper',
             'randomController',
             'stepController',
             'timer'
-           ] 
+           ]
 
 CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata'] # MjData default fields to capture during simulation
 
