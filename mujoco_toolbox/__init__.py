@@ -29,7 +29,7 @@ from .Controller import (cosineController, randomController, sineController,
 from .Utils import print_warning
 from .Wrapper import Wrapper
 
-__version__ = "0.0.1"
+__version__ = "0.1.8"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
