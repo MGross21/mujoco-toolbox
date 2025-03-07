@@ -168,9 +168,6 @@ class Wrapper(object):
             self.xml = ET.tostring(robot, encoding='unicode')
             # Replace .dae with .stl in the XML string
             self.xml = self.xml.replace('.dae', '.stl')
-            if VERBOSITY:
-                with open("converted_urdf.xml", "w") as xml_file:
-                    xml_file.write(self.xml)
             self._model = mujoco.MjModel.from_xml_string(self.xml)
         except Exception as e:
             raise ValueError(f"Failed to process URDF file: {e}")
