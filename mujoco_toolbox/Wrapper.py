@@ -12,23 +12,26 @@ import trimesh
 import os
 import sys
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Union, Optional, Callable, Any
+from typing import Dict, List, Tuple, Union, Optional, Callable, Any, TypeAlias
 
 from .Utils import timer, print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
 
+mjModel: TypeAlias = mujoco.MjModel
+mjData: TypeAlias = mujoco.MjData
+
 class Wrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
 
-    def __init__(self, xml, duration=10, fps=30, resolution=(400,300), initialConditions=None, controller=None, *args, **kwargs):
+    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
         self._load_model(xml, **kwargs)
 
         self.duration = duration
         self.fps = fps
         self.resolution = resolution  # recursively sets width and height
-        self.init_conditions = initialConditions or {}
+        self.init_conditions = initialConditions
         self.controller = controller
 
         # Predefined simulation parameters but can be overridden
@@ -86,14 +89,15 @@ class Wrapper(object):
             try:
                 self.xml = self.xml.format(**template)
             except KeyError as e:
-                raise ValueError(f"Template key error: {e}. Ensure the template keys match the placeholders in the XML.")
+                raise ValueError(f"Template key error. Ensure the template keys match the placeholders in the XML.") from e
             except Exception as e:
-                raise ValueError(f"Error formatting XML with template: {e}")
+                raise ValueError(f"Error formatting XML with template") from e
         self._model = mujoco.MjModel.from_xml_string(self.xml)
 
     def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
         """Process and load a URDF file for use with MuJoCo."""
         def convert_dae_to_stl(meshdir: str) -> None:
+            """Convert all DAE files in a directory (including subdirectories) to STL."""
             if not os.path.exists(meshdir):
                 raise FileNotFoundError(f"Directory not found: {meshdir}")
             for filename in os.listdir(meshdir):
@@ -101,50 +105,83 @@ class Wrapper(object):
                     dae_path = os.path.join(meshdir, filename)
                     stl_path = os.path.splitext(dae_path)[0] + '.stl'
                     try:
-                        trimesh.load(dae_path).export(stl_path)
-                        print(f"Converted: {filename}")
+                        trimesh.load_mesh(dae_path).export(stl_path)
+                        print(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
                     except Exception as e:
-                        raise ValueError(f"Error converting {filename}: {str(e)}")
+                        raise ValueError(f"Error converting {filename}") from e
                         
         try:
+            from . import VERBOSITY
             robot = ET.parse(urdf_path).getroot()
             mujoco_tag = ET.Element("mujoco")
             
-            # Handle multiple mesh directories
-            meshdirs = kwargs.get('meshdir', ("meshes/",))  # Default as tuple
-            if isinstance(meshdirs, (str, bytes)):  # Ensure not a single string
-                meshdirs = [meshdirs]  # Convert single string to list
-                
-            # Process each meshdir
-            for meshdir in meshdirs:
-                # Ensure meshdir is absolute path or is relative to the URDF location
-                if not os.path.isabs(meshdir):
-                    urdf_dir = os.path.dirname(os.path.abspath(urdf_path))
-                    full_meshdir = os.path.join(urdf_dir, meshdir)
-                else:
-                    full_meshdir = meshdir
-                    
-                compiler_attrs = {
-                    'meshdir': meshdir,  # Keep original path for MuJoCo
-                    'balanceinertia': kwargs.get("balanceinertia", "true"),
-                    'discardvisual': "false"
-                }
-                ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
-                
-                # Convert DAE files in the specific directory
+            # Get main meshdir (parent directory for meshes)
+            meshdir = kwargs.get('meshdir', "meshes/")  # Default as tuple
+            if not os.path.isabs(meshdir):
+                urdf_dir = os.path.dirname(os.path.abspath(urdf_path))
+                meshdir = os.path.join(urdf_dir, meshdir)
+
+            # Ensure meshdir exists
+            if not os.path.exists(meshdir):
+                raise FileNotFoundError(f"Mesh directory not found: {meshdir}")
+            
+            # If no explicit subdirs are provided, auto-detect subdirectories with STL files
+            subdirs = kwargs.get('meshdir_sub', None)
+            if not subdirs:
+                subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith('.stl') for f in files)]
+                if VERBOSITY:
+                    print(f"Auto-detected subdirectories: {subdirs}")
+
+            # Convert relative subdir paths to absolute based on meshdir
+            full_meshdirs = [
+                os.path.join(meshdir, subdir) if not os.path.isabs(subdir) else subdir
+                for subdir in subdirs
+            ]
+
+            # Add <compiler> tag with the main meshdir (required for MuJoCo)
+            compiler_attrs = {
+                'meshdir': meshdir,  # Use the main meshdir
+                'balanceinertia': kwargs.get("balanceinertia", "true"),
+                'discardvisual': "false"
+            }
+            ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
+
+            # Create <asset> tag (required for MuJoCo)
+            asset_tag = ET.SubElement(mujoco_tag, "asset")
+
+
+            # Process all valid mesh directories
+            for full_meshdir in full_meshdirs:
                 if os.path.exists(full_meshdir):
-                    convert_dae_to_stl(full_meshdir)
+                    convert_dae_to_stl(full_meshdir)  # Convert DAE to STL in the origin directory
+
+                    # Walk through all files in the directory
+                    for root, _, files in os.walk(full_meshdir):
+                        for filename in files:
+                            if filename.lower().endswith('.stl'):
+                                relative_dir = os.path.relpath(root, meshdir)  # Extract subdir name
+                                mesh_name = f"{os.path.splitext(filename)[0]}_{relative_dir.replace(os.sep, '_')}"  # Format: base_visual
+                                mesh_file_relative = os.path.join(relative_dir, filename)
+                                ET.SubElement(asset_tag, "mesh", name=mesh_name, file=mesh_file_relative)
                     
             robot.insert(0, mujoco_tag)
             self.xml = ET.tostring(robot, encoding='unicode')
+            # Replace .dae with .stl in the XML string
+            self.xml = self.xml.replace('.dae', '.stl')
+            if VERBOSITY:
+                with open("converted_urdf.xml", "w") as xml_file:
+                    xml_file.write(self.xml)
             self._model = mujoco.MjModel.from_xml_string(self.xml)
         except Exception as e:
             raise ValueError(f"Failed to process URDF file: {e}")
 
     def _load_xml_string(self, xml: str) -> None:
         """Load a MuJoCo model from an XML string."""
-        self._model = mujoco.MjModel.from_xml_string(xml)
-        self.xml = xml
+        try:
+            self._model = mujoco.MjModel.from_xml_string(xml)
+            self.xml = xml
+        except Exception as e:
+            raise ValueError(f"Failed to load the MuJoCo model from XML string: {e}") from e
 
     def __str__(self):
         return self._model.__str__()
@@ -266,31 +303,45 @@ class Wrapper(object):
         self._initcond = values
 
     @property
-    def controller(self)->callable:
+    def controller(self) -> Optional[Callable[[mjModel, mjData, Any], None]]:
         """Controller Function"""
         return self._controller
     
     @controller.setter
-    def controller(self, func: callable):
+    def controller(self, func: Callable[[mjModel, mjData, Any], None]) -> None:
         if func is not None and not callable(func):
             raise ValueError("Controller must be a callable function.")
         self._controller = func
 
     @property
-    def ts(self):
+    def ts(self) -> float:
         return self._model.opt.timestep
     
     @ts.setter
-    def ts(self, value):
+    def ts(self, value) -> None:
         if value <= 0:
             raise ValueError("Timestep must be greater than 0.")
         self._model.opt.timestep = value
 
     @property
-    def data_rate(self):
+    def data_rate(self) -> int:
         if self._dr is None:
             raise ValueError(f"Use '{self.runSim.__name__}' first in order to access this value.")
         return self._dr
+    
+    @data_rate.setter
+    def data_rate(self, value) -> None:
+        if value.is_numeric() and not isinstance(value, int):
+            value = round(value)
+            print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
+        if value <= 0:
+            raise ValueError("Data rate must be greater than 0.")
+        # TODO: Check the math on this validation
+        # max_ = int(self._duration / self.ts)
+        # if value > max_:
+        #     print_warning(f"Data rate exceeds the simulation steps. Setting to the maximum possible value ({max_}).")
+        #     value = max_
+        self._dr = value
 
     @property
     def gravity(self):
