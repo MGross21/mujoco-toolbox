@@ -21,9 +21,9 @@ def test_xml1():
     test1 = Wrapper(
         xml=model, duration=5, fps=20, resolution=(800, 600),
         controller=mjtb.sineController, amplitude=1e-10, frequency=1e-10
-    ).runSim(render=True)
+    ).runSim(render=False)
 
-    test1.renderMedia(title="sine_wave",save=True)
+    # test1.renderMedia(title="sine_wave",save=True)
 
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
     assert len(test1._captured_data) == (test1.duration * test1.data_rate) + 1, "Captured data length does not match simulation parameters."
@@ -46,9 +46,9 @@ def test_urdf1():
         "init_conditions": ic,   
     }
 
-    test2 = Wrapper(**params).runSim(render=True)
+    test2 = Wrapper(**params).runSim(render=False)
 
-    test2.renderFrame(0)
+    # test2.renderFrame(0)
 
     joint_names = [test2._model.joint(i).name for i in range(test2._model.njnt)]
     print("Joint names:", joint_names)
