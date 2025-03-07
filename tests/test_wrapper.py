@@ -18,10 +18,18 @@ mjtb.VERBOSITY = True
 def test_xml1():
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
+
+    mjtb.VERBOSITY = True
+
     test1 = Wrapper(
-        xml=model, duration=5, fps=20, resolution=(800, 600),
-        controller=mjtb.sineController, amplitude=1e-10, frequency=1e-10
-    ).runSim(render=False)
+        xml=model,
+        duration=10,
+        fps=30,
+        resolution=(800, 600),
+        controller=mjtb.sineController,
+        amplitude=1e-5,
+        frequency=1e-5,
+    ).runSim()
 
     # test1.renderMedia(title="sine_wave",save=True)
 
@@ -61,6 +69,7 @@ def test_urdf1():
 #             m.runSim()
 #             assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
 #             assert len(m._captured_data) == (m.duration * m.data_rate) + 1, "Captured data length does not match simulation parameters."
+
 
 if __name__ == "__main__":
     # Copy global functions to avoid dictionary size change error

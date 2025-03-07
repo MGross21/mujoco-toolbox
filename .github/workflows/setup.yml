@@ -1,0 +1,80 @@
+name: Setup and Install
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            python-${{ matrix.python-version }}-pip-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libosmesa6-dev \
+            xvfb \
+            libglew-dev \
+            patchelf \
+            ffmpeg
+
+      - name: Install Poetry and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+          poetry install --no-interaction --no-root
+
+      - name: Install package
+        run: |
+          pip install . --no-cache-dir
+
+      - name: Set Mujoco environment variables
+        run: |
+          echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
+          echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
+
+      - name: Verify Environment Setup
+        run: |
+          python --version
+          poetry --version
+          poetry run pytest --version
+          poetry run mypy --version

@@ -1,60 +1,17 @@
-name: Integration Tests
-permissions:
-  contents: read
-  pull-requests: write
+name: CI Status
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths: ['**.py', 'pyproject.toml', '.github/workflows/**']
   pull_request:
-    branches:
-      - main
+    branches: [main]
+    paths: ['**.py', 'pyproject.toml', '.github/workflows/**']
+  workflow_dispatch:
 
 jobs:
-  test:
+  ci-status:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Cache Python dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install poetry
-        poetry install
-        pip install pytest
-        pip install . --no-cache-dir
-    
-    - name: System Level Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt install -y libosmesa6-dev xvfb libglew-dev patchelf ffmpeg
-        ffmpeg -version
-    
-    - name: Set environment variables for Mujoco headless mode
-      run: |
-        echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
-        echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
-
-    - name: Run tests from 'tests/' directory
-      run: |
-        pytest tests/ --maxfail=1 --disable-warnings -q
+      - name: CI Status Check
+        run: echo "All CI workflows must pass independently"

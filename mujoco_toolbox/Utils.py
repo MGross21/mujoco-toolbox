@@ -1,5 +1,7 @@
-from time import time
 from functools import wraps
+from sys import platform
+from time import time
+
 
 def timer(func):
     @wraps(func)
@@ -10,17 +12,18 @@ def timer(func):
         total_time = end_time - start_time
 
         from . import VERBOSITY
+
         if VERBOSITY:
             print(f"Function '{func.__name__}' took {total_time:.4f} seconds")
         return result
+
     return time_wrapper
 
-from sys import platform
 
 def print_warning(*args) -> None:
     """
     Prints the first argument as an orange warning message and prints the other arguments in regular text, all on the same line.
-    
+
     Args:
         *args: First argument is printed as an orange warning, other arguments are printed normally.
     """
@@ -31,10 +34,15 @@ def print_warning(*args) -> None:
         # Check if we're on Windows or a Unix-like system for color support
         if platform.startswith("win"):
             try:
-                from colorama import init, Fore, Style
+                from colorama import Fore, Style, init
+
                 init()  # Initialize colorama
-                print(f"{Fore.YELLOW}{message}{Style.RESET_ALL}", end=" ")  # Yellow color for warning
-                print(*args[1:], end="")  # No newline, print all args separated by spaces
+                print(
+                    f"{Fore.YELLOW}{message}{Style.RESET_ALL}", end=" "
+                )  # Yellow color for warning
+                print(
+                    *args[1:], end=""
+                )  # No newline, print all args separated by spaces
             except ImportError:
                 # If colorama is not available, print without color
                 print(message, end=" ")

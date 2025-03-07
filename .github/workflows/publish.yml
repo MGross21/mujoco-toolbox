@@ -1,41 +1,47 @@
 name: PyPI Package
-permissions:
-  contents: read
 
 on:
-  push:
-    branches:
-      - main  # Triggers the workflow when changes are pushed to the `main` branch
+  release:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # Install build tool
-      - name: Install build tools
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: python-3.10-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            python-3.10-pip-
+
+      - name: Install Poetry and dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
+          pip install poetry
+          poetry install --no-interaction
+          # Use a specific version for semantic-release
+          pip install python-semantic-release==8.3.0
 
-      # Build the package
-      - name: Build package
-        run: python -m build
-
-      # Publish to PyPI
-      - name: Publish to PyPI
+      - name: Run Semantic Release
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }} 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          twine upload dist/*
+          semantic-release publish

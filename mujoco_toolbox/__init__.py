@@ -24,28 +24,44 @@ Notes:
 This package is still under development. Report any issues to https://github.com/MGross21/mujoco-toolbox/issues.
 """
 
-from .Wrapper import Wrapper
-from .Controller import sineController, cosineController, randomController, stepController
+from .Controller import (cosineController, randomController, sineController,
+                         stepController)
 from .Utils import print_warning
-import os
+from .Wrapper import Wrapper
 
-__version__ = "0.0.1"
+__version__ = "0.1.8"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
-__license__ =  "MIT"
+__license__ = "MIT"
 __status__ = "Development"
 
 # `from mujoco_toolbox import *` will import these objects
-__all__ = [ 'Wrapper',
-            'sineController',
-            'cosineController',
-            'randomController',
-            'timer'
-           ] 
+__all__ = [
+    "Wrapper",
+    "sineController",
+    "cosineController",
+    "randomController",
+    "stepController",
+    "timer",
+]
 
-CAPTURE_PARAMETERS = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata'] # MjData default fields to capture during simulation
+CAPTURE_PARAMETERS = [
+    "time",
+    "qpos",
+    "qvel",
+    "act",
+    "qacc",
+    "xpos",
+    "xquat",
+    "xmat",
+    "ctrl",
+    "sensordata",
+]  # MjData default fields to capture during simulation
 
 VERBOSITY = False
 
 if True:
-    print_warning(f"{__package__} ({__version__}) is still under development.",f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues\n")
+    print_warning(
+        f"{__package__} ({__version__}) is still under development.",
+        f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues\n",
+    )
