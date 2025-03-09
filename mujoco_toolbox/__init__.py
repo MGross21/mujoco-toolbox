@@ -26,7 +26,7 @@ This package is still under development. Report any issues to https://github.com
 
 from .Controller import (cosineController, randomController, sineController,
                          stepController)
-from .Utils import print_warning
+from .Utils import print_warning, print_success
 from .Wrapper import Wrapper
 
 __version__ = "0.1.8"
@@ -63,5 +63,5 @@ VERBOSITY = False
 if True:
     print_warning(
         f"{__package__} ({__version__}) is still under development.",
-        f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues\n",
+        f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )

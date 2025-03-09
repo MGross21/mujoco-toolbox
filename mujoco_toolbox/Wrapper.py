@@ -149,7 +149,7 @@ class Wrapper(object):
             subdirs = kwargs.get('meshdir_sub', None)
             if not subdirs:
                 subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith('.stl') for f in files)]
-                if VERBOSITY:
+                if VERBOSITY and subdirs != ['.']:
                     print(f"Auto-detected subdirectories: {subdirs}")
 
             # Convert relative subdir paths to absolute based on meshdir
