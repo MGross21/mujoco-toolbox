@@ -62,6 +62,6 @@ VERBOSITY = False
 
 if True:
     print_warning(
-        f"{__package__} ({__version__}) is still under development.",
+        f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
