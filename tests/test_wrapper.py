@@ -2,7 +2,7 @@ import os
 import inspect
 import numpy as np
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Wrapper, print_success
+from mujoco_toolbox import Wrapper, print_success, Computer
 
 # Import External Modules
 def _mjLazyLoad():
@@ -19,11 +19,6 @@ TESTING_MODELS = [
 
 mjtb.VERBOSITY = True
 
-if os.getenv('GITHUB_WORKFLOW') is None:
-    GUI_ENABLED = True
-else:
-    GUI_ENABLED = False
-
 
 def test_xml1():
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
@@ -39,9 +34,9 @@ def test_xml1():
         controller=mjtb.sineController,
         amplitude=1e-5,
         frequency=1e-5,
-    ).runSim(render=GUI_ENABLED)
+    ).runSim(render=Computer.GUI_ENABLED)
 
-    if GUI_ENABLED:
+    if Computer.GUI_ENABLED:
         test1.renderMedia(title="sine_wave", save=True)
 
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
@@ -65,15 +60,16 @@ def test_urdf1():
         "init_conditions": ic,   
     }
 
-    test2 = Wrapper(**params).runSim(render=GUI_ENABLED)
+    test2 = Wrapper(**params).runSim(render=Computer.GUI_ENABLED)
 
-    if GUI_ENABLED:
+    if Computer.GUI_ENABLED:
         test2.renderFrame(0)
 
     joint_names = [test2._model.joint(i).name for i in range(test2._model.njnt)]
     print("Joint names:", joint_names)
 
     assert len(test2.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
+    # assert len(test2._captured_data) == (test2.duration * test2.data_rate) + 1, "Captured data length does not match simulation parameters."
 
 # def test_mujoco_core_array():
 #     for model in TESTING_MODELS:
