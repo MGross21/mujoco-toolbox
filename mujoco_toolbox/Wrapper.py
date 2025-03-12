@@ -8,17 +8,11 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import mediapy as media
 import mujoco
+import mujoco.viewer
 import numpy as np
 import trimesh
 import yaml
-from screeninfo import get_monitors
-from tqdm import tqdm as barTerminal
-from tqdm.notebook import tqdm as barNotebook
-from screeninfo import get_monitors
-import trimesh
-import os
-import sys
-from dataclasses import dataclass, field
+import time
 from typing import Dict, List, Tuple, Union, Optional, Callable, Any, TypeAlias
 
 from .Utils import print_warning, timer
@@ -33,7 +27,7 @@ mjData: TypeAlias = mujoco.MjData
 class Wrapper(object):
     """A class to handle MuJoCo simulations and data capture."""
 
-    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
+    def __init__(self, xml:str="<mujoco></mujoco>", duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
         self._load_model(xml, **kwargs)
 
         self.duration = duration
@@ -86,17 +80,17 @@ class Wrapper(object):
                     )
 
         except FileNotFoundError as e:
-            raise FileNotFoundError(f"Failed to load the MuJoCo model: {e}") from e
+            raise FileNotFoundError(f"Failed to load the MuJoCo model: {e}")
 
         except ValueError as e:
             raise ValueError(
                 f"Invalid value encountered while loading the model: {e}"
-            ) from e
+            )
 
         except Exception as e:
             raise Exception(
                 f"Unexpected error while loading the MuJoCo model: {e}"
-            ) from e
+            )
 
     def _load_xml_file(self, xml: str, **kwargs) -> None:
         """Load a MuJoCo model from an XML file."""
@@ -108,9 +102,9 @@ class Wrapper(object):
             try:
                 self.xml = self.xml.format(**template)
             except KeyError as e:
-                raise ValueError(f"Template key error. Ensure the template keys match the placeholders in the XML.") from e
+                raise ValueError(f"Template key error. Ensure the template keys match the placeholders in the XML.")
             except Exception as e:
-                raise ValueError(f"Error formatting XML with template") from e
+                raise ValueError(f"Error formatting XML with template")
         self._model = mujoco.MjModel.from_xml_string(self.xml)
 
     def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
@@ -128,7 +122,7 @@ class Wrapper(object):
                         trimesh.load_mesh(dae_path).export(stl_path)
                         print(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
                     except Exception as e:
-                        raise ValueError(f"Error converting {filename}") from e
+                        raise ValueError(f"Error converting {filename}")
                         
         try:
             from . import VERBOSITY
@@ -196,7 +190,7 @@ class Wrapper(object):
             self._model = mujoco.MjModel.from_xml_string(xml)
             self.xml = xml
         except Exception as e:
-            raise ValueError(f"Failed to load the MuJoCo model from XML string: {e}") from e
+            raise ValueError(f"Failed to load the MuJoCo model from XML string: {e}")
 
     def __str__(self):
         return self._model.__str__()
@@ -204,9 +198,9 @@ class Wrapper(object):
     def __repr__(self):
         return (
             f"{self.__class__.__name__}(\n"
-            f"  Duration: {self.duration} [fps={self.fps}, ts={self.ts:.0e}]\n"
+            f"  Duration: {self.duration}s [fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
-            f"  Resolution: {self._width}x{self._height}\n"
+            f"  Resolution: {self._width}W x {self._height}H\n"
             f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}{' ...' if len(self._body_names) > 5 else ''}\n"
             f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}{' ...' if len(self._joint_names) > 5 else ''}\n"
             f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}{' ...' if len(self._actuator_names) > 5 else ''}\n"
@@ -287,14 +281,8 @@ class Wrapper(object):
         if values[0] < 1 or values[1] < 1:
             raise ValueError("Resolution must be at least 1x1 pixels.")
 
-        try:
-            monitor = get_monitors()[0]
-            screen_width, screen_height = monitor.width, monitor.height
-        except Exception as e:
-            screen_width, screen_height = 1920, 1080
-            print_warning(
-                f"Failed to get screen resolution: {e}. Defaulting to 1920x1080."
-            )
+        from . import Computer
+        screen_width, screen_height = Computer.RESOLUTION
 
         if values[0] > screen_width or values[1] > screen_height:
             raise ValueError("Resolution must be less than the screen resolution.")
@@ -347,15 +335,15 @@ class Wrapper(object):
 
     @property
     def data_rate(self) -> int:
-        if self._dr is None:
-            raise ValueError(
-                f"Use '{self.runSim.__name__}' first in order to access this value."
-            )
-        return self._dr
+        try:
+            return self._dr
+        except AttributeError:
+            print_warning(f"Use '{self.runSim.__name__}' first in order to access this value.")
+            return None
     
     @data_rate.setter
     def data_rate(self, value) -> None:
-        if value.is_numeric() and not isinstance(value, int):
+        if isinstance(value, float) and not isinstance(value, int):
             value = round(value)
             print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
         if value <= 0:
@@ -384,74 +372,87 @@ class Wrapper(object):
             else:
                 print_warning(f"'{key}' is not a valid attribute of MjData.")
 
-    def _resetSimulation(self):
-        mujoco.mj_resetData(self._model, self._data)
-        self._setInitialConditions()
-        self._frames = []
-        self._captured_data = SimulationData()
-
     @timer
-    def runSim(self, render=False, camera=None, data_rate=100, multi_thread=False):
+    def runSim(self, render: bool = False, camera: str = None, data_rate: int = 100, interactive: bool = False, multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
         Args:
             render (bool): If True, renders the simulation.
             camera (str): The camera view to render from, defaults to None.
             data_rate (int): How often to capture data, expressed as frames per second.
+            interactive (bool): If True, opens an interactive viewer window. (not implemented yet)
+            multi_thread (bool): If True, runs the simulation in multi-threaded mode. (not implemented yet)
 
         Returns:
             self: The current Wrapper object for method chaining.
         """
+        # TODO: Integrate interactive mujoco.viewer into this method
+        # Eventually rename this to run() and point to sub-methods for different modes
         try:
             mujoco.set_mjcb_control(self._controller) if self._controller else None
-            self._resetSimulation()
+            mujoco.mj_resetData(self._model, self._data)
+            self._setInitialConditions()
+
+            # self._frames = [None] * (self.duration * self.fps + 1)
+            frames = []
+            sim_data = SimulationData()
             total_steps = int(self._duration / self.ts)
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
             m = self._model
             d = self._data
+            h = self._height
+            w = self._width
+            dur = self._duration
+            num_geoms = self._geom_names.__len__()
 
+            # TODO: Fix references to data rate in future. 
+            # May be desired to specify in object creation
             self._dr = data_rate
             capture_rate = data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
 
-            import __main__ as main
-
-            if hasattr(main, "__file__"):
-                PBar = barTerminal
-            else:
-                PBar = barNotebook
+            # TODO: Pre-allocate frame length
+            # frame_count = 0
 
             if multi_thread:
-                #    num_threads =  os.cpu_count()
+                #    num_threads =  Computer.CPU_COUNT
                 # TODO: Implement multi-threading
                 print(
                     "Multi-threading not yet implemented. Running simulation in single-thread mode."
                 )
 
+            from . import Computer
+            if Computer.IDE == "jupyter":
+                from tqdm.notebook import tqdm as bar
+            else:
+                from tqdm import tqdm as bar
+
             with (
-                PBar(
-                    total=total_steps, desc="Simulation", unit=" step", leave=False
+                bar(total=total_steps, 
+                      desc="Simulation", 
+                      unit=" step", leave=False
                 ) as pbar,
-                mujoco.Renderer(self._model, self._height, self._width) as renderer,
+                mujoco.Renderer(m, h, w, num_geoms) as renderer,
             ):
                 step = 0
-                while d.time < self._duration:
+                while d.time < dur:
                     mj_step(m, d)
 
                     # Capture data at the specified rate
                     if step % capture_interval == 0:
-                        self._captured_data.capture(d)
+                        sim_data.capture(d)
 
                     if render and step % render_interval == 0:
-                        (
+                        if camera is None:
                             renderer.update_scene(d)
-                            if camera is None
-                            else renderer.update_scene(d, camera)
-                        )
-                        self._frames.append(renderer.render().copy())
+                        else:
+                            renderer.update_scene(d, camera)
+                        # self._frames[frame_count] = renderer.render().copy() # BUG: simulation attempts to write more frames than allocated
+                        # frame_count += 1
+                        frames.append(renderer.render().copy())
 
                     pbar.update(1)
                     step += 1
@@ -468,8 +469,46 @@ class Wrapper(object):
             print(f"Simulation error: {e}")
         finally:
             mujoco.set_mjcb_control(None)
+            # Expose local variables
+            self._captured_data = sim_data
+            self._frames = frames
 
         return self
+
+    def liveView(self) -> None:
+        """Open a window to display the simulation in real time."""  
+        
+        try:
+            m = self._model
+            d = self._data
+
+            def key_callback(key):
+                if key in (27, ord('q')):  # 27 = ESC key, 'q' to quit
+                    return True
+                return False
+
+            with mujoco.viewer.launch_passive(m, d, key_callback=key_callback) as viewer:
+                viewer.sync()
+                start_time = time.time()
+
+                try:
+                    while viewer.is_running():
+                        current_time = time.time()
+                        dt = current_time - start_time  # Time difference between frames
+                        start_time = current_time
+
+                        mujoco.mj_step(m, d)  # Advance simulation by one step
+                        viewer.sync()  # Sync the viewer
+                        
+                        # Sleep to match real-time simulation speed
+                        time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
+                except KeyboardInterrupt:
+                    viewer.close()
+                    print("Simulation stopped by user.")
+        except Exception as e:
+            print(f"Error during live view: {e}")
+        finally:
+            mujoco.set_mjcb_control(None)
 
     def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.
@@ -579,9 +618,7 @@ class Wrapper(object):
         if body_name not in self._body_names:
             raise ValueError(f"Body '{body_name}' not found in the model.")
         else:
-            body_id = mujoco.mj_name2id(
-                self._model, mujoco.mjtObj.mjOBJ_BODY, body_name
-            )
+            body_id = self._model.body(body_name).id
 
         if data_name is None:
             return self._captured_data.unwrap()[body_id]
