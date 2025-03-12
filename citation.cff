@@ -4,10 +4,10 @@ authors:
   - family-names: "Gross"
     given-names: "Michael"
 title: "Mujoco Toolbox"
-version: "v0.2.0"                           # Specify your version here
+version: "v0.2.0"
 url: "https://github.com/MGross21/mujoco-toolbox"
-date-released: "2024-10-15"                  # Use the release date of your project
-license: "MIT"                               # Or any other license
+date-released: "2024-10-15"
+license: "MIT"
 keywords:
   - "mujoco"
   - "physics-simulation"
