@@ -2,29 +2,14 @@
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "mujoco-toolbox"
 version = "0.2.0"
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
-license = { text = "MIT" }
-authors = [
-    { name = "MGross21", email = "MGross21@TODO.com" }
-]
-dependencies = [
-    "mujoco",
-    "numpy",
-    "scipy",
-    "matplotlib",
-    "pyyaml",
-    "mediapy",
-    "tqdm",
-    "ipywidgets",
-    "ffmpeg",
-    "trimesh",
-    "screeninfo"
-]
-requires-python = ">=3.10"
+license = "MIT"
+packages = [{ include = "mujoco_toolbox" }]
+authors = ["MGross21 <MGross21@TODO.com>"]
 keywords = ["MuJoCo", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -33,27 +18,33 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
+requires-python = ">=3.10"
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "ruff",
-    "mypy"
-]
-
-[project.urls]
+[tool.poetry.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 repository = "https://github.com/MGross21/mujoco-toolbox"
 documentation = "https://github.com/MGross21/mujoco-toolbox"
-bug-tracker = "https://github.com/MGross21/mujoco-toolbox/issues"
+"Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
 
-[tool.poetry]
-packages = [{ include = "mujoco_toolbox" }]
+[tool.poetry.dependencies]
+python = ">=3.10"
+mujoco = "*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+pyyaml = "*"
+mediapy = "*"
+tqdm = "*"
+ipywidgets = "*"
+ffmpeg = "*"
+trimesh = "*"
+screeninfo = "*"
 
 [tool.poetry.group.dev.dependencies]
+pytest = "*"
+ruff = "^0.9.9"
 mypy = "^1.15.0"
 pytypes = "^1.0b10"
-ruff = "^0.9.9"
 black = "^25.1.0"
 isort = "^6.0.1"
 flake8 = "^7.1.2"
@@ -99,7 +90,6 @@ extend-select = ["I", "B", "Q", "S"]
 
 [tool.mypy]
 ignore_missing_imports = true
-# Add additional MyPy configuration options
-disallow_untyped_calls = true  # Ensures all function calls have types
-disallow_untyped_defs = true   # Ensures all function definitions have types
-strict_optional = true         # Treat None as a type and enforce stricter checking
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+strict_optional = true
