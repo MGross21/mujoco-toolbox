@@ -21,12 +21,8 @@ This package is still under development. Report any issues to https://github.com
 
 from .Controller import (cosineController, randomController, sineController,
                          stepController)
-from .Utils import print_warning, print_success
 from .Wrapper import Wrapper
-import platform
-import sys
-import multiprocessing
-from screeninfo import get_monitors
+from .Utils import _Platform
 
 __version__ = "0.2.0"
 __author__ = "Michael Gross"
@@ -61,67 +57,11 @@ CAPTURE_PARAMETERS = [
 VERBOSITY = False
 
 if True:
+    from .Utils import print_warning
     print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
 
-class Platform:
-    def __init__(self):
-        self.OS = platform.system()
-        self.PROCESSOR = platform.processor()
-        self.MACHINE = platform.machine()
-        self.PYTHON_VERSION = platform.python_version()
-        self.IDE = self.get_developer_mode()
-        self.CPU_COUNT = self.get_cpu_count()
-        self.ARCHITECTURE = self.get_architecture()
-        self.PYTHON_IMPLEMENTATION = self.get_python_implementation()
-        self.RESOLUTION, self.GUI_ENABLED = self.get_resolution()
-
-    def __repr__(self):
-        return str({
-            "operating system": self.OS,
-            "processor": self.PROCESSOR,
-            "machine type": self.MACHINE,
-            "python version": self.PYTHON_VERSION,
-            "ide": self.IDE,
-            "cpu count": self.CPU_COUNT,
-            "architecture": self.ARCHITECTURE,
-            "python implementation": self.PYTHON_IMPLEMENTATION,
-            "resolution": self.RESOLUTION,
-            "gui enabled": self.GUI_ENABLED,
-        })
-    
-    def __str__(self):
-        return self.__repr__()
-
-    @staticmethod
-    def get_developer_mode():
-        if "ipykernel" in sys.modules and not sys.stdin.isatty():
-            return "jupyter"
-        return "terminal" if hasattr(sys, "ps1") else "script"
-
-    @staticmethod
-    def get_cpu_count():
-        return multiprocessing.cpu_count()
-
-    @staticmethod
-    def get_architecture():
-        return platform.architecture()[0]
-
-    @staticmethod
-    def get_python_implementation():
-        return platform.python_implementation()
-    
-    @staticmethod
-    def get_resolution():
-        """Detects screen resolution and potential headless operation."""
-        try:
-            monitor = get_monitors()[0]
-            return (monitor.width, monitor.height), True
-        except Exception:
-            print_warning("Detected headless operation. Disabling GUI...")
-            return (1920, 1080), False
-
 # Create a singleton instance
-Computer = Platform()
+Computer = _Platform()
