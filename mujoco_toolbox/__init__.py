@@ -28,7 +28,7 @@ import sys
 import multiprocessing
 from screeninfo import get_monitors
 
-__version__ = "0.1.8"
+__version__ = "0.2.0"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
