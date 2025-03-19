@@ -13,6 +13,7 @@ import numpy as np
 import trimesh
 import yaml
 import time
+import threading
 from typing import Dict, List, Tuple, Union, Optional, Callable, Any, TypeAlias
 
 from .Utils import print_warning, timer
@@ -213,6 +214,12 @@ class Wrapper(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         mujoco.set_mjcb_control(None)
+        for thread in threading.enumerate():
+            if thread is not threading.main_thread():
+                thread.join()
+        from . import VERBOSITY
+        if VERBOSITY:
+            print("All threads terminated.")
         return
 
     @property
@@ -475,10 +482,11 @@ class Wrapper(object):
 
         return self
 
-    def liveView(self) -> None:
+    def _window(self) -> None:
         """Open a window to display the simulation in real time."""  
         
         try:
+            # from .Controller import realTimeController
             m = self._model
             d = self._data
 
@@ -495,11 +503,12 @@ class Wrapper(object):
                     while viewer.is_running():
                         current_time = time.time()
                         dt = current_time - start_time  # Time difference between frames
-                        start_time = current_time
 
+                        # realTimeController(m, d)
                         mujoco.mj_step(m, d)  # Advance simulation by one step
                         viewer.sync()  # Sync the viewer
                         
+                        start_time = current_time  # Reset start_time for the next frame
                         # Sleep to match real-time simulation speed
                         time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
                 except KeyboardInterrupt:
@@ -509,6 +518,15 @@ class Wrapper(object):
             print(f"Error during live view: {e}")
         finally:
             mujoco.set_mjcb_control(None)
+
+    def liveView(self):
+        """Open a window to display the simulation in real time."""  
+        from .Controller import realTimeController
+        self.controller = realTimeController
+        print("Controller set to real-time controller. Opening live view...")
+
+        viewer = threading.Thread(target=self._window)
+        viewer.start()
 
     def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.

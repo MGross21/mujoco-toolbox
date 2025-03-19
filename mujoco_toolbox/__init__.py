@@ -20,7 +20,7 @@ This package is still under development. Report any issues to https://github.com
 """
 
 from .Controller import (cosineController, randomController, sineController,
-                         stepController)
+                         stepController, realTimeController)
 from .Wrapper import Wrapper
 from .Utils import _Platform
 
@@ -37,6 +37,7 @@ __all__ = [
     "cosineController",
     "randomController",
     "stepController",
+    "realTimeController",
     "timer",
     "Computer",
 ]
