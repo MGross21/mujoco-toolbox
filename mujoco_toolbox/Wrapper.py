@@ -482,11 +482,10 @@ class Wrapper(object):
 
         return self
 
-    def _window(self) -> None:
+    def _window(self, show_menu: bool = True) -> None:
         """Open a window to display the simulation in real time."""  
         
         try:
-            # from .Controller import realTimeController
             m = self._model
             d = self._data
 
@@ -495,7 +494,10 @@ class Wrapper(object):
                     return True
                 return False
 
-            with mujoco.viewer.launch_passive(m, d, key_callback=key_callback) as viewer:
+            with mujoco.viewer.launch_passive(m, d, 
+                                              show_left_ui=show_menu,
+                                              show_right_ui=show_menu,
+                                              key_callback=key_callback) as viewer:
                 viewer.sync()
                 start_time = time.time()
 
@@ -504,7 +506,6 @@ class Wrapper(object):
                         current_time = time.time()
                         dt = current_time - start_time  # Time difference between frames
 
-                        # realTimeController(m, d)
                         mujoco.mj_step(m, d)  # Advance simulation by one step
                         viewer.sync()  # Sync the viewer
                         
@@ -519,14 +520,15 @@ class Wrapper(object):
         finally:
             mujoco.set_mjcb_control(None)
 
-    def liveView(self):
-        """Open a window to display the simulation in real time."""  
+    def liveView(self, show_menu: bool = True) -> None:
+        """Open a window to display the simulation in real time."""
+        # BUG: Generate actuators from joints in URDF so the controller can actually work
         from .Controller import realTimeController
         self.controller = realTimeController
-        print("Controller set to real-time controller. Opening live view...")
+        print("Opening live view...")
 
         viewer = threading.Thread(target=self._window)
-        viewer.start()
+        viewer.start(show_menu)
 
     def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.

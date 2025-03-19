@@ -14,7 +14,7 @@ ic = {
 }
 
 with Wrapper(urdf, meshdir=meshes, initialConditions=ic) as ur5:
-    ur5.liveView() # Open the simulation window
+    ur5.liveView(show_menu=False) # Open the simulation window
     start_time = time.time()
     while time.time() - start_time < 10.0:
         ur5._data.qpos[:] = ic["qpos"] # Rapidly Reassign the joint positions
