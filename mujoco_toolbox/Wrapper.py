@@ -482,43 +482,10 @@ class Wrapper(object):
 
         return self
 
-    def _window(self, show_menu: bool = True) -> None:
+    def _window(self) -> None:
         """Open a window to display the simulation in real time."""  
         
-        try:
-            m = self._model
-            d = self._data
-
-            def key_callback(key):
-                if key in (27, ord('q')):  # 27 = ESC key, 'q' to quit
-                    return True
-                return False
-
-            with mujoco.viewer.launch_passive(m, d, 
-                                              show_left_ui=show_menu,
-                                              show_right_ui=show_menu,
-                                              key_callback=key_callback) as viewer:
-                viewer.sync()
-                start_time = time.time()
-
-                try:
-                    while viewer.is_running():
-                        current_time = time.time()
-                        dt = current_time - start_time  # Time difference between frames
-
-                        mujoco.mj_step(m, d)  # Advance simulation by one step
-                        viewer.sync()  # Sync the viewer
-                        
-                        start_time = current_time  # Reset start_time for the next frame
-                        # Sleep to match real-time simulation speed
-                        time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
-                except KeyboardInterrupt:
-                    viewer.close()
-                    print("Simulation stopped by user.")
-        except Exception as e:
-            print(f"Error during live view: {e}")
-        finally:
-            mujoco.set_mjcb_control(None)
+        
 
     def liveView(self, show_menu: bool = True) -> None:
         """Open a window to display the simulation in real time."""
@@ -527,8 +494,45 @@ class Wrapper(object):
         self.controller = realTimeController
         print("Opening live view...")
 
-        viewer = threading.Thread(target=self._window)
-        viewer.start(show_menu)
+        def window():
+            try:
+                m = self._model
+                d = self._data
+
+                def key_callback(key):
+                    if key in (27, ord('q')):  # 27 = ESC key, 'q' to quit
+                        return True
+                    return False
+                
+                # NOTE: launch_passive is blocking despite docstring saying otherwise
+                with mujoco.viewer.launch_passive(m, d, 
+                                                show_left_ui=show_menu,
+                                                show_right_ui=show_menu,
+                                                key_callback=key_callback) as viewer:
+                    viewer.sync()
+                    start_time = time.time()
+
+                    try:
+                        while viewer.is_running():
+                            current_time = time.time()
+                            dt = current_time - start_time  # Time difference between frames
+
+                            mujoco.mj_step(m, d)  # Advance simulation by one step
+                            viewer.sync()  # Sync the viewer
+                            
+                            start_time = current_time  # Reset start_time for the next frame
+                            # Sleep to match real-time simulation speed
+                            time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
+                    except KeyboardInterrupt:
+                        viewer.close()
+                        print("Simulation stopped by user.")
+            except Exception as e:
+                print(f"Error during live view: {e}")
+            finally:
+                mujoco.set_mjcb_control(None)
+
+        viewer = threading.Thread(target=window)
+        viewer.start()
 
     def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.
