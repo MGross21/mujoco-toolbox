@@ -26,9 +26,9 @@ mjData: TypeAlias = mujoco.MjData
 
 
 class Wrapper(object):
-    """A class to handle MuJoCo simulations and data capture."""
+    """A class to handle MuJoCo simulations"""
 
-    def __init__(self, xml:str="<mujoco></mujoco>", duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
+    def __init__(self, xml:str="<mujoco/>", duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
         self._load_model(xml, **kwargs)
 
         self.duration = duration
