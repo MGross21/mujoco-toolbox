@@ -490,8 +490,6 @@ class Wrapper(object):
     def liveView(self, show_menu: bool = True) -> None:
         """Open a window to display the simulation in real time."""
         # BUG: Generate actuators from joints in URDF so the controller can actually work
-        from .Controller import realTimeController
-        self.controller = realTimeController
         print("Opening live view...")
 
         def window():

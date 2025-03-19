@@ -1,5 +1,5 @@
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Wrapper
+from mujoco_toolbox import Wrapper, realTimeController
 import os
 import time
 
@@ -13,7 +13,7 @@ ic = {
     'qpos': [0, -1.57, 1.57, 0, 0, 0]
 }
 
-with Wrapper(urdf, meshdir=meshes, initialConditions=ic) as ur5:
+with Wrapper(urdf, meshdir=meshes, initialConditions=ic, controller=realTimeController) as ur5:
     ur5.liveView(show_menu=False) # Open the simulation window
     start_time = time.time()
     while time.time() - start_time < 10.0:
