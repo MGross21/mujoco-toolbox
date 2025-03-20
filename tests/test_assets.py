@@ -1,8 +1,8 @@
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Computer
+from mujoco_toolbox import Computer, GloveBox
 
 
-xml = f"""
+world = f"""
 <mujoco>
     {mjtb.WORLD_ASSETS}
     <worldbody>
@@ -18,37 +18,13 @@ xml = f"""
 """
 
 
-gb_width = 1.25
-gb_depth = 0.75
-gb_height = 1.0
-glass_thickness = 0.05
-
-glovebox = f"""
-<mujoco>
-    <asset>
-        <material name="glass" rgba="1 1 1 0.2"/>
-    </asset>
-    <worldbody>
-        <body name="walls" pos="0 0 0">
-            <geom type="box" size="{gb_width/2} {glass_thickness/2} {gb_height/2}" material="glass" pos="0 {gb_depth/2+glass_thickness/2} {gb_height/2}"/>
-            <geom type="box" size="{gb_width/2} {glass_thickness/2} {gb_height/2}" material="glass" pos="0 {-gb_depth/2-glass_thickness/2} {gb_height/2}"/>
-            <geom type="box" size="{glass_thickness/2} {gb_depth/2} {gb_height/2}" material="glass" pos="{ gb_width/2-glass_thickness/2} 0 {gb_height/2}"/>
-            <geom type="box" size="{glass_thickness/2} {gb_depth/2} {gb_height/2}" material="glass" pos="{-gb_width/2+glass_thickness/2} 0 {gb_height/2}"/>
-            <geom type="plane" size="{gb_width/2} {gb_depth/2+glass_thickness} {glass_thickness/2}" material="glass" pos="0 0 {gb_height}"/>
-        </body>
-    </worldbody>
-</mujoco>
-"""
-
 import os
 model_dir = os.path.abspath(os.path.join("models", "UR5"))
 urdf = os.path.join(model_dir, "ur5.urdf")
 meshes = os.path.join(model_dir, "meshes", "collision")
 
 w = mjtb.Wrapper(urdf, meshdir=meshes)
-w.xml = (mjtb.Builder(xml) + mjtb.Builder(glovebox) + mjtb.Builder(w.xml)).xml
-
-print(w.xml)
+w.xml = (mjtb.Builder(world) + mjtb.Builder(GloveBox()) + mjtb.Builder(w.xml)).xml
 
 w.reload()
 if Computer.GUI_ENABLED:

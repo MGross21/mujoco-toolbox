@@ -9,3 +9,21 @@ WORLD_ASSETS = """
     <material name="background" texture="background" texuniform="true" rgba="1 1 1 1"/>
   </asset>  
 """
+
+def GloveBox(width=1.25, depth=0.75, height=1.0, glass_thickness=0.05):
+    return f"""
+<mujoco>
+    <asset>
+        <material name="glass" rgba="1 1 1 0.2"/>
+    </asset>
+    <worldbody>
+        <body name="walls" pos="0 0 0">
+            <geom type="box" size="{width/2} {glass_thickness/2} {height/2}" material="glass" pos="0 {depth/2+glass_thickness/2} {height/2}"/>
+            <geom type="box" size="{width/2} {glass_thickness/2} {height/2}" material="glass" pos="0 {-depth/2-glass_thickness/2} {height/2}"/>
+            <geom type="box" size="{glass_thickness/2} {depth/2} {height/2}" material="glass" pos="{width/2-glass_thickness/2} 0 {height/2}"/>
+            <geom type="box" size="{glass_thickness/2} {depth/2} {height/2}" material="glass" pos="{-width/2+glass_thickness/2} 0 {height/2}"/>
+            <geom type="plane" size="{width/2} {depth/2+glass_thickness} {glass_thickness/2}" material="glass" pos="0 0 {height}"/>
+        </body>
+    </worldbody>
+</mujoco>
+"""

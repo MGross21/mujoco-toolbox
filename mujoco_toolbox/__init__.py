@@ -24,7 +24,7 @@ from .Controller import (cosineController, randomController, sineController,
                          stepController, realTimeController)
 from .Wrapper import Wrapper
 from .Utils import _Platform
-from .assets import WORLD_ASSETS
+from .assets import WORLD_ASSETS, GloveBox
 from .builder import Builder
 
 __version__ = "0.2.0"
@@ -43,8 +43,11 @@ __all__ = [
     "realTimeController",
     "timer",
     "Computer",
-    "FLOOR_MESH",
     "Builder",
+    "GloveBox",
+    "WORLD_ASSETS",
+    "CAPTURE_PARAMETERS",
+    "VERBOSITY",
 ]
 
 CAPTURE_PARAMETERS = [
