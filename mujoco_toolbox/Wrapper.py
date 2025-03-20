@@ -28,7 +28,9 @@ mjData: TypeAlias = mujoco.MjData
 class Wrapper(object):
     """A class to handle MuJoCo simulations"""
 
-    def __init__(self, xml:str="<mujoco/>", duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
+    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
+        # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
+        assert xml is not None, "XML file or string is required to initialize the Wrapper."
         self._load_model(xml, **kwargs)
 
         self.duration = duration
@@ -73,7 +75,7 @@ class Wrapper(object):
                     )
             else:
                 # If the file doesn't exist, assume it's a string and attempt to load it as XML
-                if "<mujoco>" in xml or "<robot>" in xml:
+                if "<mujoco>" in xml or "<mujoco/>" in xml or "<robot>" in xml:
                     self._load_xml_string(xml)
                 else:
                     raise FileNotFoundError(
@@ -192,6 +194,13 @@ class Wrapper(object):
             self.xml = xml
         except Exception as e:
             raise ValueError(f"Failed to load the MuJoCo model from XML string: {e}")
+
+    def reload(self) -> 'Wrapper':
+        """Reload the model and data objects."""
+        # TODO: Move all model loading to Builder Method
+        self._model = mujoco.MjModel.from_xml_string(self.xml)
+        self._data = mujoco.MjData(self._model)
+        return self
 
     def __str__(self):
         return self._model.__str__()
