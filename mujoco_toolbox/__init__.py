@@ -8,6 +8,7 @@ Modules:
 --------
 - Wrapper: Contains the Wrapper class for interfacing with MuJoCo.
 - Controller: Includes sineController, cosineController, and randomController for controlling simulations.
+- Builder: Contains the Builder class for creating and merging MuJoCo models.
 
 Constants:
 ----------
@@ -23,6 +24,8 @@ from .Controller import (cosineController, randomController, sineController,
                          stepController, realTimeController)
 from .Wrapper import Wrapper
 from .Utils import _Platform
+from .assets import WORLD_ASSETS
+from .builder import Builder
 
 __version__ = "0.2.0"
 __author__ = "Michael Gross"
@@ -40,6 +43,8 @@ __all__ = [
     "realTimeController",
     "timer",
     "Computer",
+    "FLOOR_MESH",
+    "Builder",
 ]
 
 CAPTURE_PARAMETERS = [
