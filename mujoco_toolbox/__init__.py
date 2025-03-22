@@ -8,16 +8,12 @@ Modules:
 --------
 - Wrapper: Contains the Wrapper class for interfacing with MuJoCo.
 - Controller: Includes sineController, cosineController, and randomController for controlling simulations.
+- Builder: Contains the Builder class for creating and merging MuJoCo models.
 
 Constants:
 ----------
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
-
-Attributes:
------------
-- __version__ (str): The current version of the package.
-- __author__ (str): The author of the package.
-- __all__ (list): List of public objects of the module, as interpreted by `from module import *`.
+- VERBOSITY: Global variable to control verbosity of the package.
 
 Notes:
 ------
@@ -25,11 +21,13 @@ This package is still under development. Report any issues to https://github.com
 """
 
 from .Controller import (cosineController, randomController, sineController,
-                         stepController)
-from .Utils import print_warning, print_success
+                         stepController, realTimeController)
 from .Wrapper import Wrapper
+from .Utils import _Platform, print_success, print_warning, timer
+from .assets import WORLD_ASSETS, GloveBox
+from .builder import Builder
 
-__version__ = "0.1.8"
+__version__ = "0.2.0"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
@@ -42,7 +40,14 @@ __all__ = [
     "cosineController",
     "randomController",
     "stepController",
+    "realTimeController",
     "timer",
+    "Computer",
+    "Builder",
+    "GloveBox",
+    "WORLD_ASSETS",
+    "CAPTURE_PARAMETERS",
+    "VERBOSITY",
 ]
 
 CAPTURE_PARAMETERS = [
@@ -61,7 +66,11 @@ CAPTURE_PARAMETERS = [
 VERBOSITY = False
 
 if True:
+    from .Utils import print_warning
     print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
+
+# Create a singleton instance
+Computer = _Platform()

@@ -129,3 +129,25 @@ def randomController(model, data, **kwargs):
 
     value = amplitude * random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
+
+def realTimeController(model, data, **kwargs):
+    """A real-time controller for the simulation.
+    
+    Args:
+        controller_params (dict): Dictionary of parameters to pass to the controller.
+
+    Returns:
+        None
+    """
+    from .Utils import print_warning
+    for key, value in kwargs.get("controller_params", {}).items():
+        if hasattr(data, key):
+            setattr(data, key, value)
+        else:
+            print_warning(f"'{key}' is not a valid attribute of MjData. Skipping...")
+
+    # untested
+    # if hasattr(data, 'control'):
+    #     data.control = kwargs.get("control", data.control)
+
+    return
