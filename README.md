@@ -66,7 +66,6 @@ ffmpeg -version
 import mujoco_toolbox as mjtb
 
 # Optional Global Variables
-mjtb.VERBOSITY = True # Additional Performance and Debugging Print Statements (Default=False)
 mjtb.CAPTURE_PARAMETERS = "all" # MjData Simulation Parameters (Default = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata']) 
 
 # Example Code

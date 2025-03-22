@@ -63,7 +63,7 @@ def performance_comparison():
 
     return mujoco_time, mjtb_time
 
-def generate_performance_chart():
+def generate_performance_chart() -> None:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)
 
@@ -74,7 +74,7 @@ def generate_performance_chart():
     plt.bar(labels, times, color=["blue", "green"])
     plt.ylabel("Time (seconds)")
     plt.title("Performance Comparison")
-    plt.savefig(os.path.join(os.path.dirname(__file__), "data", "performance_comparison.png"))
+    plt.savefig(os.path.join(data_dir, "performance_comparison.png"))
 
     if mjtb.Computer.GUI_ENABLED:
         plt.show()

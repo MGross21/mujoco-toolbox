@@ -1,7 +1,7 @@
 from numpy import cos, pi, random, sin
 
 
-def _apply_control(model, data, value, joint=None, axis=None, delay=0):
+def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
     """Common helper function for controller logic to reduce redundancy.
 
     Args:
@@ -11,6 +11,7 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0):
         joint (list[int], optional): Joints to apply control to.
         axis (int, optional): Axis to apply control to.
         delay (float, optional): Delay before applying control.
+
     """
     # Don't apply control until after delay
     if data.time < delay:
@@ -28,7 +29,7 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0):
         data.qpos[axis] = value
 
 
-def stepController(model, data, **kwargs):
+def stepController(model, data, **kwargs) -> None:
     """A step controller for the simulation.
 
     Args:
@@ -39,21 +40,24 @@ def stepController(model, data, **kwargs):
 
     Returns:
         None
+
     """
     amplitude = kwargs.get("amplitude", 1)
-    joint = kwargs.get("joint", None)
-    axis = kwargs.get("axis", None)
+    joint = kwargs.get("joint")
+    axis = kwargs.get("axis")
     delay = kwargs.get("delay", 0)
 
     if delay < 0:
-        raise ValueError("Delay must be non-negative.")
+        msg = "Delay must be non-negative."
+        raise ValueError(msg)
     if joint is not None and axis is not None:
-        raise ValueError("Cannot specify both 'joint' and 'axis'.")
+        msg = "Cannot specify both 'joint' and 'axis'."
+        raise ValueError(msg)
 
     _apply_control(model, data, amplitude, joint=joint, axis=axis, delay=delay)
 
 
-def sineController(model, data, **kwargs):
+def sineController(model, data, **kwargs) -> None:
     """A simple sine wave controller for the simulation.
 
     Args:
@@ -65,21 +69,23 @@ def sineController(model, data, **kwargs):
 
     Returns:
         None
+
     """
     amplitude = kwargs.get("amplitude", 1)
     frequency = kwargs.get("frequency", 1)
     phase = kwargs.get("phase", 0)
-    joint = kwargs.get("joint", None)
+    joint = kwargs.get("joint")
     delay = kwargs.get("delay", 0)
 
     if delay < 0:
-        raise ValueError("Delay must be non-negative.")
+        msg = "Delay must be non-negative."
+        raise ValueError(msg)
 
     value = amplitude * sin(2 * pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def cosineController(model, data, **kwargs):
+def cosineController(model, data, **kwargs) -> None:
     """A simple cosine wave controller for the simulation.
 
     Args:
@@ -91,21 +97,23 @@ def cosineController(model, data, **kwargs):
 
     Returns:
         None
+
     """
     amplitude = kwargs.get("amplitude", 1)
     frequency = kwargs.get("frequency", 1)
     phase = kwargs.get("phase", 0)
-    joint = kwargs.get("joint", None)
+    joint = kwargs.get("joint")
     delay = kwargs.get("delay", 0)
 
     if delay < 0:
-        raise ValueError("Delay must be non-negative.")
+        msg = "Delay must be non-negative."
+        raise ValueError(msg)
 
     value = amplitude * cos(2 * pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def randomController(model, data, **kwargs):
+def randomController(model, data, **kwargs) -> None:
     """A random controller for the simulation.
 
     Args:
@@ -116,21 +124,24 @@ def randomController(model, data, **kwargs):
 
     Returns:
         None
+
     """
     amplitude = kwargs.get("amplitude", 1)
-    joint = kwargs.get("joint", None)
-    axis = kwargs.get("axis", None)
+    joint = kwargs.get("joint")
+    axis = kwargs.get("axis")
     delay = kwargs.get("delay", 0)
 
     if delay < 0:
-        raise ValueError("Delay must be non-negative.")
+        msg = "Delay must be non-negative."
+        raise ValueError(msg)
     if joint is not None and axis is not None:
-        raise ValueError("Cannot specify both 'joint' and 'axis'.")
+        msg = "Cannot specify both 'joint' and 'axis'."
+        raise ValueError(msg)
 
     value = amplitude * random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
-def realTimeController(model, data, **kwargs):
+def realTimeController(model, data, **kwargs) -> None:
     """A real-time controller for the simulation.
 
     Args:
@@ -138,6 +149,7 @@ def realTimeController(model, data, **kwargs):
 
     Returns:
         None
+
     """
     from .Utils import print_warning
     for key, value in kwargs.get("controller_params", {}).items():
@@ -150,4 +162,3 @@ def realTimeController(model, data, **kwargs):
     # if hasattr(data, 'control'):
     #     data.control = kwargs.get("control", data.control)
 
-    return
