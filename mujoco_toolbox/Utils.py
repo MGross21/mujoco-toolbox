@@ -25,11 +25,11 @@ def timer(func):
     return time_wrapper
 
 def print_warning(*args, prefix: bool = True) -> None:
-    """
-    Prints the first argument as an orange warning message and prints the other arguments in regular text, all on the same line.
+    """Prints the first argument as an orange warning message and prints the other arguments in regular text, all on the same line.
 
     Args:
         *args: First argument is printed as an orange warning, other arguments are printed normally.
+
     """
     if args:
         if prefix:
@@ -54,11 +54,11 @@ def print_warning(*args, prefix: bool = True) -> None:
             print(*args[1:])
 
 def print_success(*args, prefix: bool = True) -> None:
-    """
-    Prints the first argument as a green success message and prints the other arguments in regular text, all on the same line.
+    """Prints the first argument as a green success message and prints the other arguments in regular text, all on the same line.
 
     Args:
         *args: First argument is printed as a green success message, other arguments are printed normally.
+
     """
     if args:
         if prefix:
@@ -83,7 +83,7 @@ def print_success(*args, prefix: bool = True) -> None:
             print(*args[1:])
 
 class _Platform:
-    def __init__(self):
+    def __init__(self) -> None:
         self.OS = platform.system()
         self.PROCESSOR = platform.processor()
         self.MACHINE = platform.machine()
@@ -95,7 +95,7 @@ class _Platform:
         self.RESOLUTION, self.GUI_ENABLED = self.get_resolution()
         # self.NUM_MONITORS = get_monitors().__len__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Operating System: {self.OS}\n"
             f"Processor: {self.PROCESSOR}\n"
@@ -109,11 +109,11 @@ class _Platform:
             f"GUI Enabled: {self.GUI_ENABLED}"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
     @staticmethod
-    def get_developer_mode():
+    def get_developer_mode() -> str:
         if "ipykernel" in sys.modules and not sys.stdin.isatty():
             return "jupyter"
         return "terminal" if hasattr(sys, "ps1") else "script"
