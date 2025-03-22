@@ -112,9 +112,9 @@ line-length = 120
 
 [tool.ruff.lint]
 # select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules
-select = ["ALL"]  # Enable all rules
-ignore = []                      # Rules to Ignore
-fixable = ["ALL"]                # Enable auto-fixing for all fixable issues
+select = ["ALL"]    # Enable all rules
+ignore = ["T20"]    # Rules to Ignore
+fixable = ["ALL"]   # Enable auto-fixing for all fixable issues
 extend-select = ["I", "B", "Q", "S"]
 
 [tool.mypy]
