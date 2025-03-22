@@ -83,12 +83,12 @@ class Wrapper(object):
                     )
 
         except FileNotFoundError as e:
-            raise FileNotFoundError(f"Failed to load the MuJoCo model: {e}")
+            raise FileNotFoundError(f"Failed to load the MuJoCo model: {e}") from e
 
         except ValueError as e:
             raise ValueError(
                 f"Invalid value encountered while loading the model: {e}"
-            )
+            ) from e
 
         except Exception as e:
             raise Exception(
@@ -211,10 +211,13 @@ class Wrapper(object):
             f"  Duration: {self.duration}s [fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
             f"  Resolution: {self._width}W x {self._height}H\n"
-            f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}{' ...' if len(self._body_names) > 5 else ''}\n"
-            f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}{' ...' if len(self._joint_names) > 5 else ''}\n"
-            f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}{' ...' if len(self._actuator_names) > 5 else ''}\n"
-            f"  Controller: {self.controller.__name__ if self.controller else None}\n" # Returns str name of the function
+            f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}"
+            f"{' ...' if len(self._body_names) > 5 else ''}\n"
+            f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}"
+            f"{' ...' if len(self._joint_names) > 5 else ''}\n"
+            f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}"
+            f"{' ...' if len(self._actuator_names) > 5 else ''}\n"
+            f"  Controller: {self.controller.__name__ if self.controller else None}\n"
             f")"
         )
 
