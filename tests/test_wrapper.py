@@ -14,14 +14,9 @@ def _mjLazyLoad():
 
 TESTING_MODELS = [_mjLazyLoad()[0].TEST_XML, _mjLazyLoad()[0].TEST_XML_PLUGIN, _mjLazyLoad()[0].TEST_XML_SENSOR, _mjLazyLoad()[0].TEST_XML_TEXTURE, *list(_mjLazyLoad()[1].ALL_MODELS.keys())]
 
-mjtb.VERBOSITY = True
-
-
 def test_xml1() -> None:
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
-
-    mjtb.VERBOSITY = True
 
     test1 = mjtb.Wrapper(
         xml=model,

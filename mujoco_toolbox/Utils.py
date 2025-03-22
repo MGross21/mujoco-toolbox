@@ -15,11 +15,7 @@ def timer(func):
         result = func(*args, **kwargs)
         end_time = time()
         total_time = end_time - start_time
-
-        from . import VERBOSITY
-
-        if VERBOSITY:
-            print(f"Function '{func.__name__}' took {total_time:.4f} seconds")
+        print(f"Function {func.__name__} took {total_time:.4f} seconds to execute")
         return result
 
     return time_wrapper

@@ -131,9 +131,7 @@ class Wrapper:
                     stl_path = os.path.splitext(dae_path)[0] + ".stl"
                     try:
                         trimesh.load_mesh(dae_path).export(stl_path)
-                        from . import VERBOSITY, logger
-                        if VERBOSITY:
-                            logger.info(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
+                        # logger.info(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
                     except Exception:
                         msg = f"Error converting {filename}"
                         raise ValueError(msg)
@@ -157,9 +155,7 @@ class Wrapper:
             subdirs = kwargs.get("meshdir_sub")
             if not subdirs:
                 subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith(".stl") for f in files)]
-                from . import VERBOSITY, logger
-                if VERBOSITY:
-                    logger.info(f"Auto-detected subdirectories: {subdirs}")
+                # logger.info(f"Auto-detected subdirectories: {subdirs}")
 
             # Convert relative subdir paths to absolute based on meshdir
             full_meshdirs = [
@@ -243,9 +239,6 @@ class Wrapper:
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
                 thread.join()
-        from . import VERBOSITY, logger
-        if VERBOSITY:
-            logger.info("All threads terminated.")
 
     @property
     def model(self) -> mujoco.MjModel:
