@@ -1,5 +1,5 @@
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Wrapper, realTimeController
+from mujoco_toolbox import realTimeController
 import os
 import time
 import numpy as np
@@ -22,7 +22,7 @@ desired = {
 num_steps = 100
 qpos_sequence = np.linspace(initial["qpos"], desired["qpos"], num_steps)
 
-with Wrapper(urdf, meshdir=meshes, initialConditions=initial, controller=realTimeController) as ur5:
+with mjtb.Wrapper(urdf, meshdir=meshes, initialConditions=initial, controller=realTimeController) as ur5:
     ur5.liveView(show_menu=False) # Open the simulation window
     start_time = time.time()
     ur5.gravity = [0, 0, 0]

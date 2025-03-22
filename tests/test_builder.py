@@ -1,5 +1,4 @@
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Computer
 
 # First Model (string1) - A simple model with an asset and a body (plane)
 string1 = """
@@ -60,7 +59,7 @@ def main():
     
     assert builder is not None, "Builder object is empty" 
 
-    if Computer.GUI_ENABLED:
+    if mjtb.Computer.GUI_ENABLED:
         mjtb.Wrapper(builder.xml).liveView(show_menu=False)
 
 if __name__ == "__main__":

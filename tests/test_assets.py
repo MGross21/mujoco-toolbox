@@ -1,6 +1,4 @@
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Computer, GloveBox
-
 
 world = f"""
 <mujoco>
@@ -24,8 +22,8 @@ urdf = os.path.join(model_dir, "ur5.urdf")
 meshes = os.path.join(model_dir, "meshes", "collision")
 
 w = mjtb.Wrapper(urdf, meshdir=meshes)
-w.xml = (mjtb.Builder(world) + mjtb.Builder(GloveBox()) + mjtb.Builder(w.xml)).xml
+w.xml = (mjtb.Builder(world) + mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml)).xml
 
 w.reload()
-if Computer.GUI_ENABLED:
+if mjtb.Computer.GUI_ENABLED:
     w.liveView(show_menu=False)
