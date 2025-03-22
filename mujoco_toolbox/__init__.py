@@ -21,9 +21,9 @@ This package is still under development. Report any issues to https://github.com
 
 from .assets import WORLD_ASSETS, GloveBox
 from .builder import Builder
-from .Controller import cosineController, randomController, realTimeController, sineController, stepController
-from .Utils import _Platform, print_success, print_warning, timer
-from .Wrapper import Wrapper
+from .controller import cosineController, randomController, realTimeController, sineController, stepController
+from .utils import _Platform, print_success, print_warning, timer
+from .wrapper import Wrapper
 
 __version__ = "0.2.0"
 __author__ = "Michael Gross"
