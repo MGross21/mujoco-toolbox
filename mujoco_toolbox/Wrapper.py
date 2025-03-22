@@ -243,7 +243,7 @@ class Wrapper:
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
                 thread.join()
-        from . import logger,VERBOSITY
+        from . import VERBOSITY, logger
         if VERBOSITY:
             logger.info("All threads terminated.")
 
@@ -509,7 +509,8 @@ class Wrapper:
                     #         print_warning("Please check MUJOCO_LOG.txt for more details.")
 
         except Exception as e:
-            raise RuntimeError("An error occurred while running the simulation.") from e
+            msg = "An error occurred while running the simulation."
+            raise RuntimeError(msg) from e
         finally:
             mujoco.set_mjcb_control(None)
             # Expose local variables
@@ -559,7 +560,8 @@ class Wrapper:
                     except KeyboardInterrupt:
                         viewer.close()
             except Exception as e:
-                raise RuntimeError("An error occurred while running the simulation.") from e
+                msg = "An error occurred while running the simulation."
+                raise RuntimeError(msg) from e
             finally:
                 mujoco.set_mjcb_control(None)
 
@@ -761,7 +763,7 @@ class SimulationData:
                     self._d[key].append(value)
             except AttributeError:
                 pass
-            except Exception as e:
+            except Exception:
                 pass
 
     def unwrap(self) -> dict[str, np.ndarray]:
@@ -807,7 +809,7 @@ class SimulationData:
 
             first_value = value_list[0]
             if isinstance(first_value, np.ndarray):
-                shapes[key] = (len(value_list),) + first_value.shape
+                shapes[key] = (len(value_list), *first_value.shape)
             elif isinstance(first_value, list):
                 shapes[key] = (len(value_list), len(first_value))
             else:
