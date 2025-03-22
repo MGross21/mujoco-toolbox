@@ -60,8 +60,7 @@ CAPTURE_PARAMETERS = [
     "sensordata",
 ]  # MjData default fields to capture during simulation
 
-if True:
-    from .Utils import print_warning
+if __version__.split(".")[0] == "0":
     print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
