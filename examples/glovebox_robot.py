@@ -13,11 +13,11 @@ meshes = os.path.join(model_dir, "meshes", "collision")
 
 
 initial = {
-    "qpos": [-0.707, -1.57, 1.57, -1.57, -1.57, 1.57]
+    "qpos": [-0.707, -1.57, 1.57, -1.57, -1.57, 1.57],
 }
 
 desired = {
-    "qpos": [0.707, -1, 1, -1.57, -1.57, 1.57]
+    "qpos": [0.707, -1, 1, -1.57, -1.57, 1.57],
 }
 
 # Generate a sequence of joint positions from initial to desired

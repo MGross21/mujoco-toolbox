@@ -12,17 +12,12 @@ def _mjLazyLoad():
     import mujoco.rollout_test as rt
     return bt, rt
 
-TESTING_MODELS = [
-    _mjLazyLoad()[0].TEST_XML,
-    _mjLazyLoad()[0].TEST_XML_PLUGIN,
-    _mjLazyLoad()[0].TEST_XML_SENSOR,
-    _mjLazyLoad()[0].TEST_XML_TEXTURE
-] + list(_mjLazyLoad()[1].ALL_MODELS.keys())
+TESTING_MODELS = [_mjLazyLoad()[0].TEST_XML, _mjLazyLoad()[0].TEST_XML_PLUGIN, _mjLazyLoad()[0].TEST_XML_SENSOR, _mjLazyLoad()[0].TEST_XML_TEXTURE, *list(_mjLazyLoad()[1].ALL_MODELS.keys())]
 
 mjtb.VERBOSITY = True
 
 
-def test_xml1():
+def test_xml1() -> None:
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
 
@@ -44,8 +39,8 @@ def test_xml1():
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
     assert len(test1._captured_data) == (test1.duration * test1.data_rate) + 1, "Captured data length does not match simulation parameters."
 
-def test_urdf1():
-    """Test 2: Run UR5 URDF simulation"""
+def test_urdf1() -> None:
+    """Test 2: Run UR5 URDF simulation."""
     ur = os.path.join(os.getcwd(), "tests", "models", "UR5")
     model = os.path.join(ur, "UR5.urdf")
     meshdir = os.path.join(ur, "meshes", "collision")
@@ -67,8 +62,7 @@ def test_urdf1():
     if mjtb.Computer.GUI_ENABLED:
         test2.renderFrame(0)
 
-    joint_names = [test2._model.joint(i).name for i in range(test2._model.njnt)]
-    print("Joint names:", joint_names)
+    [test2._model.joint(i).name for i in range(test2._model.njnt)]
 
     assert len(test2.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
     # assert len(test2._captured_data) == (test2.duration * test2.data_rate) + 1, "Captured data length does not match simulation parameters."

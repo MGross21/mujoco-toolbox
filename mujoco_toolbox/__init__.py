@@ -1,5 +1,4 @@
-"""
-Mujoco Toolbox
+"""Mujoco Toolbox.
 ==============
 A toolbox for working with MuJoCo simulations. This package provides various utilities and controllers to facilitate
 the simulation process.
@@ -15,9 +14,10 @@ Constants:
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
 - VERBOSITY: Global variable to control verbosity of the package.
 
-Notes:
-------
+Notes
+-----
 This package is still under development. Report any issues to https://github.com/MGross21/mujoco-toolbox/issues.
+
 """
 
 from .assets import WORLD_ASSETS, GloveBox
@@ -34,19 +34,19 @@ __status__ = "Development"
 
 # `from mujoco_toolbox import *` will import these objects
 __all__ = [
-    "Wrapper",
-    "sineController",
-    "cosineController",
-    "randomController",
-    "stepController",
-    "realTimeController",
-    "timer",
-    "Computer",
-    "Builder",
-    "GloveBox",
-    "WORLD_ASSETS",
     "CAPTURE_PARAMETERS",
     "VERBOSITY",
+    "WORLD_ASSETS",
+    "Builder",
+    "Computer",
+    "GloveBox",
+    "Wrapper",
+    "cosineController",
+    "randomController",
+    "realTimeController",
+    "sineController",
+    "stepController",
+    "timer",
 ]
 
 CAPTURE_PARAMETERS = [

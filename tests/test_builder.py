@@ -51,7 +51,7 @@ string4 = """
 """
 
 
-def main():
+def main() -> None:
     builder = mjtb.Builder(string1)\
             + mjtb.Builder(string2)\
             + mjtb.Builder(string3)\

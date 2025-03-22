@@ -63,7 +63,7 @@ def performance_comparison():
 
     return mujoco_time, mjtb_time
 
-def generate_performance_chart():
+def generate_performance_chart() -> None:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)
 

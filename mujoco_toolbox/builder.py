@@ -3,14 +3,15 @@ import xml.etree.ElementTree as ET
 
 
 class Builder:
-    def __init__(self, xml_input: str):
-        """ Initialize with an XML string or a file path. Input is required."""
+    def __init__(self, xml_input: str) -> None:
+        """Initialize with an XML string or a file path. Input is required."""
         self.tree, self.root = self.load_model(xml_input)
 
     def load_model(self, xml_input):
-        """ Load a MuJoCo model from a file or XML string."""
+        """Load a MuJoCo model from a file or XML string."""
         if not isinstance(xml_input, str):
-            raise ValueError("Input must be either an XML string or a file path")
+            msg = "Input must be either an XML string or a file path"
+            raise ValueError(msg)
 
         # Check if input is an XML string
         if xml_input.strip().startswith("<"):
@@ -31,11 +32,13 @@ class Builder:
 
                 return tree, tree.getroot()
             except ET.ParseError:
-                raise ValueError("Invalid XML string provided")
+                msg = "Invalid XML string provided"
+                raise ValueError(msg)
         else:
             # Treat input as file path
             if not os.path.exists(xml_input):
-                raise FileNotFoundError(f"File not found: {xml_input}")
+                msg = f"File not found: {xml_input}"
+                raise FileNotFoundError(msg)
 
             # Handle URDF files
             if xml_input.lower().endswith(".urdf"):
@@ -54,11 +57,11 @@ class Builder:
 
                 return tree, tree.getroot()
             except ET.ParseError:
-                raise ValueError(f"Invalid XML file: {xml_input}")
+                msg = f"Invalid XML file: {xml_input}"
+                raise ValueError(msg)
 
     def wrap_urdf_in_mujoco(self, urdf_input):
-        """
-        Wrap a URDF inside <mujoco> tags for MuJoCo compatibility.
+        """Wrap a URDF inside <mujoco> tags for MuJoCo compatibility.
         Input can be a file path, ElementTree, or XML string.
         """
         # Handle string input (could be a file path or XML string)
@@ -69,18 +72,21 @@ class Builder:
                     root = ET.fromstring(urdf_input)
                     tree = ET.ElementTree(root)
                 except ET.ParseError:
-                    raise ValueError("Invalid URDF XML string provided")
+                    msg = "Invalid URDF XML string provided"
+                    raise ValueError(msg)
             else:
                 # It's a file path
                 try:
                     tree = ET.parse(urdf_input)
                 except:
-                    raise ValueError(f"Could not parse URDF file: {urdf_input}")
+                    msg = f"Could not parse URDF file: {urdf_input}"
+                    raise ValueError(msg)
         # Handle ElementTree input
         elif isinstance(urdf_input, ET.ElementTree):
             tree = urdf_input
         else:
-            raise TypeError("URDF input must be a string or ElementTree")
+            msg = "URDF input must be a string or ElementTree"
+            raise TypeError(msg)
 
         root = tree.getroot()
 
@@ -95,8 +101,8 @@ class Builder:
         # Create a new tree with the <mujoco> root
         return ET.ElementTree(mujoco_elem), mujoco_elem
 
-    def merge_tags(self, tag_name, root_1, root_2):
-        """ Merge a specific tag (e.g., worldbody, asset) from two models."""
+    def merge_tags(self, tag_name, root_1, root_2) -> None:
+        """Merge a specific tag (e.g., worldbody, asset) from two models."""
         section_1 = root_1.find(tag_name)
         section_2 = root_2.find(tag_name)
 
@@ -111,7 +117,7 @@ class Builder:
                 section_1.append(element)
 
     def __add__(self, other):
-        """ Implement the + operator for merging two models."""
+        """Implement the + operator for merging two models."""
         model_root = None
 
         if isinstance(other, Builder):
@@ -121,7 +127,8 @@ class Builder:
             # If the input is a string, load as XML
             _, model_root = self.load_model(other)
         else:
-            raise TypeError("Addition only supported between Builder objects or with XML strings/files")
+            msg = "Addition only supported between Builder objects or with XML strings/files"
+            raise TypeError(msg)
 
         # List of sections to merge
         sections_to_merge = ["asset", "worldbody", "camera", "light", "contact", "equality",
@@ -135,22 +142,23 @@ class Builder:
         return self
 
     def __radd__(self, other):
-        """ Implement the reverse + operator for merging two models."""
+        """Implement the reverse + operator for merging two models."""
         if other == 0:  # Handle sum() starting value
             return self
         return self.__add__(other)
 
-    def save(self, file_path):
-        """ Save the merged model to a file."""
+    def save(self, file_path) -> None:
+        """Save the merged model to a file."""
         if self.tree is not None:
             # Format the XML with proper indentation before saving
             self._indent_xml(self.root)
             self.tree.write(file_path, encoding="utf-8", xml_declaration=True)
         else:
-            raise ValueError("No model loaded. Cannot save.")
+            msg = "No model loaded. Cannot save."
+            raise ValueError(msg)
 
-    def _indent_xml(self, elem, level=0):
-        """ Add proper indentation to make the XML file more readable."""
+    def _indent_xml(self, elem, level=0) -> None:
+        """Add proper indentation to make the XML file more readable."""
         i = "\n" + level * "  "
         if len(elem):
             if not elem.text or not elem.text.strip():
@@ -161,24 +169,23 @@ class Builder:
                 self._indent_xml(sub_elem, level + 1)
             if not elem[-1].tail or not elem[-1].tail.strip():
                 elem[-1].tail = i
-        else:
-            if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = i
+        elif level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
 
-    def __str__(self):
-        """ Return the XML string of the model."""
+    def __str__(self) -> str:
+        """Return the XML string of the model."""
         if self.tree is not None:
             # Format the XML with proper indentation
             self._indent_xml(self.root)
             return ET.tostring(self.root, encoding="unicode", method="xml")
-        else:
-            raise ValueError("No model loaded. Cannot generate string.")
+        msg = "No model loaded. Cannot generate string."
+        raise ValueError(msg)
 
-    def __repr__(self):
-        """ Return the XML string of the model."""
+    def __repr__(self) -> str:
+        """Return the XML string of the model."""
         return self.__str__()
 
     @property
     def xml(self):
-        """ Property to quickly grab the XML string of the model."""
+        """Property to quickly grab the XML string of the model."""
         return str(self)
