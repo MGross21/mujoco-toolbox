@@ -1,4 +1,5 @@
 import mujoco_toolbox as mjtb
+from mujoco_toolbox import WORLD_ASSETS, Builder, Wrapper, GloveBox, Computer
 
 ####################
 # TESTING DESCRIPTION:
@@ -12,7 +13,7 @@ import mujoco_toolbox as mjtb
 
 world = f"""
 <mujoco>
-    {mjtb.WORLD_ASSETS}
+    {WORLD_ASSETS}
     <worldbody>
         <body name="floor" pos="0 0 0">
             <geom type="plane" size="5 5 0.1" material="grid"/>
@@ -31,9 +32,15 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "U
 urdf = os.path.join(model_dir, "ur5.urdf")
 meshes = os.path.join(model_dir, "meshes", "collision")
 
-w = mjtb.Wrapper(urdf, meshdir=meshes)
-w.xml = (mjtb.Builder(world) + mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml)).xml
+humanoid = os.path.join(os.path.dirname(__file__), "models", "humanoid.xml")
 
-w.reload()
-if mjtb.Computer.GUI_ENABLED:
-    w.liveView(show_menu=False)
+# w = mjtb.Wrapper(urdf, meshdir=meshes)
+# w.xml = (mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml) + mjtb.Builder(humanoid)).xml
+
+
+
+# w.reload()
+if Computer.GUI_ENABLED:
+    out = (Builder(humanoid) + Builder(GloveBox(5, 5, 5))).xml
+    out = str(out)
+    Wrapper(out).liveView(show_menu=False)
