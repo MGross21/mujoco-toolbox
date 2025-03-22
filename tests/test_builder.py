@@ -56,8 +56,8 @@ def main():
             + mjtb.Builder(string2)\
             + mjtb.Builder(string3)\
             + mjtb.Builder(string4)
-    
-    assert builder is not None, "Builder object is empty" 
+
+    assert builder is not None, "Builder object is empty"
 
     if mjtb.Computer.GUI_ENABLED:
         mjtb.Wrapper(builder.xml).liveView(show_menu=False)

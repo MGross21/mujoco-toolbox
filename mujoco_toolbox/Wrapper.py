@@ -1,9 +1,11 @@
 import os
 import sys
+import threading
+import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeAlias
 
 import matplotlib.pyplot as plt
 import mediapy as media
@@ -12,9 +14,6 @@ import mujoco.viewer
 import numpy as np
 import trimesh
 import yaml
-import time
-import threading
-from typing import Dict, List, Tuple, Union, Optional, Callable, Any, TypeAlias
 
 from .Utils import print_warning, timer
 
@@ -28,8 +27,10 @@ mjData: TypeAlias = mujoco.MjData
 class Wrapper(object):
     """A class to handle MuJoCo simulations"""
 
-    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]={}, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
+    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:Tuple[int,int]=(400,300), initialConditions:Dict[str, List]=None, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs):
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
+        if initialConditions is None:
+            initialConditions = {}
         assert xml is not None, "XML file or string is required to initialize the Wrapper."
         self._load_model(xml, **kwargs)
 
@@ -100,14 +101,14 @@ class Wrapper(object):
         self._model = mujoco.MjModel.from_xml_path(xml)
         with open(xml, "r") as f:
             self.xml = f.read()
-        template = kwargs.get('template', None)
+        template = kwargs.get("template", None)
         if template:
             try:
                 self.xml = self.xml.format(**template)
-            except KeyError as e:
-                raise ValueError(f"Template key error. Ensure the template keys match the placeholders in the XML.")
-            except Exception as e:
-                raise ValueError(f"Error formatting XML with template")
+            except KeyError:
+                raise ValueError("Template key error. Ensure the template keys match the placeholders in the XML.")
+            except Exception:
+                raise ValueError("Error formatting XML with template")
         self._model = mujoco.MjModel.from_xml_string(self.xml)
 
     def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
@@ -124,14 +125,14 @@ class Wrapper(object):
                     try:
                         trimesh.load_mesh(dae_path).export(stl_path)
                         print(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
-                    except Exception as e:
+                    except Exception:
                         raise ValueError(f"Error converting {filename}")
-                        
+
         try:
             from . import VERBOSITY
             robot = ET.parse(urdf_path).getroot()
             mujoco_tag = ET.Element("mujoco")
-            
+
             # Get main meshdir (parent directory for meshes)
             meshdir = kwargs.get("meshdir", "meshes/")  # Default as tuple
             if not os.path.isabs(meshdir):
@@ -141,12 +142,12 @@ class Wrapper(object):
             # Ensure meshdir exists
             if not os.path.exists(meshdir):
                 raise FileNotFoundError(f"Mesh directory not found: {meshdir}")
-            
+
             # If no explicit subdirs are provided, auto-detect subdirectories with STL files
-            subdirs = kwargs.get('meshdir_sub', None)
+            subdirs = kwargs.get("meshdir_sub", None)
             if not subdirs:
-                subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith('.stl') for f in files)]
-                if VERBOSITY and subdirs != ['.']:
+                subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith(".stl") for f in files)]
+                if VERBOSITY and subdirs != ["."]:
                     print(f"Auto-detected subdirectories: {subdirs}")
 
             # Convert relative subdir paths to absolute based on meshdir
@@ -175,14 +176,14 @@ class Wrapper(object):
                     # Walk through all files in the directory
                     for root, _, files in os.walk(full_meshdir):
                         for filename in files:
-                            if filename.lower().endswith('.stl'):
+                            if filename.lower().endswith(".stl"):
                                 relative_dir = os.path.relpath(root, meshdir)  # Extract subdir name
                                 mesh_name = f"{os.path.splitext(filename)[0]}_{relative_dir.replace(os.sep, '_')}"  # Format: base_visual
                                 mesh_file_relative = os.path.join(relative_dir, filename)
                                 ET.SubElement(asset_tag, "mesh", name=mesh_name, file=mesh_file_relative)
-                    
+
             robot.insert(0, mujoco_tag)
-            self.xml = ET.tostring(robot, encoding="unicode").replace('.dae', '.stl')
+            self.xml = ET.tostring(robot, encoding="unicode").replace(".dae", ".stl")
             self._model = mujoco.MjModel.from_xml_string(self.xml)
         except Exception as e:
             raise ValueError(f"Failed to process URDF file: {e}")
@@ -195,7 +196,7 @@ class Wrapper(object):
         except Exception as e:
             raise ValueError(f"Failed to load the MuJoCo model from XML string: {e}")
 
-    def reload(self) -> 'Wrapper':
+    def reload(self) -> "Wrapper":
         """Reload the model and data objects."""
         # TODO: Move all model loading to Builder Method
         self._model = mujoco.MjModel.from_xml_string(self.xml)
@@ -359,7 +360,7 @@ class Wrapper(object):
         except AttributeError:
             print_warning(f"Use '{self.runSim.__name__}' first in order to access this value.")
             return None
-    
+
     @data_rate.setter
     def data_rate(self, value) -> None:
         if isinstance(value, float) and not isinstance(value, int):
@@ -426,7 +427,7 @@ class Wrapper(object):
             dur = self._duration
             num_geoms = self._geom_names.__len__()
 
-            # TODO: Fix references to data rate in future. 
+            # TODO: Fix references to data rate in future.
             # May be desired to specify in object creation
             self._dr = data_rate
             capture_rate = data_rate * self.ts
@@ -450,8 +451,8 @@ class Wrapper(object):
                 from tqdm import tqdm as bar
 
             with (
-                bar(total=total_steps, 
-                      desc="Simulation", 
+                bar(total=total_steps,
+                      desc="Simulation",
                       unit=" step", leave=False
                 ) as pbar,
                 mujoco.Renderer(m, h, w, num_geoms) as renderer,
@@ -495,9 +496,9 @@ class Wrapper(object):
         return self
 
     def _window(self) -> None:
-        """Open a window to display the simulation in real time."""  
-        
-        
+        """Open a window to display the simulation in real time."""
+
+
 
     def liveView(self, show_menu: bool = True) -> None:
         """Open a window to display the simulation in real time."""
@@ -510,12 +511,12 @@ class Wrapper(object):
                 d = self._data
 
                 def key_callback(key):
-                    if key in (27, ord('q')):  # 27 = ESC key, 'q' to quit
+                    if key in (27, ord("q")):  # 27 = ESC key, 'q' to quit
                         return True
                     return False
-                
+
                 # NOTE: launch_passive is blocking despite docstring saying otherwise
-                with mujoco.viewer.launch_passive(m, d, 
+                with mujoco.viewer.launch_passive(m, d,
                                                 show_left_ui=show_menu,
                                                 show_right_ui=show_menu,
                                                 key_callback=key_callback) as viewer:
@@ -529,7 +530,7 @@ class Wrapper(object):
 
                             mujoco.mj_step(m, d)  # Advance simulation by one step
                             viewer.sync()  # Sync the viewer
-                            
+
                             start_time = current_time  # Reset start_time for the next frame
                             # Sleep to match real-time simulation speed
                             time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
@@ -703,7 +704,7 @@ class Wrapper(object):
 class SimulationData(object):
     """A class to store and manage simulation data."""
 
-    __slots__ = ['_d']
+    __slots__ = ["_d"]
 
     def __init__(self):
         self._d = defaultdict(list)
@@ -712,7 +713,7 @@ class SimulationData(object):
         """Capture data from MjData object, storing specified or all public simulation data."""
         from . import CAPTURE_PARAMETERS, VERBOSITY
         keys = self._get_public_keys(mj_data) if CAPTURE_PARAMETERS == "all" else CAPTURE_PARAMETERS
-            
+
         for key in keys:
             try:
                 value = getattr(mj_data, key)
@@ -730,7 +731,7 @@ class SimulationData(object):
                 print_warning(f"Key '{key}' not found in MjData. Skipping.") if VERBOSITY else None
             except Exception as e:
                 print(f"An error occurred while capturing '{key}': {e}") if VERBOSITY else None
-                
+
     def unwrap(self) -> Dict[str, np.ndarray]:
         """Unwrap the captured simulation data into a structured format with NumPy arrays."""
         unwrapped_data = {}

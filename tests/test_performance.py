@@ -1,11 +1,12 @@
+import csv
+import os
 import time
-import mujoco
-import mujoco_toolbox as mjtb
 
 import matplotlib.pyplot as plt
+import mujoco
 from numpy import average
-import os
-import csv
+
+import mujoco_toolbox as mjtb
 
 DURATION = 60
 DATA_RATE = 1e4
@@ -46,7 +47,7 @@ def mujoco_standard():
             xmat.append(data.xmat.copy())
             ctrl.append(data.ctrl.copy())
             sensordata.append(data.sensordata.copy())
-    
+
     end_time = time.time()
     return end_time - start_time
 
@@ -63,33 +64,33 @@ def performance_comparison():
     return mujoco_time, mjtb_time
 
 def generate_performance_chart():
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)
-    
+
     times = performance_comparison()
 
-    labels = [f'MuJoCo v{mujoco.__version__}', f'MuJoCo Toolbox v{mjtb.__version__}']
-    
-    plt.bar(labels, times, color=['blue', 'green'])
-    plt.ylabel('Time (seconds)')
-    plt.title('Performance Comparison')
-    plt.savefig(os.path.join(os.path.dirname(__file__), 'data', 'performance_comparison.png'))
-    
+    labels = [f"MuJoCo v{mujoco.__version__}", f"MuJoCo Toolbox v{mjtb.__version__}"]
+
+    plt.bar(labels, times, color=["blue", "green"])
+    plt.ylabel("Time (seconds)")
+    plt.title("Performance Comparison")
+    plt.savefig(os.path.join(os.path.dirname(__file__), "data", "performance_comparison.png"))
+
     if mjtb.Computer.GUI_ENABLED:
         plt.show()
 
     # Generate CSV
-    mujoco_version = mujoco.__version__.split('.')
-    mjtb_version = mjtb.__version__.split('.')
-    csv_file = os.path.join(data_dir, 'performance_data.csv')
+    mujoco_version = mujoco.__version__.split(".")
+    mjtb_version = mjtb.__version__.split(".")
+    csv_file = os.path.join(data_dir, "performance_data.csv")
     file_exists = os.path.isfile(csv_file)
-    
-    with open(csv_file, mode='a' if file_exists else 'w', newline='') as file:
+
+    with open(csv_file, mode="a" if file_exists else "w", newline="") as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(['Library', 'MAJOR', 'MINOR', 'BUG', 'Average Performance (seconds)'])
-        writer.writerow(['MuJoCo', *mujoco_version, times[0]])
-        writer.writerow(['MuJoCo Toolbox', *mjtb_version, times[1]])
+            writer.writerow(["Library", "MAJOR", "MINOR", "BUG", "Average Performance (seconds)"])
+        writer.writerow(["MuJoCo", *mujoco_version, times[0]])
+        writer.writerow(["MuJoCo Toolbox", *mjtb_version, times[1]])
 
 if __name__ == "__main__":
     generate_performance_chart()

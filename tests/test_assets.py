@@ -1,5 +1,4 @@
-import mujoco_toolbox as mjtb
-from mujoco_toolbox import WORLD_ASSETS, Builder, Wrapper, GloveBox, Computer
+from mujoco_toolbox import WORLD_ASSETS, Builder, Computer, GloveBox, Wrapper
 
 ####################
 # TESTING DESCRIPTION:
@@ -28,6 +27,7 @@ world = f"""
 
 
 import os
+
 model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "UR5"))
 urdf = os.path.join(model_dir, "ur5.urdf")
 meshes = os.path.join(model_dir, "meshes", "collision")

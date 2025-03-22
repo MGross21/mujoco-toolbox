@@ -1,7 +1,10 @@
-import os
 import inspect
+import os
+
 import numpy as np
+
 import mujoco_toolbox as mjtb
+
 
 # Import External Modules
 def _mjLazyLoad():
@@ -11,7 +14,7 @@ def _mjLazyLoad():
 
 TESTING_MODELS = [
     _mjLazyLoad()[0].TEST_XML,
-    _mjLazyLoad()[0].TEST_XML_PLUGIN, 
+    _mjLazyLoad()[0].TEST_XML_PLUGIN,
     _mjLazyLoad()[0].TEST_XML_SENSOR,
     _mjLazyLoad()[0].TEST_XML_TEXTURE
 ] + list(_mjLazyLoad()[1].ALL_MODELS.keys())
@@ -56,7 +59,7 @@ def test_urdf1():
         "meshdir": meshdir,
         "duration": 10,
         "fps": 30,
-        "init_conditions": ic,   
+        "init_conditions": ic,
     }
 
     test2 = mjtb.Wrapper(**params).runSim(render=mjtb.Computer.GUI_ENABLED)

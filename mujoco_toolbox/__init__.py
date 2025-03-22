@@ -20,12 +20,11 @@ Notes:
 This package is still under development. Report any issues to https://github.com/MGross21/mujoco-toolbox/issues.
 """
 
-from .Controller import (cosineController, randomController, sineController,
-                         stepController, realTimeController)
-from .Wrapper import Wrapper
-from .Utils import _Platform, print_success, print_warning, timer
 from .assets import WORLD_ASSETS, GloveBox
 from .builder import Builder
+from .Controller import cosineController, randomController, realTimeController, sineController, stepController
+from .Utils import _Platform, print_success, print_warning, timer
+from .Wrapper import Wrapper
 
 __version__ = "0.2.0"
 __author__ = "Michael Gross"

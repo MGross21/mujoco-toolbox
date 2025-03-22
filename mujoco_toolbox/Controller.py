@@ -132,7 +132,7 @@ def randomController(model, data, **kwargs):
 
 def realTimeController(model, data, **kwargs):
     """A real-time controller for the simulation.
-    
+
     Args:
         controller_params (dict): Dictionary of parameters to pass to the controller.
 

@@ -1,9 +1,10 @@
-from functools import wraps
-from time import time
-from colorama import Fore, Style, init
 import platform
 import sys
+from functools import wraps
 from multiprocessing import cpu_count
+from time import time
+
+from colorama import Fore, Style, init
 from screeninfo import get_monitors
 
 
@@ -107,7 +108,7 @@ class _Platform:
             f"Resolution (disp0): {self.RESOLUTION}\n"
             f"GUI Enabled: {self.GUI_ENABLED}"
         )
-    
+
     def __str__(self):
         return self.__repr__()
 
@@ -116,7 +117,7 @@ class _Platform:
         if "ipykernel" in sys.modules and not sys.stdin.isatty():
             return "jupyter"
         return "terminal" if hasattr(sys, "ps1") else "script"
-    
+
     @staticmethod
     def get_resolution():
         """Detects screen resolution and potential headless operation."""

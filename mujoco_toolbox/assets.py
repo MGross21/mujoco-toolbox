@@ -7,7 +7,7 @@ WORLD_ASSETS = """
     <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".2"/>
     <texture name="background" type="2d" builtin="flat" width="256" height="256" rgb1="1 1 1"/>
     <material name="background" texture="background" texuniform="true" rgba="1 1 1 1"/>
-  </asset>  
+  </asset>
 """
 
 def GloveBox(width=1.25, depth=0.75, height=1.0, glass_thickness=0.05):
