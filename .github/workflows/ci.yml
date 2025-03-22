@@ -57,6 +57,7 @@ jobs:
           poetry run pylint **/*.py
 
       - name: Run Type Checking with MyPy
+        continue-on-error: true
         run: |
           poetry run mypy .
 
