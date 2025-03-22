@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install . 
-          pip install sphinx sphinx-rtd-theme  # Install docs dependencies
+          pip install sphinx sphinx-rtd-theme sphinx-autodoc sphinx-napoleon
 
       - name: Install Make (if required)
         run: sudo apt-get install make  # Ensure make is available
