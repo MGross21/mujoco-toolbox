@@ -51,11 +51,10 @@ flake8 = "^7.1.2"
 bandit = "^1.8.3"
 pylint = "^3.3.4"
 
-[tool.semantic-release]
-version_toml = ["pyproject.toml:tool.poetry.version"]
-version_source = "commit"
-version_pattern = [
-    "mujoco_toolbox/__init__.py:__version__ = {version}"
+[tool.semantic_release]
+version_variables = [
+    "mujoco_toolbox/__init__.py:__version__",
+    "pyproject.toml:tool.poetry.version"
 ]
 branch = "main"
 changelog_file = "CHANGELOG.md"
@@ -64,21 +63,54 @@ dist_path = "dist/"
 upload_to_pypi = true
 upload_to_release = true
 commit_version_number = true
-commit_message = "chore(release): {version}"
+major_on_zero = false
+tag_format = "v{version}"
+commit_message = "chore(release): {version} [skip ci]"
+commit_author = "semantic-release <semantic-release@example.com>"
 
-[tool.semantic_release.commit_parser_options]
-allowed_tags = [
-    "build",
-    "chore",
-    "ci",
-    "docs",
-    "feat",
-    "fix",
-    "perf",
-    "style",
-    "refactor",
-    "test"
+[tool.semantic_release.plugins]
+commit_analyzer = "@semantic-release/commit-analyzer"
+release_notes_generator = "@semantic-release/release-notes-generator"
+
+[tool.semantic_release.commit_analyzer]
+preset = "angular"
+release_rules = [
+    { type = "feat", release = "minor" },
+    { type = "fix", release = "patch" },
+    { type = "perf", release = "patch" },
+    { type = "refactor", release = "patch" },
+    { type = "docs", release = false },
+    { type = "style", release = false },
+    { type = "chore", release = false },
+    { type = "build", release = false },
+    { type = "ci", release = false },
+    { type = "test", release = false }
 ]
+parser_opts = {
+    allowed_tags = [
+        "build",
+        "chore",
+        "ci",
+        "docs",
+        "feat",
+        "fix",
+        "perf",
+        "style",
+        "refactor",
+        "test"
+    ]
+}
+
+[tool.semantic_release.release_notes_generator]
+preset = "angular"
+preset_config = {
+    types = [
+        { type = "feat", section = "Features", hidden = false },
+        { type = "fix", section = "Bug Fixes", hidden = false },
+        { type = "perf", section = "Performance Improvements", hidden = false },
+        { type = "refactor", section = "Refactors", hidden = false }
+    ]
+}
 
 [tool.ruff]
 line-length = 120
