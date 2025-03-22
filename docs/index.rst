@@ -1,11 +1,22 @@
-Welcome to MujocoToolbox's documentation!
+Mujoco Toolbox
 =========================================
 
-Contents:
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. automodule:: mujoco_toolbox
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-   installation
-   usage
-   api_reference
+Submodules
+==========
+
+.. automodule:: mujoco_toolbox.wrapper
+    :members:
+
+.. automodule:: mujoco_toolbox.builder
+    :members:
+
+.. automodule:: mujoco_toolbox.utils
+    :members:
+
+.. automodule:: mujoco_toolbox.assets
+    :members:
