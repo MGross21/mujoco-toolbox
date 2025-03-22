@@ -52,9 +52,10 @@ bandit = "^1.8.3"
 pylint = "^3.3.4"
 
 [tool.semantic-release]
-version_variable = [
-    "pyproject.toml:version",
-    "mujoco_toolbox/__init__.py:__version__"
+version_toml = ["pyproject.toml:tool.poetry.version"]
+version_source = "commit"
+version_pattern = [
+    "mujoco_toolbox/__init__.py:__version__ = {version}"
 ]
 branch = "main"
 changelog_file = "CHANGELOG.md"
@@ -63,7 +64,7 @@ dist_path = "dist/"
 upload_to_pypi = true
 upload_to_release = true
 commit_version_number = true
-commit_message = "chore(release): ${version}"
+commit_message = "chore(release): {version}"
 
 [tool.semantic_release.commit_parser_options]
 allowed_tags = [
