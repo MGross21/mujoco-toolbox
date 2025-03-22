@@ -23,7 +23,7 @@ This package is still under development. Report any issues to https://github.com
 from .Controller import (cosineController, randomController, sineController,
                          stepController, realTimeController)
 from .Wrapper import Wrapper
-from .Utils import _Platform
+from .Utils import _Platform, print_success, print_warning, timer
 from .assets import WORLD_ASSETS, GloveBox
 from .builder import Builder
 
