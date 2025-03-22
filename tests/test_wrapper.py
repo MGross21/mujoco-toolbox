@@ -1,19 +1,26 @@
-import mujoco.bindings_test
-import mujoco.rollout_test
-import mujoco_toolbox as mjtb
-from mujoco_toolbox import Wrapper
-import os
 import inspect
+import os
+
 import numpy as np
 
+import mujoco_toolbox as mjtb
+
+
+# Import External Modules
+def _mjLazyLoad():
+    import mujoco.bindings_test as bt
+    import mujoco.rollout_test as rt
+    return bt, rt
+
 TESTING_MODELS = [
-    mujoco.bindings_test.TEST_XML,
-    mujoco.bindings_test.TEST_XML_PLUGIN, 
-    mujoco.bindings_test.TEST_XML_SENSOR,
-    mujoco.bindings_test.TEST_XML_TEXTURE
-] + list(mujoco.rollout_test.ALL_MODELS.keys())
+    _mjLazyLoad()[0].TEST_XML,
+    _mjLazyLoad()[0].TEST_XML_PLUGIN,
+    _mjLazyLoad()[0].TEST_XML_SENSOR,
+    _mjLazyLoad()[0].TEST_XML_TEXTURE
+] + list(_mjLazyLoad()[1].ALL_MODELS.keys())
 
 mjtb.VERBOSITY = True
+
 
 def test_xml1():
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
@@ -21,17 +28,18 @@ def test_xml1():
 
     mjtb.VERBOSITY = True
 
-    test1 = Wrapper(
+    test1 = mjtb.Wrapper(
         xml=model,
         duration=10,
-        fps=30,
+        fps=20,
         resolution=(800, 600),
         controller=mjtb.sineController,
         amplitude=1e-5,
         frequency=1e-5,
-    ).runSim()
+    ).runSim(render=mjtb.Computer.GUI_ENABLED)
 
-    # test1.renderMedia(title="sine_wave",save=True)
+    if mjtb.Computer.GUI_ENABLED:
+        test1.renderMedia(title="sine_wave", save=True)
 
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
     assert len(test1._captured_data) == (test1.duration * test1.data_rate) + 1, "Captured data length does not match simulation parameters."
@@ -51,21 +59,23 @@ def test_urdf1():
         "meshdir": meshdir,
         "duration": 10,
         "fps": 30,
-        "init_conditions": ic,   
+        "init_conditions": ic,
     }
 
-    test2 = Wrapper(**params).runSim(render=False)
+    test2 = mjtb.Wrapper(**params).runSim(render=mjtb.Computer.GUI_ENABLED)
 
-    # test2.renderFrame(0)
+    if mjtb.Computer.GUI_ENABLED:
+        test2.renderFrame(0)
 
     joint_names = [test2._model.joint(i).name for i in range(test2._model.njnt)]
     print("Joint names:", joint_names)
 
     assert len(test2.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
+    # assert len(test2._captured_data) == (test2.duration * test2.data_rate) + 1, "Captured data length does not match simulation parameters."
 
 # def test_mujoco_core_array():
 #     for model in TESTING_MODELS:
-#         with Wrapper(xml=model) as m:
+#         with mjtb.Wrapper(xml=model) as m:
 #             m.runSim()
 #             assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
 #             assert len(m._captured_data) == (m.duration * m.data_rate) + 1, "Captured data length does not match simulation parameters."
@@ -73,9 +83,9 @@ def test_urdf1():
 
 if __name__ == "__main__":
     # Copy global functions to avoid dictionary size change error
-    functions = [(name, func) for name, func in globals().items() if inspect.isfunction(func) and func.__module__ == "__main__"]
+    functions = [(name, func) for name, func in globals().items() if inspect.isfunction(func) and func.__module__ == "__main__" and not name.startswith("_")]
 
     # Iterate over the copied list and execute functions
     for i, (name, func) in enumerate(functions, start=1):
-        print(f"Running Test {i}: {name}")
+        mjtb.print_success(f"Running Test {i}: {name}", prefix=False)
         func()

@@ -13,73 +13,11 @@ Streamlines the MuJoCo Physics Simulator
 pip install -U mujoco-toolbox
 ```
 
-## For Local Install
-
-*Navigate to the Directory that you wish to place the package*
-
-<details>
-<summary><b>JUPYTER NOTEBOOK</b></summary>
-</br>
-*Place Commands Inside Cell*
-
-One-Time Install:
-
-```python
-!git clone https://github.com/MGross21/mujoco-toolbox
-!pip install -U ./mujoco-toolbox
-```
-
-Check for Updates:
-
-```python
-!git pull origin main
-```
-
-Install/Check for Updates:
-
-```python
-folder = "mujoco-toolbox"
-repo_url = f"https://github.com/MGross21/{folder}"
-
-!if [ -d "{folder}" ]; then cd {folder} && git pull && cd ..; else git clone {repo_url}; fi
-!pip install -U ./{folder}
-```
-
-</details>
-</br>
-
-<details>
-<summary><b>BASH WINDOW</b></summary>
-</br>
-One-Time Install:
+## Local Install
 
 ```bash
-git clone https://github.com/MGross21/mujoco-toolbox
-pip install -U ./mujoco-toolbox
+pip install -U git+https://github.com/MGross21/mujoco-toolbox.git@main
 ```
-
-Check for Updates:
-```bash
-git pull origin main
-```
-
-Install/Check for Updates:
-
-```bash
-REPO_DIR="mujoco-toolbox"
-REPO_URL="https://github.com/MGross21/mujoco-toolbox"
-
-if [ -d "$REPO_DIR" ]; then
-  cd "$REPO_DIR" && git fetch origin && git pull origin main
-else
-  git clone $REPO_URL
-  cd "$REPO_DIR"
-fi
-
-pip install -U ./mujoco-toolbox
-```
-
-</details>
 
 ## Extra Packages
 
@@ -126,25 +64,34 @@ ffmpeg -version
 
 ```python
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import Wrapper
 
 # Optional Global Variables
 mjtb.VERBOSITY = True # Additional Performance and Debugging Print Statements (Default=False)
 mjtb.CAPTURE_PARAMETERS = "all" # MjData Simulation Parameters (Default = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata']) 
 
 # Example Code
-Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
+mjtb.Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
 ```
 
 ## Pre-Made Controllers
 
 ```python
-import mujoco_toolbox as mjtb
-
-mjtb.sineController(m,d,**kwargs)
-mjtb.cosineController(m,d,**kwargs)
-mjtb.stepController(m,d,**kwargs)
-mjtb.randomController(m,d,**kwargs)
+from mujoco_toolbox import \
+sineController,\
+cosineController,\
+stepController,\
+randomController,\
+realTimeController
 
 # Wrapper can use custom controllers as well!
 ```
+
+## File Support
+
+### XML / MJCF (Native)
+
+![Glovebox](assets/images/glovebox_sample.png)
+
+### URDF
+
+![UR5](assets/images/ur5_render_no_gui.png)

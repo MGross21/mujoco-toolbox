@@ -1,10 +1,8 @@
 # Ignore Folder/Extensions:
-__pycache__/
-*.pyc
-build/
+**/__pycache__/
 
-# Mujoco Logs
-MUJOCO_LOG.txt
+# Logs
+**/*LOG.txt
 
 # Jupyter Notebook Output
 *.ipynb_checkpoints
@@ -16,6 +14,7 @@ MUJOCO_LOG.txt
 # Environment
 *env/
 *.egg-info
+build/
 
 # Local Testing
 local_tests/
