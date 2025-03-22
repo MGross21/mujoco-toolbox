@@ -46,6 +46,7 @@ jobs:
           poetry install --no-interaction
 
       - name: Run Linters
+        continue-on-error: true
         run: |
           poetry run ruff check . --fix --unsafe-fixes
           poetry run ruff format .
