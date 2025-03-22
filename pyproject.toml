@@ -38,6 +38,7 @@ ipywidgets = "*"
 ffmpeg = "*"
 trimesh = "*"
 screeninfo = "*"
+colorama = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
