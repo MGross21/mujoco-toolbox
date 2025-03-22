@@ -172,6 +172,10 @@ class Builder:
             return ET.tostring(self.root, encoding='unicode', method='xml')
         else:
             raise ValueError("No model loaded. Cannot generate string.")
+        
+    def __repr__(self):
+        """ Return the XML string of the model."""
+        return self.__str__()
     
     @property
     def xml(self):
