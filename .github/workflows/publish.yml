@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: python-3.10-pip-${{ hashFiles('**/pyproject.toml') }}
+          key: python-3.10-pip-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             python-3.10-pip-
 
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-interaction
-          pip install python-semantic-release==8.7.0
+          pip install python-semantic-release # 9.x.x
       
       - name: Configure Git
         run: |

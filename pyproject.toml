@@ -86,8 +86,7 @@ release_rules = [
     { type = "ci", release = false },
     { type = "test", release = false }
 ]
-parser_opts = {
-    allowed_tags = [
+parser_opts = {allowed_tags = [
         "build",
         "chore",
         "ci",
@@ -97,20 +96,16 @@ parser_opts = {
         "perf",
         "style",
         "refactor",
-        "test"
-    ]
-}
+        "test"]}
 
 [tool.semantic_release.release_notes_generator]
 preset = "angular"
-preset_config = {
-    types = [
+preset_config = {types = [
         { type = "feat", section = "Features", hidden = false },
         { type = "fix", section = "Bug Fixes", hidden = false },
         { type = "perf", section = "Performance Improvements", hidden = false },
         { type = "refactor", section = "Refactors", hidden = false }
-    ]
-}
+    ]}
 
 [tool.ruff]
 line-length = 120
