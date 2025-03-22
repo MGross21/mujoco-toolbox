@@ -131,12 +131,14 @@ class Wrapper:
                     stl_path = os.path.splitext(dae_path)[0] + ".stl"
                     try:
                         trimesh.load_mesh(dae_path).export(stl_path)
+                        from . import VERBOSITY, logger
+                        if VERBOSITY:
+                            logger.info(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
                     except Exception:
                         msg = f"Error converting {filename}"
                         raise ValueError(msg)
 
         try:
-            from . import VERBOSITY
             robot = ET.parse(urdf_path).getroot()
             mujoco_tag = ET.Element("mujoco")
 
@@ -155,8 +157,9 @@ class Wrapper:
             subdirs = kwargs.get("meshdir_sub")
             if not subdirs:
                 subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith(".stl") for f in files)]
-                if VERBOSITY and subdirs != ["."]:
-                    pass
+                from . import VERBOSITY, logger
+                if VERBOSITY:
+                    logger.info(f"Auto-detected subdirectories: {subdirs}")
 
             # Convert relative subdir paths to absolute based on meshdir
             full_meshdirs = [
@@ -240,9 +243,9 @@ class Wrapper:
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
                 thread.join()
-        from . import VERBOSITY
+        from . import logger,VERBOSITY
         if VERBOSITY:
-            pass
+            logger.info("All threads terminated.")
 
     @property
     def model(self) -> mujoco.MjModel:
@@ -505,8 +508,8 @@ class Wrapper:
                     #     if any(d.warning[warning].number > 0 for warning in mujoco.mjtWarning):
                     #         print_warning("Please check MUJOCO_LOG.txt for more details.")
 
-        except Exception:
-            pass
+        except Exception as e:
+            raise RuntimeError("An error occurred while running the simulation.") from e
         finally:
             mujoco.set_mjcb_control(None)
             # Expose local variables
@@ -555,8 +558,8 @@ class Wrapper:
                             time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
                     except KeyboardInterrupt:
                         viewer.close()
-            except Exception:
-                pass
+            except Exception as e:
+                raise RuntimeError("An error occurred while running the simulation.") from e
             finally:
                 mujoco.set_mjcb_control(None)
 
@@ -648,9 +651,7 @@ class Wrapper:
             )
         else:
             msg = f"Unsupported codec '{codec}'. Supported codecs are {', '.join(available_codecs)}"
-            raise ValueError(
-                msg,
-            )
+            raise ValueError(msg)
 
         return os.path.abspath(title)
 
@@ -727,8 +728,9 @@ class Wrapper:
             with open(name, "w") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
 
-        except Exception:
-            pass
+        except Exception as e:
+            msg = f"Failed to save simulation data to '{name}'"
+            raise ValueError(msg) from e
 
 
 class SimulationData:
@@ -741,7 +743,7 @@ class SimulationData:
 
     def capture(self, mj_data: mujoco.MjData) -> None:
         """Capture data from MjData object, storing specified or all public simulation data."""
-        from . import CAPTURE_PARAMETERS, VERBOSITY
+        from . import CAPTURE_PARAMETERS
         keys = self._get_public_keys(mj_data) if CAPTURE_PARAMETERS == "all" else CAPTURE_PARAMETERS
 
         for key in keys:
@@ -758,9 +760,9 @@ class SimulationData:
                 else:
                     self._d[key].append(value)
             except AttributeError:
-                print_warning(f"Key '{key}' not found in MjData. Skipping.") if VERBOSITY else None
+                pass
             except Exception as e:
-                print(f"An error occurred while capturing '{key}': {e}") if VERBOSITY else None
+                pass
 
     def unwrap(self) -> dict[str, np.ndarray]:
         """Unwrap the captured simulation data into a structured format with NumPy arrays."""
@@ -792,22 +794,26 @@ class SimulationData:
         return unwrapped_data
 
     @property
-    def shape(self) -> None:
-        """TODO: Implement a method to return the shape of the captured data."""
+    def shape(self) -> dict[str, tuple]:
+        """Return the shape of the captured data."""
         if not self._d:
-            return None
+            return {}
 
-        self.unwrap()  # Ensure data is unwrapped before checking shape
+        shapes = {}
+        for key, value_list in self._d.items():
+            if not value_list:
+                shapes[key] = ()
+                continue
 
-        for value in self._d.values():
-            try:
-                if isinstance(value, (np.ndarray, list, dict)):
-                    pass
-                else:  # Handle any other types
-                    pass
+            first_value = value_list[0]
+            if isinstance(first_value, np.ndarray):
+                shapes[key] = (len(value_list),) + first_value.shape
+            elif isinstance(first_value, list):
+                shapes[key] = (len(value_list), len(first_value))
+            else:
+                shapes[key] = (len(value_list),)
 
-            except Exception:
-                pass
+        return shapes
 
     def __del__(self) -> None:
         self._d.clear()

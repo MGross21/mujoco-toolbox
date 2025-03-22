@@ -74,7 +74,7 @@ def generate_performance_chart() -> None:
     plt.bar(labels, times, color=["blue", "green"])
     plt.ylabel("Time (seconds)")
     plt.title("Performance Comparison")
-    plt.savefig(os.path.join(os.path.dirname(__file__), "data", "performance_comparison.png"))
+    plt.savefig(os.path.join(data_dir, "performance_comparison.png"))
 
     if mjtb.Computer.GUI_ENABLED:
         plt.show()

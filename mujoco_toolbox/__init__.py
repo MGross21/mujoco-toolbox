@@ -62,7 +62,22 @@ CAPTURE_PARAMETERS = [
     "sensordata",
 ]  # MjData default fields to capture during simulation
 
+
+
+
 VERBOSITY = False
+
+if VERBOSITY:
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    # Create a console handler and set its level to INFO
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
 if True:
     from .Utils import print_warning
