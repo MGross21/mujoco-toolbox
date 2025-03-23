@@ -25,7 +25,7 @@ from .controller import cosineController, randomController, realTimeController, 
 from .utils import _Platform, print_success, print_warning, timer
 from .wrapper import Wrapper
 
-__version__ = "0.2.0"
+__version__ = "0.2.2"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
