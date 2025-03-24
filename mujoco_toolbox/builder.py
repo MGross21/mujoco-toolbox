@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 
 
 class Builder:
-    def __init__(self, *args) -> None:
+    def __init__(self, *args: str) -> None:
         """Initialize with an XML string or a file path. Input is required."""
         for arg in args:
             if not isinstance(arg, str):
@@ -162,7 +162,7 @@ class Builder:
             return self
         return self.__add__(other)
 
-    def save(self, file_path) -> None:
+    def save(self, file_path) -> "os.path":
         """Save the merged model to a file."""
         if self.tree is not None:
             # Format the XML with proper indentation before saving
@@ -171,6 +171,7 @@ class Builder:
         else:
             msg = "No model loaded. Cannot save."
             raise ValueError(msg)
+        return os.path.abspath(file_path)
 
     def _indent_xml(self, elem, level=0) -> None:
         """Add proper indentation to make the XML file more readable."""
