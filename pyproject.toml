@@ -58,7 +58,7 @@ version_variables = [
     "CITATION.cff:version"
 ]
 branch = "main"                 # Branch to track for triggering the release process
-changelog = "CHANGELOG.md"
+changelog_file = "CHANGELOG.md"
 build_command = "pip install poetry && poetry build"
 dist_path = "dist/"             # Directory where the distribution files will be stored
 create_pr = true                # Option to create a pull request when a new release version is created
