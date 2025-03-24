@@ -94,3 +94,4 @@ def generate_performance_chart() -> None:
 
 if __name__ == "__main__":
     generate_performance_chart()
+    mjtb.print_success(f"{__file__} Tests passed!\n")
