@@ -15,7 +15,7 @@ import numpy as np
 import trimesh
 import yaml
 
-from .utils import print_warning, timer
+from .utils import print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."

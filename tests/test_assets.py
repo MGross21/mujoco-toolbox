@@ -1,4 +1,4 @@
-from mujoco_toolbox import WORLD_ASSETS, Builder, COMPUTER, GloveBox, Wrapper
+from mujoco_toolbox import COMPUTER, WORLD_ASSETS, Builder, GloveBox, Wrapper
 
 ####################
 # TESTING DESCRIPTION:
