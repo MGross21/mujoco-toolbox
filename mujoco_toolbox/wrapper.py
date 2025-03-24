@@ -539,7 +539,7 @@ class Wrapper:
                             start_time = current_time  # Reset start_time for the next frame
                             # Sleep to match real-time simulation speed
                             time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
-                            
+
                     except KeyboardInterrupt:
                         viewer.close()
             except Exception as e:

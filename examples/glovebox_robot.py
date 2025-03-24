@@ -1,11 +1,11 @@
 import os
 import time
+from itertools import cycle
 
 import numpy as np
 
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import realTimeController
-from itertools import cycle
 
 # Load the model
 model_dir = os.path.abspath(os.path.join("..", "tests", "models", "UR5"))
@@ -32,4 +32,3 @@ with mjtb.Wrapper(urdf, meshdir=meshes, initialConditions=initial, controller=re
     for qpos in cycle(qpos_sequence):
         ur5._data.qpos[:] = qpos
         time.sleep(5.0 / num_steps)
-        

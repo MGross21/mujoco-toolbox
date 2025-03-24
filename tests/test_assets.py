@@ -1,5 +1,6 @@
-from mujoco_toolbox import COMPUTER, WORLD_ASSETS, Builder, glovebox, Wrapper, print_success
 import os
+
+from mujoco_toolbox import COMPUTER, WORLD_ASSETS, Builder, Wrapper, glovebox, print_success
 
 ####################
 # TESTING DESCRIPTION:

@@ -12,7 +12,7 @@ class Builder:
         if len(args) == 0:
             msg = "Input is required to initialize the Builder"
             raise ValueError(msg)
-        elif len(args) > 1:
+        if len(args) > 1:
             # Create a new Builder instance for each additional argument and merge them
             self.tree, self.root = self.load_model(args[0])
             for additional_arg in args[1:]:
