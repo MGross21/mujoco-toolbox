@@ -549,6 +549,7 @@ class Wrapper:
                             start_time = current_time  # Reset start_time for the next frame
                             # Sleep to match real-time simulation speed
                             time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
+                            
                     except KeyboardInterrupt:
                         viewer.close()
             except Exception as e:
@@ -557,8 +558,9 @@ class Wrapper:
             finally:
                 mujoco.set_mjcb_control(None)
 
-        viewer = threading.Thread(target=window)
-        viewer.start()
+        # Run the window in a separate thread
+        gui = threading.Thread(target=window)
+        gui.start()
 
     def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.
