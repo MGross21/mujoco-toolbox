@@ -470,7 +470,7 @@ class Wrapper:
                       desc="Simulation",
                       unit=" step", leave=False,
                 ) as pbar,
-                mujoco.Renderer(m, h, w, num_geoms) as renderer,
+                mujoco.Renderer(m, h, w, num_geoms*2) as renderer,
             ):
                 step = 0
                 while d.time < dur:
