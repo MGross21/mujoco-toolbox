@@ -10,7 +10,7 @@ WORLD_ASSETS = """
   </asset>
 """
 
-def GloveBox(width=1.25, depth=0.75, height=1.0, glass_thickness=0.05) -> str:
+def glovebox(width=1.25, depth=0.75, height=1.0, glass_thickness=0.05) -> str:
     return f"""
 <mujoco>
     <asset>
