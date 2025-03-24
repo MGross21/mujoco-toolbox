@@ -42,7 +42,7 @@ colorama = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
-ruff = "^0.9.9"
+ruff = "^0.11.2"
 mypy = "^1.15.0"
 pytypes = "^1.0b10"
 black = "^25.1.0"
