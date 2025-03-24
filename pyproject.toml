@@ -55,7 +55,7 @@ pylint = "^3.3.4"
 version_variables = [
     "mujoco_toolbox/__init__.py:__version__",
     "pyproject.toml:tool.poetry.version",
-    "citation.cff:version"
+    "CITATION.cff:version"
 ]
 branch = "main"
 changelog_file = "CHANGELOG.md"
