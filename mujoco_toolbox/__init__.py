@@ -32,9 +32,9 @@ __license__ = "MIT"
 __status__ = "Development"
 __all__ = [
     "CAPTURE_PARAMETERS",
+    "COMPUTER",
     "WORLD_ASSETS",
     "Builder",
-    "COMPUTER",
     "GloveBox",
     "Wrapper",
     "cosineController",
@@ -58,7 +58,7 @@ CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "xmat",
     "ctrl",
     "sensordata",
-] 
+]
 
 if __version__.split(".")[0] == "0":
     print_warning(
