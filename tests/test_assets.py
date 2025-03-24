@@ -1,4 +1,4 @@
-from mujoco_toolbox import WORLD_ASSETS, Builder, Computer, GloveBox, Wrapper
+from mujoco_toolbox import COMPUTER, WORLD_ASSETS, Builder, GloveBox, Wrapper
 
 ####################
 # TESTING DESCRIPTION:
@@ -40,7 +40,7 @@ humanoid = os.path.join(os.path.dirname(__file__), "models", "humanoid.xml")
 
 
 # w.reload()
-if Computer.GUI_ENABLED:
+if COMPUTER.GUI_ENABLED:
     out = (Builder(humanoid) + Builder(GloveBox(5, 5, 5))).xml
     out = str(out)
     Wrapper(out).liveView(show_menu=False)

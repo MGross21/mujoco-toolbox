@@ -26,9 +26,9 @@ def test_xml1() -> None:
         controller=mjtb.sineController,
         amplitude=1e-5,
         frequency=1e-5,
-    ).runSim(render=mjtb.Computer.GUI_ENABLED)
+    ).runSim(render=mjtb.COMPUTER.GUI_ENABLED)
 
-    if mjtb.Computer.GUI_ENABLED:
+    if mjtb.COMPUTER.GUI_ENABLED:
         test1.renderMedia(title="sine_wave", save=True)
 
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
@@ -52,9 +52,9 @@ def test_urdf1() -> None:
         "init_conditions": ic,
     }
 
-    test2 = mjtb.Wrapper(**params).runSim(render=mjtb.Computer.GUI_ENABLED)
+    test2 = mjtb.Wrapper(**params).runSim(render=mjtb.COMPUTER.GUI_ENABLED)
 
-    if mjtb.Computer.GUI_ENABLED:
+    if mjtb.COMPUTER.GUI_ENABLED:
         test2.renderFrame(0)
 
     [test2._model.joint(i).name for i in range(test2._model.njnt)]

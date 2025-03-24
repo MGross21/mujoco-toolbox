@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mujoco-toolbox"
-version = "0.2.0"
+version = "0.2.2"
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
 license = "MIT"
@@ -54,12 +54,15 @@ pylint = "^3.3.4"
 [tool.semantic_release]
 version_variables = [
     "mujoco_toolbox/__init__.py:__version__",
-    "pyproject.toml:tool.poetry.version"
+    "pyproject.toml:tool.poetry.version",
+    "CITATION.cff:version"
 ]
 branch = "main"
 changelog_file = "CHANGELOG.md"
 build_command = "pip install poetry && poetry build"
 dist_path = "dist/"
+create_pr = true
+pr_branch_prefix = "release/"
 upload_to_pypi = true
 upload_to_release = true
 commit_version_number = true

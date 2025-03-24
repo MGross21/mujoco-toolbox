@@ -15,7 +15,7 @@ import numpy as np
 import trimesh
 import yaml
 
-from .utils import print_warning, timer
+from .utils import print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -312,8 +312,8 @@ class Wrapper:
             msg = "Resolution must be at least 1x1 pixels."
             raise ValueError(msg)
 
-        from . import Computer
-        screen_width, screen_height = Computer.RESOLUTION
+        from . import COMPUTER
+        screen_width, screen_height = COMPUTER.RESOLUTION
 
         if values[0] > screen_width or values[1] > screen_height:
             msg = "Resolution must be less than the screen resolution."
@@ -409,7 +409,6 @@ class Wrapper:
             else:
                 print_warning(f"'{key}' is not a valid attribute of MjData.")
 
-    @timer
     def runSim(self, render: bool = False, camera: Optional[str] = None, data_rate: int = 100, interactive: bool = False, multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
@@ -456,12 +455,12 @@ class Wrapper:
             # frame_count = 0
 
             if multi_thread:
-                #    num_threads =  Computer.CPU_COUNT
+                #    num_threads =  COMPUTER.CPU_COUNT
                 # TODO: Implement multi-threading
                 pass
 
-            from . import Computer
-            if Computer.IDE == "jupyter":
+            from . import COMPUTER, MAX_GEOM_SCALAR
+            if COMPUTER.IDE == "jupyter":
                 from tqdm.notebook import tqdm as bar
             else:
                 from tqdm import tqdm as bar
@@ -471,7 +470,7 @@ class Wrapper:
                       desc="Simulation",
                       unit=" step", leave=False,
                 ) as pbar,
-                mujoco.Renderer(m, h, w, num_geoms) as renderer,
+                mujoco.Renderer(m, h, w, num_geoms * MAX_GEOM_SCALAR) as renderer,
             ):
                 step = 0
                 while d.time < dur:

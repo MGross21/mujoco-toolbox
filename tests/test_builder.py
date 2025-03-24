@@ -59,7 +59,7 @@ def main() -> None:
 
     assert builder is not None, "Builder object is empty"
 
-    if mjtb.Computer.GUI_ENABLED:
+    if mjtb.COMPUTER.GUI_ENABLED:
         mjtb.Wrapper(builder.xml).liveView(show_menu=False)
 
 if __name__ == "__main__":
