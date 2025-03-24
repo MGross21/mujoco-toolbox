@@ -36,8 +36,11 @@ def main() -> None:
     # w.xml = (mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml) + mjtb.Builder(humanoid)).xml
 
     # w.reload()
+
+    out = Wrapper(Builder(humanoid, glovebox(5, 5, 5), urdf).xml, meshdir=meshes)
+
     if COMPUTER.GUI_ENABLED:
-        Wrapper(Builder(humanoid, glovebox(5, 5, 5)).xml).liveView(show_menu=False)
+        out.liveView(show_menu=False)
 
 if __name__ == "__main__":
     main()
