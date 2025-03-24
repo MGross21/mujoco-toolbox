@@ -1,4 +1,5 @@
-from mujoco_toolbox import COMPUTER, WORLD_ASSETS, Builder, glovebox, Wrapper
+from mujoco_toolbox import COMPUTER, WORLD_ASSETS, Builder, glovebox, Wrapper, print_success
+import os
 
 ####################
 # TESTING DESCRIPTION:
@@ -24,23 +25,20 @@ world = f"""
     </worldbody>
 </mujoco>
 """
+def main() -> None:
+    model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "UR5"))
+    urdf = os.path.join(model_dir, "ur5.urdf")
+    meshes = os.path.join(model_dir, "meshes", "collision")
 
+    humanoid = os.path.join(os.path.dirname(__file__), "models", "humanoid.xml")
 
-import os
+    # w = mjtb.Wrapper(urdf, meshdir=meshes)
+    # w.xml = (mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml) + mjtb.Builder(humanoid)).xml
 
-model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "UR5"))
-urdf = os.path.join(model_dir, "ur5.urdf")
-meshes = os.path.join(model_dir, "meshes", "collision")
+    # w.reload()
+    if COMPUTER.GUI_ENABLED:
+        Wrapper(Builder(humanoid, glovebox(5, 5, 5)).xml).liveView(show_menu=False)
 
-humanoid = os.path.join(os.path.dirname(__file__), "models", "humanoid.xml")
-
-# w = mjtb.Wrapper(urdf, meshdir=meshes)
-# w.xml = (mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml) + mjtb.Builder(humanoid)).xml
-
-
-
-# w.reload()
-if COMPUTER.GUI_ENABLED:
-    out = (Builder(humanoid) + Builder(glovebox(5, 5, 5))).xml
-    out = str(out)
-    Wrapper(out).liveView(show_menu=False)
+if __name__ == "__main__":
+    main()
+    print_success(f"{__file__} Tests passed!\n")
