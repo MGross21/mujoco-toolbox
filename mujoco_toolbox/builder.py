@@ -3,9 +3,24 @@ import xml.etree.ElementTree as ET
 
 
 class Builder:
-    def __init__(self, xml_input: str) -> None:
+    def __init__(self, *args: str) -> None:
         """Initialize with an XML string or a file path. Input is required."""
-        self.tree, self.root = self.load_model(xml_input)
+        for arg in args:
+            if not isinstance(arg, str):
+                msg = "Input must be an XML string or a file path"
+                raise TypeError(msg)
+        if len(args) == 0:
+            msg = "Input is required to initialize the Builder"
+            raise ValueError(msg)
+        if len(args) > 1:
+            # Create a new Builder instance for each additional argument and merge them
+            self.tree, self.root = self.load_model(args[0])
+            for additional_arg in args[1:]:
+                additional_builder = Builder(additional_arg)
+                self.__add__(additional_builder)
+        else:
+            xml_input = args[0]
+            self.tree, self.root = self.load_model(xml_input)
 
     def load_model(self, xml_input):
         """Load a MuJoCo model from a file or XML string."""
@@ -147,7 +162,7 @@ class Builder:
             return self
         return self.__add__(other)
 
-    def save(self, file_path) -> None:
+    def save(self, file_path) -> "os.path":
         """Save the merged model to a file."""
         if self.tree is not None:
             # Format the XML with proper indentation before saving
@@ -156,6 +171,7 @@ class Builder:
         else:
             msg = "No model loaded. Cannot save."
             raise ValueError(msg)
+        return os.path.abspath(file_path)
 
     def _indent_xml(self, elem, level=0) -> None:
         """Add proper indentation to make the XML file more readable."""
@@ -184,6 +200,10 @@ class Builder:
     def __repr__(self) -> str:
         """Return the XML string of the model."""
         return self.__str__()
+
+    def __len__(self) -> int:
+        """Return the number of elements in the model."""
+        return len(self.root) if self.root is not None else 0
 
     @property
     def xml(self):

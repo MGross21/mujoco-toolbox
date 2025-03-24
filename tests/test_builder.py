@@ -59,8 +59,16 @@ def main() -> None:
 
     assert builder is not None, "Builder object is empty"
 
+    args = [string1, string2, string3, string4]
+
+    builder2 = mjtb.Builder(*args)
+
+    assert builder2 is not None, "Builder2 object is empty"
+
     if mjtb.COMPUTER.GUI_ENABLED:
         mjtb.Wrapper(builder.xml).liveView(show_menu=False)
+        mjtb.Wrapper(builder2.xml).liveView(show_menu=False)
 
 if __name__ == "__main__":
     main()
+    mjtb.print_success(f"{__file__} Tests passed!\n")

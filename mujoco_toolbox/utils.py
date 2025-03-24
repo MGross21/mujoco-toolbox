@@ -94,12 +94,12 @@ class _Platform:
     def __repr__(self) -> str:
         return (
             f"Operating System: {self.OS}\n"
+            f"Architecture: {self.ARCHITECTURE}\n"
             f"Processor: {self.PROCESSOR}\n"
             f"Machine Type: {self.MACHINE}\n"
+            f"CPU Count: {self.CPU_COUNT}\n"
             f"Python Version: {self.PYTHON_VERSION}\n"
             f"IDE: {self.IDE}\n"
-            f"CPU Count: {self.CPU_COUNT}\n"
-            f"Architecture: {self.ARCHITECTURE}\n"
             f"Python Implementation: {self.PYTHON_IMPLEMENTATION}\n"
             f"Resolution (disp0): {self.RESOLUTION}\n"
             f"GUI Enabled: {self.GUI_ENABLED}"

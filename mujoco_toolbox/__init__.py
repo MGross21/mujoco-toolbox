@@ -19,7 +19,7 @@ This package is still under development. Report any issues to https://github.com
 
 """
 
-from .assets import WORLD_ASSETS, GloveBox
+from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controller import cosineController, randomController, realTimeController, sineController, stepController
 from .utils import _Platform, print_success, print_warning, timer
@@ -35,9 +35,9 @@ __all__ = [
     "COMPUTER",
     "WORLD_ASSETS",
     "Builder",
-    "GloveBox",
     "Wrapper",
     "cosineController",
+    "glovebox",
     "randomController",
     "realTimeController",
     "sineController",

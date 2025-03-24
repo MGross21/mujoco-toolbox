@@ -88,9 +88,10 @@ def generate_performance_chart() -> None:
     with open(csv_file, mode="a" if file_exists else "w", newline="") as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(["Library", "MAJOR", "MINOR", "BUG", "Average Performance (seconds)"])
+            writer.writerow(["Library", "MAJOR", "MINOR", "PATCH", "Average Performance (seconds)"])
         writer.writerow(["MuJoCo", *mujoco_version, times[0]])
         writer.writerow(["MuJoCo Toolbox", *mjtb_version, times[1]])
 
 if __name__ == "__main__":
     generate_performance_chart()
+    mjtb.print_success(f"{__file__} Tests passed!\n")

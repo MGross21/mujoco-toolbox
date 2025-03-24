@@ -58,11 +58,10 @@ class Wrapper:
     def _load_model(self, xml: str, **kwargs: Any) -> None:
         """Load a MuJoCo model from an XML file or a string."""
         try:
-            # Convert the XML path to an absolute path
-            xml_path = os.path.abspath(xml)
-
             # Check if the path exists
-            if os.path.exists(xml_path):
+            if os.path.exists(xml):
+                # Convert the XML path to an absolute path
+                xml_path = os.path.abspath(xml)
                 # Extract and validate file extension
                 extension = os.path.splitext(xml_path)[1].lower()[1:]
 
@@ -72,33 +71,24 @@ class Wrapper:
                     self._load_urdf_file(xml_path, **kwargs)
                 else:
                     msg = f"Unsupported file extension: '{extension}'. Please provide an XML or URDF file."
-                    raise ValueError(
-                        msg,
-                    )
-            # If the file doesn't exist, assume it's a string and attempt to load it as XML
-            elif "<mujoco>" in xml or "<mujoco/>" in xml or "<robot>" in xml:
-                self._load_xml_string(xml)
+                    raise ValueError(msg)
             else:
-                msg = f"Model file not found: {xml_path}. Ensure the file path is correct and accessible."
-                raise FileNotFoundError(
-                    msg,
-                )
-
+                # If the file doesn't exist, assume it's a string and attempt to load it as XML
+                try:
+                    ET.fromstring(xml)  # Try parsing the string as XML
+                    self._load_xml_string(xml)
+                except ET.ParseError:
+                    msg = f"Model not able to be loaded from the provided XML string: {xml}"
+                    raise ValueError(msg)
         except FileNotFoundError as e:
             msg = f"Failed to load the MuJoCo model: {e}"
             raise FileNotFoundError(msg) from e
-
         except ValueError as e:
             msg = f"Invalid value encountered while loading the model: {e}"
-            raise ValueError(
-                msg,
-            ) from e
-
+            raise ValueError(msg) from e
         except Exception as e:
             msg = f"Unexpected error while loading the MuJoCo model: {e}"
-            raise Exception(
-                msg,
-            )
+            raise Exception(msg)
 
     def _load_xml_file(self, xml: str, **kwargs) -> None:
         """Load a MuJoCo model from an XML file."""
@@ -549,6 +539,7 @@ class Wrapper:
                             start_time = current_time  # Reset start_time for the next frame
                             # Sleep to match real-time simulation speed
                             time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
+
                     except KeyboardInterrupt:
                         viewer.close()
             except Exception as e:
@@ -557,8 +548,9 @@ class Wrapper:
             finally:
                 mujoco.set_mjcb_control(None)
 
-        viewer = threading.Thread(target=window)
-        viewer.start()
+        # Run the window in a separate thread
+        gui = threading.Thread(target=window)
+        gui.start()
 
     def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
         """Render a specific frame as an image.
