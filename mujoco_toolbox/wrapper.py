@@ -455,12 +455,12 @@ class Wrapper:
             # frame_count = 0
 
             if multi_thread:
-                #    num_threads =  Computer.CPU_COUNT
+                #    num_threads =  COMPUTER.CPU_COUNT
                 # TODO: Implement multi-threading
                 pass
 
-            from . import Computer
-            if Computer.IDE == "jupyter":
+            from . import COMPUTER
+            if COMPUTER.IDE == "jupyter":
                 from tqdm.notebook import tqdm as bar
             else:
                 from tqdm import tqdm as bar
