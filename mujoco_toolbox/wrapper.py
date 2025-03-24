@@ -459,7 +459,7 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
-            from . import COMPUTER
+            from . import COMPUTER, MAX_GEOM_SCALAR
             if COMPUTER.IDE == "jupyter":
                 from tqdm.notebook import tqdm as bar
             else:
@@ -470,7 +470,7 @@ class Wrapper:
                       desc="Simulation",
                       unit=" step", leave=False,
                 ) as pbar,
-                mujoco.Renderer(m, h, w, num_geoms*2) as renderer,
+                mujoco.Renderer(m, h, w, num_geoms * MAX_GEOM_SCALAR) as renderer,
             ):
                 step = 0
                 while d.time < dur:
