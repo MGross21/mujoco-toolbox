@@ -30,13 +30,11 @@ __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
 __status__ = "Development"
-
-# `from mujoco_toolbox import *` will import these objects
 __all__ = [
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
     "Builder",
-    "Computer",
+    "COMPUTER",
     "GloveBox",
     "Wrapper",
     "cosineController",
@@ -47,7 +45,9 @@ __all__ = [
     "timer",
 ]
 
-CAPTURE_PARAMETERS = [
+COMPUTER = _Platform()  # Singleton Instance
+MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
+CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "time",
     "qpos",
     "qvel",
@@ -58,13 +58,10 @@ CAPTURE_PARAMETERS = [
     "xmat",
     "ctrl",
     "sensordata",
-]  # MjData default fields to capture during simulation
+] 
 
 if __version__.split(".")[0] == "0":
     print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
-
-# Create a singleton instance
-Computer = _Platform()
