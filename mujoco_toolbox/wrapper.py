@@ -409,7 +409,6 @@ class Wrapper:
             else:
                 print_warning(f"'{key}' is not a valid attribute of MjData.")
 
-    @timer
     def runSim(self, render: bool = False, camera: Optional[str] = None, data_rate: int = 100, interactive: bool = False, multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
