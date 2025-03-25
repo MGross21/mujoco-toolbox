@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "mujoco-toolbox"
-version = "0.2.2"
+version = "0.2.8"
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
 license = "MIT"
