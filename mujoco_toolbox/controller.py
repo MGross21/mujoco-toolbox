@@ -29,7 +29,7 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
         data.qpos[axis] = value
 
 
-def stepController(model, data, **kwargs) -> None:
+def step_controller(model, data, **kwargs) -> None:
     """A step controller for the simulation.
 
     Args:
@@ -57,7 +57,7 @@ def stepController(model, data, **kwargs) -> None:
     _apply_control(model, data, amplitude, joint=joint, axis=axis, delay=delay)
 
 
-def sineController(model, data, **kwargs) -> None:
+def sine_controller(model, data, **kwargs) -> None:
     """A simple sine wave controller for the simulation.
 
     Args:
@@ -85,7 +85,7 @@ def sineController(model, data, **kwargs) -> None:
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def cosineController(model, data, **kwargs) -> None:
+def cosine_controller(model, data, **kwargs) -> None:
     """A simple cosine wave controller for the simulation.
 
     Args:
@@ -113,7 +113,7 @@ def cosineController(model, data, **kwargs) -> None:
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def randomController(model, data, **kwargs) -> None:
+def random_controller(model, data, **kwargs) -> None:
     """A random controller for the simulation.
 
     Args:
@@ -141,7 +141,7 @@ def randomController(model, data, **kwargs) -> None:
     value = amplitude * random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
-def realTimeController(model, data, **kwargs) -> None:
+def live_controller(model, data, **kwargs) -> None:
     """A real-time controller for the simulation.
 
     Args:

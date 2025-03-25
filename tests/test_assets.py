@@ -1,12 +1,11 @@
 import os
-
+import mujoco_toolbox as mjtb
 from mujoco_toolbox import (
     COMPUTER,
     WORLD_ASSETS,
     Builder,
     Wrapper,
     glovebox,
-    print_success,
 )
 
 ####################
@@ -52,4 +51,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    print_success(f"{__file__} Tests passed!\n")
+    mjtb.utils.print_success(f"{__file__} Tests passed!\n")

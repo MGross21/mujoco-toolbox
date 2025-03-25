@@ -76,12 +76,13 @@ mjtb.Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
 ## Pre-Made Controllers
 
 ```python
-from mujoco_toolbox import \
-sineController,\
-cosineController,\
-stepController,\
-randomController,\
-realTimeController
+from mujoco_toolbox.controller import (
+    cosine_controller,
+    random_controller,
+    live_controller,
+    sine_controller,
+    step_controller,
+)
 
 # Wrapper can use custom controllers as well!
 ```

@@ -7,7 +7,6 @@ from collections import defaultdict
 from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeAlias
-
 import matplotlib.pyplot as plt
 import mediapy as media
 import mujoco
@@ -27,8 +26,13 @@ mjData: TypeAlias = mujoco.MjData
 
 class Wrapper:
     """A class to handle MuJoCo simulations."""
-
-    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:tuple[int,int]=(400,300), initialConditions:dict[str, list] | None=None, controller:Callable[[mjModel, mjData, Any], None] | None=None, *args, **kwargs) -> None:
+    def __init__(self, xml:str, 
+                 duration:int=10, 
+                 fps:int=30, 
+                 resolution:tuple[int,int]=(400,300), 
+                 initialConditions:dict[str, list] | None=None, 
+                 controller:Callable[[mjModel, mjData, Any], None] | None=None, 
+                 *args, **kwargs) -> None:
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
         if initialConditions is None:
             initialConditions = {}
@@ -232,13 +236,15 @@ class Wrapper:
                 thread.join()
 
     @property
-    def model(self) -> mujoco.MjModel:
+    def model(self) -> mjModel:
         """Read-only property to access the MjModel object."""
         return self._model
 
     @property
-    def data(self) -> mujoco.MjData:
-        """Read-only property to access the MjData single-step object."""
+    def data(self) -> mjData:
+        """Read-only property to access the MjData single-step object.\n
+            Use `captured_data` to access the entire simulation data.
+        """
         return self._data
 
     @property
@@ -263,9 +269,9 @@ class Wrapper:
 
     @frames.deleter
     def frames(self) -> None:
+        # BUG: This is not working as intended
         self._frames.clear()
         import gc
-
         gc.collect()
 
     @property
