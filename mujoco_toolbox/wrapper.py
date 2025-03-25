@@ -4,8 +4,9 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Any, Callable, Optional, TypeAlias
+from typing import Any, TypeAlias
 
 import matplotlib.pyplot as plt
 import mediapy as media
@@ -27,7 +28,7 @@ mjData: TypeAlias = mujoco.MjData
 class Wrapper:
     """A class to handle MuJoCo simulations."""
 
-    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:tuple[int,int]=(400,300), initialConditions:Optional[dict[str, list]]=None, controller:Optional[Callable[[mjModel, mjData, Any], None]]=None, *args, **kwargs) -> None:
+    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:tuple[int,int]=(400,300), initialConditions:dict[str, list] | None=None, controller:Callable[[mjModel, mjData, Any], None] | None=None, *args, **kwargs) -> None:
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
         if initialConditions is None:
             initialConditions = {}
@@ -336,7 +337,7 @@ class Wrapper:
         self._initcond = values
 
     @property
-    def controller(self) -> Optional[Callable[[mjModel, mjData, Any], None]]:
+    def controller(self) -> Callable[[mjModel, mjData, Any], None] | None:
         """Controller Function."""
         return self._controller
 
@@ -399,7 +400,7 @@ class Wrapper:
             else:
                 print_warning(f"'{key}' is not a valid attribute of MjData.")
 
-    def runSim(self, render: bool = False, camera: Optional[str] = None, data_rate: int = 100, interactive: bool = False, multi_thread: bool = False) -> "Wrapper":
+    def runSim(self, render: bool = False, camera: str | None = None, data_rate: int = 100, interactive: bool = False, multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
         Args:
@@ -552,7 +553,7 @@ class Wrapper:
         gui = threading.Thread(target=window)
         gui.start()
 
-    def renderFrame(self, t=0, frame=0, title=None) -> Optional[str]:
+    def renderFrame(self, t=0, frame=0, title=None) -> str | None:
         """Render a specific frame as an image.
 
         Args:
@@ -653,7 +654,7 @@ class Wrapper:
         """Convert frame index to time."""
         return frame / self._fps
 
-    def getBodyData(self, body_name: str, data_name: Optional[str] = None) -> np.ndarray:
+    def getBodyData(self, body_name: str, data_name: str | None = None) -> np.ndarray:
         """Get the data for a specific body in the simulation.
 
         Args:

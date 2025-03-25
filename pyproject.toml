@@ -2,14 +2,14 @@
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
+[project]
 name = "mujoco-toolbox"
 version = "0.2.2"
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
 license = "MIT"
 packages = [{ include = "mujoco_toolbox" }]
-authors = ["MGross21 <MGross21@TODO.com>"]
+authors = [{ name = "MGross21", email = "MGross21@TODO.com" }]
 keywords = ["MuJoCo", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -18,27 +18,31 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
+requires-python = ">=3.10"
+dependencies = [
+    "mujoco",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pyyaml",
+    "mediapy",
+    "tqdm",
+    "ipywidgets",
+    "ffmpeg",
+    "trimesh",
+    "screeninfo",
+    "colorama"
+]
 
-[tool.poetry.urls]
+# [project.extras]
+# beautified = ["colorama","ipywidgets","tqdm"]
+# gym = ["gym"]
+
+[project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 repository = "https://github.com/MGross21/mujoco-toolbox"
 documentation = "https://github.com/MGross21/mujoco-toolbox"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
-
-[tool.poetry.dependencies]
-python = ">=3.10"
-mujoco = "*"
-numpy = "*"
-scipy = "*"
-matplotlib = "*"
-pyyaml = "*"
-mediapy = "*"
-tqdm = "*"
-ipywidgets = "*"
-ffmpeg = "*"
-trimesh = "*"
-screeninfo = "*"
-colorama = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -115,7 +119,7 @@ preset_config = {types = [
     ]}
 
 [tool.ruff]
-line-length = 120
+line-length = 79 # PEP8 line length
 
 [tool.ruff.lint]
 # select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules

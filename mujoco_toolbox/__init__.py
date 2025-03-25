@@ -21,7 +21,13 @@ This package is still under development. Report any issues to https://github.com
 
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
-from .controller import cosineController, randomController, realTimeController, sineController, stepController
+from .controller import (
+    cosineController,
+    randomController,
+    realTimeController,
+    sineController,
+    stepController,
+)
 from .utils import _Platform, print_success, print_warning, timer
 from .wrapper import Wrapper
 
