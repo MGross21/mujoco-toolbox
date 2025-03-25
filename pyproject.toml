@@ -34,6 +34,9 @@ dependencies = [
     "colorama"
 ]
 
+# [project.extras]
+# beautified = ["colorama","ipywidgets","tqdm"]
+
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 repository = "https://github.com/MGross21/mujoco-toolbox"
