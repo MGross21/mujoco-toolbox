@@ -28,9 +28,9 @@ class Wrapper:
     """A class to handle MuJoCo simulations."""
     def __init__(self, 
                  xml:str, 
-                 duration:int=10, 
-                 fps:int=30, 
+                 duration:int=10,
                  data_rate:int=100,
+                 fps:int=30,
                  resolution:tuple[int,int]=(400,300), 
                  initial_conditions:dict[str, list] | None=None, 
                  controller:Callable[[mjModel, mjData, Any], None] | None=None, 
@@ -398,11 +398,10 @@ class Wrapper:
         return self._model.opt.gravity
 
     @gravity.setter
-    def gravity(self, values: list[float] | tuple[float,float,float]) -> None:
-        if not isinstance(values, (list, tuple)) or len(values) != 3:
-            msg = "Gravity must be a 3D vector."
-            raise ValueError(msg)
-        self._model.opt.gravity = values
+    def gravity(self, values: Union[list, tuple, np.ndarray]) -> None:
+        if not isinstance(values, (list, tuple, np.ndarray)) or len(values) != 3:
+            raise ValueError("Gravity must be a 3D vector.")
+        self._model.opt.gravity = np.array(values)
 
     def run(self, 
             render: bool = False, 

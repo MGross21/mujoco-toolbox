@@ -26,10 +26,10 @@ def test_xml1() -> None:
         controller=mjtb.sine_controller,
         amplitude=1e-5,
         frequency=1e-5,
-    ).runSim(render=mjtb.COMPUTER.GUI_ENABLED)
+    ).run(render=mjtb.COMPUTER.GUI_ENABLED)
 
     if mjtb.COMPUTER.GUI_ENABLED:
-        test1.renderMedia(title="sine_wave", save=True)
+        test1.save(title="sine_wave")
 
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), "Simulation data size does not match requested parameters."
     assert len(test1._captured_data) == (test1.duration * test1.data_rate) + 1, "Captured data length does not match simulation parameters."
@@ -52,10 +52,10 @@ def test_urdf1() -> None:
         "init_conditions": ic,
     }
 
-    test2 = mjtb.Wrapper(**params).runSim(render=mjtb.COMPUTER.GUI_ENABLED)
+    test2 = mjtb.Wrapper(**params).run(render=mjtb.COMPUTER.GUI_ENABLED)
 
     if mjtb.COMPUTER.GUI_ENABLED:
-        test2.renderFrame(0)
+        test2.show(frame_idx=0)
 
     [test2._model.joint(i).name for i in range(test2._model.njnt)]
 
@@ -76,5 +76,5 @@ if __name__ == "__main__":
 
     # Iterate over the copied list and execute functions
     for i, (name, func) in enumerate(functions, start=1):
-        mjtb.print_success(f"Running Test {i}: {name}", prefix=False)
+        mjtb.utils.print_success(f"Running Test {i}: {name}", prefix=False)
         func()
