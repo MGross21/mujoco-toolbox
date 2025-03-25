@@ -5,10 +5,10 @@ from itertools import cycle
 import numpy as np
 
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import realTimeController
+from mujoco_toolbox import live_controller
 
 # Load the model
-model_dir = os.path.abspath(os.path.join("..", "tests", "models", "UR5"))
+model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "tests", "models", "UR5"))
 urdf = os.path.join(model_dir, "ur5.urdf")
 meshes = os.path.join(model_dir, "meshes", "collision")
 
@@ -25,7 +25,7 @@ desired = {
 num_steps = 1000
 qpos_sequence = np.linspace(initial["qpos"], desired["qpos"], num_steps)
 
-with mjtb.Wrapper(urdf, meshdir=meshes, initialConditions=initial, controller=realTimeController) as ur5:
+with mjtb.Wrapper(urdf, meshdir=meshes, initial_conditions=initial, controller=live_controller) as ur5:
     ur5.liveView(show_menu=False) # Open the simulation window
     ur5.gravity = [0, 0, 0]
 

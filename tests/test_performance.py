@@ -9,7 +9,7 @@ from numpy import average
 import mujoco_toolbox as mjtb
 
 DURATION = 60
-DATA_RATE = 1e4
+DATA_RATE = 1000
 NUM_TESTS = 25
 
 MODEL = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "humanoid.xml"))
@@ -53,7 +53,7 @@ def mujoco_standard():
 
 def mujoco_tbx():
     start_time = time.time()
-    mjtb.Wrapper(MODEL, DURATION).runSim(data_rate=DATA_RATE)
+    mjtb.Wrapper(MODEL, DURATION, DATA_RATE).run()
     end_time = time.time()
     return end_time - start_time
 
@@ -94,4 +94,4 @@ def generate_performance_chart() -> None:
 
 if __name__ == "__main__":
     generate_performance_chart()
-    mjtb.print_success(f"{__file__} Tests passed!\n")
+    mjtb.utils.print_success(f"{__file__} Tests passed!\n")

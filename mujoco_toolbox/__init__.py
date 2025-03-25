@@ -5,9 +5,10 @@ the simulation process.
 
 Modules:
 --------
-- Wrapper: Contains the Wrapper class for interfacing with MuJoCo.
-- Controller: Includes sineController, cosineController, and randomController for controlling simulations.
-- Builder: Contains the Builder class for creating and merging MuJoCo models.
+- `Wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
+- `Controller`: Includes sineController, cosineController, and randomController for controlling simulations.
+- `Builder`: Contains the Builder class for creating and merging MuJoCo models.
+- `assets`: Contains pre-defined assets for building MuJoCo models.
 
 Constants:
 ----------
@@ -22,16 +23,16 @@ This package is still under development. Report any issues to https://github.com
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controller import (
-    cosineController,
-    randomController,
-    realTimeController,
-    sineController,
-    stepController,
+    cosine_controller,
+    live_controller,
+    random_controller,
+    sine_controller,
+    step_controller,
 )
-from .utils import _Platform, print_success, print_warning, timer
+from .utils import _Platform, print_warning
 from .wrapper import Wrapper
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
@@ -42,13 +43,12 @@ __all__ = [
     "WORLD_ASSETS",
     "Builder",
     "Wrapper",
-    "cosineController",
+    "cosine_controller",
     "glovebox",
-    "randomController",
-    "realTimeController",
-    "sineController",
-    "stepController",
-    "timer",
+    "live_controller",
+    "random_controller",
+    "sine_controller",
+    "step_controller",
 ]
 
 COMPUTER = _Platform()  # Singleton Instance
@@ -66,8 +66,9 @@ CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "sensordata",
 ]
 
-if __version__.split(".")[0] == "0":
+if __version__.startswith("0"):
     print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
+del _Platform, print_warning

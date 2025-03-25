@@ -61,27 +61,26 @@ ffmpeg -version
 
 </details>
 
-## To Run in Scripts
+## Example Script
+
+*Bare minimum to run MuJoCo simulation and display result*
 
 ```python
 import mujoco_toolbox as mjtb
 
-# Optional Global Variables
-mjtb.CAPTURE_PARAMETERS = "all" # MjData Simulation Parameters (Default = ['time', 'qpos', 'qvel', 'act', 'qacc', 'xpos', 'xquat', 'xmat', 'ctrl', 'sensordata']) 
-
-# Example Code
-mjtb.Wrapper("path/to/your/xml").runSim(render=True).renderMedia()
+mjtb.Wrapper("path/to/your/xml").run(render=True).save()
 ```
 
 ## Pre-Made Controllers
 
 ```python
-from mujoco_toolbox import \
-sineController,\
-cosineController,\
-stepController,\
-randomController,\
-realTimeController
+from mujoco_toolbox.controller import (
+    cosine_controller,
+    random_controller,
+    live_controller,
+    sine_controller,
+    step_controller,
+)
 
 # Wrapper can use custom controllers as well!
 ```

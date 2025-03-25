@@ -8,7 +8,6 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeAlias
 
-import matplotlib.pyplot as plt
 import mediapy as media
 import mujoco
 import mujoco.viewer
@@ -28,17 +27,23 @@ mjData: TypeAlias = mujoco.MjData
 class Wrapper:
     """A class to handle MuJoCo simulations."""
 
-    def __init__(self, xml:str, duration:int=10, fps:int=30, resolution:tuple[int,int]=(400,300), initialConditions:dict[str, list] | None=None, controller:Callable[[mjModel, mjData, Any], None] | None=None, *args, **kwargs) -> None:
+    def __init__(self,
+                 xml:str,
+                 duration:int=10,
+                 data_rate:int=100,
+                 fps:int=30,
+                 resolution:tuple[int,int]=(400,300),
+                 initial_conditions:dict[str, list] | None=None,
+                 controller:Callable[[mjModel, mjData, Any], None] | None=None,
+                 *args,
+                 **kwargs) -> None:
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
-        if initialConditions is None:
-            initialConditions = {}
-        assert xml is not None, "XML file or string is required to initialize the Wrapper."
         self._load_model(xml, **kwargs)
 
         self.duration = duration
         self.fps = fps
+        self.data_rate = data_rate
         self.resolution = resolution  # recursively sets width and height
-        self.init_conditions = initialConditions
         self.controller = controller
 
         # Predefined simulation parameters but can be overridden
@@ -47,6 +52,7 @@ class Wrapper:
         self.gravity = kwargs.get("gravity", self._model.opt.gravity)
 
         self._data = mujoco.MjData(self._model)
+        self.init_conditions = initial_conditions or {} # MUST BE AFTER DATA INITIALIZATION
 
         # Auto-Populate the names of bodies, joints, and actuators
         self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
@@ -110,6 +116,7 @@ class Wrapper:
 
     def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
         """Process and load a URDF file for use with MuJoCo."""
+        # BUG: Generate actuators from joints in URDF so the controller can actually work
 
         def convert_dae_to_stl(meshdir: str) -> None:
             """Convert all DAE files in a directory (including subdirectories) to STL."""
@@ -232,13 +239,15 @@ class Wrapper:
                 thread.join()
 
     @property
-    def model(self) -> mujoco.MjModel:
+    def model(self) -> mjModel:
         """Read-only property to access the MjModel object."""
         return self._model
 
     @property
-    def data(self) -> mujoco.MjData:
-        """Read-only property to access the MjData single-step object."""
+    def data(self) -> mjData:
+        r"""Read-only property to access the MjData single-step object.\n
+        Use `captured_data` to access the entire simulation data.
+        """
         return self._data
 
     @property
@@ -263,9 +272,9 @@ class Wrapper:
 
     @frames.deleter
     def frames(self) -> None:
+        # BUG: This is not working as intended
         self._frames.clear()
         import gc
-
         gc.collect()
 
     @property
@@ -317,24 +326,29 @@ class Wrapper:
         self._model.vis.Global.offheight = self._height
 
     @property
-    def init_conditions(self):
+    def initial_conditions(self):
         return self._initcond
 
-    @init_conditions.setter
-    def init_conditions(self, values) -> None:
+    @initial_conditions.setter
+    def initial_conditions(self, values) -> None:
         if not isinstance(values, dict):
             msg = "Initial conditions must be a dictionary."
             raise ValueError(msg)
-        invalid_keys = [
-            key for key in values if not hasattr(mujoco.MjData(self._model), key)
-        ]
+
+        invalid_keys = [key for key in values if not hasattr(mujoco.MjData(self._model), key)]
         if invalid_keys:
             SimulationData._get_public_keys(self._data)
             msg = f"Invalid initial condition attributes: {', '.join(invalid_keys)}"
-            raise ValueError(
-                msg,
-            )
+            raise ValueError(msg)
+
         self._initcond = values
+
+        # Apply initial conditions directly when set
+        for key, value in values.items():
+            if hasattr(self._data, key):
+                setattr(self._data, key, value)
+            else:
+                print_warning(f"'{key}' is not a valid attribute of MjData.")
 
     @property
     def controller(self) -> Callable[[mjModel, mjData, Any], None] | None:
@@ -364,11 +378,11 @@ class Wrapper:
         try:
             return self._dr
         except AttributeError:
-            print_warning(f"Use '{self.runSim.__name__}' first in order to access this value.")
+            print_warning(f"Use '{self.run.__name__}' first in order to access this value.")
             return None
 
     @data_rate.setter
-    def data_rate(self, value) -> None:
+    def data_rate(self, value: int) -> None:
         if isinstance(value, float) and not isinstance(value, int):
             value = round(value)
             print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
@@ -387,20 +401,17 @@ class Wrapper:
         return self._model.opt.gravity
 
     @gravity.setter
-    def gravity(self, values) -> None:
-        if len(values) != 3:
+    def gravity(self, values: list | tuple | np.ndarray) -> None:
+        if not isinstance(values, (list, tuple, np.ndarray)) or len(values) != 3:
             msg = "Gravity must be a 3D vector."
             raise ValueError(msg)
-        self._model.opt.gravity = values
+        self._model.opt.gravity = np.array(values)
 
-    def _setInitialConditions(self) -> None:
-        for key, value in self._initcond.items():
-            if hasattr(self._data, key):
-                setattr(self._data, key, value)
-            else:
-                print_warning(f"'{key}' is not a valid attribute of MjData.")
-
-    def runSim(self, render: bool = False, camera: str | None = None, data_rate: int = 100, interactive: bool = False, multi_thread: bool = False) -> "Wrapper":
+    def run(self,
+            render: bool = False,
+            camera: str | None = None,
+            interactive: bool = False,
+            multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
         Args:
@@ -419,7 +430,6 @@ class Wrapper:
         try:
             mujoco.set_mjcb_control(self._controller) if self._controller else None
             mujoco.mj_resetData(self._model, self._data)
-            self._setInitialConditions()
 
             # self._frames = [None] * (self.duration * self.fps + 1)
             frames = []
@@ -435,10 +445,7 @@ class Wrapper:
             dur = self._duration
             num_geoms = self._geom_names.__len__()
 
-            # TODO: Fix references to data rate in future.
-            # May be desired to specify in object creation
-            self._dr = data_rate
-            capture_rate = data_rate * self.ts
+            capture_rate = self.data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
 
@@ -452,17 +459,15 @@ class Wrapper:
 
             from . import COMPUTER, MAX_GEOM_SCALAR
             if COMPUTER.IDE == "jupyter":
-                from tqdm.notebook import tqdm as bar
+                from tqdm.notebook import tqdm as ProgressBar
             else:
-                from tqdm import tqdm as bar
+                from tqdm import tqdm as ProgressBar
 
-            with (
-                bar(total=total_steps,
-                      desc="Simulation",
-                      unit=" step", leave=False,
-                ) as pbar,
-                mujoco.Renderer(m, h, w, num_geoms * MAX_GEOM_SCALAR) as renderer,
-            ):
+            # PEP Convention - Prevent Naming Conflict
+            _ProgressBar = ProgressBar(total=total_steps, desc="Simulation", unit=" step", leave=False)
+            _Renderer = mujoco.Renderer(m, h, w, num_geoms * MAX_GEOM_SCALAR)
+
+            with _ProgressBar as pbar, _Renderer as renderer:
                 step = 0
                 while d.time < dur:
                     mj_step(m, d)
@@ -502,145 +507,196 @@ class Wrapper:
 
         return self
 
-    def _window(self) -> None:
+    def _window(self, show_menu: bool =True) -> None:
         """Open a window to display the simulation in real time."""
+        try:
+            m = self._model
+            d = self._data
 
+            def key_callback(key) -> bool:
+                return key in (27, ord("q"))  # 27 = ESC key, 'q' to quit
 
+            # NOTE: launch_passive may blocking despite docstring saying otherwise
+            _Viewer = mujoco.viewer.launch_passive(m, d,
+                                                    show_left_ui=show_menu,
+                                                    show_right_ui=show_menu,
+                                                    key_callback=key_callback)
+            with _Viewer as viewer:
+                viewer.sync()
+                start_time = time.time()
+
+                try:
+                    while viewer.is_running():
+                        current_time = time.time()
+                        dt = current_time - start_time  # Time difference between frames
+
+                        mujoco.mj_step(m, d)  # Advance simulation by one step
+                        viewer.sync()  # Sync the viewer
+
+                        start_time = current_time  # Reset start_time for the next frame
+                        time.sleep(max(0, 1.0 / self.fps - dt))  # Adjust sleep to match self.fps
+
+                except KeyboardInterrupt:
+                    viewer.close()
+        except Exception as e:
+            msg = "An error occurred while running the simulation."
+            raise RuntimeError(msg) from e
+        finally:
+            mujoco.set_mjcb_control(None)
 
     def liveView(self, show_menu: bool = True) -> None:
         """Open a window to display the simulation in real time."""
-        # BUG: Generate actuators from joints in URDF so the controller can actually work
-
-        def window() -> None:
-            try:
-                m = self._model
-                d = self._data
-
-                def key_callback(key) -> bool:
-                    if key in (27, ord("q")):  # 27 = ESC key, 'q' to quit
-                        return True
-                    return False
-
-                # NOTE: launch_passive is blocking despite docstring saying otherwise
-                with mujoco.viewer.launch_passive(m, d,
-                                                show_left_ui=show_menu,
-                                                show_right_ui=show_menu,
-                                                key_callback=key_callback) as viewer:
-                    viewer.sync()
-                    start_time = time.time()
-
-                    try:
-                        while viewer.is_running():
-                            current_time = time.time()
-                            dt = current_time - start_time  # Time difference between frames
-
-                            mujoco.mj_step(m, d)  # Advance simulation by one step
-                            viewer.sync()  # Sync the viewer
-
-                            start_time = current_time  # Reset start_time for the next frame
-                            # Sleep to match real-time simulation speed
-                            time.sleep(max(0, 0.01 - dt))  # Adjust sleep to match real-time
-
-                    except KeyboardInterrupt:
-                        viewer.close()
-            except Exception as e:
-                msg = "An error occurred while running the simulation."
-                raise RuntimeError(msg) from e
-            finally:
-                mujoco.set_mjcb_control(None)
-
         # Run the window in a separate thread
-        gui = threading.Thread(target=window)
+        gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
         gui.start()
 
-    def renderFrame(self, t=0, frame=0, title=None) -> str | None:
-        """Render a specific frame as an image.
+    def _validate_and_extract_frames(
+        self,
+        frame_idx: int | tuple[int, int] | None = None,
+        time_idx: float | tuple[float, float] | None = None,
+    ) -> list[Any]:
+        """Validate and extract frames based on frame or time indices.
 
         Args:
-            t (float): Time in seconds for which the frame should be rendered.
-            frame (int): The frame index to render.
-            title (str): The title of the rendered frame.
+            frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
+            time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
 
         Returns:
-            None
+            List of frames
+
+        Raises:
+            ValueError: For invalid input parameters.
 
         """
         if not self._frames:
             msg = "No frames captured to render."
             raise ValueError(msg)
 
-        if t < 0 or frame < 0:
-            msg = "Time and frame index must be greater than or equal to zero."
-            raise ValueError(
-                msg,
-            )
-
-        if frame and t:
-            msg = "Can only specify singular time or frame parameter"
+        # Validate input parameters
+        if frame_idx is not None and time_idx is not None:
+            msg = "Can only specify either frame_idx or time_idx, not both."
             raise ValueError(msg)
 
-        try:
-            if t > 0:
-                frame = self.t2f(t)  # Convert time to frame index
+        # If both are None, use all frames
+        if frame_idx is None and time_idx is None:
+            return self._frames
+
+        # Handle time index conversion
+        if time_idx is not None:
+            if isinstance(time_idx, (int, float)):
+                frame_idx = self.t2f(time_idx)
+            elif isinstance(time_idx, tuple):
+                frame_idx = (self.t2f(time_idx[0]), self.t2f(time_idx[1]))
             else:
-                frame = int(frame)
+                msg = "time_idx must be a number or a tuple of numbers."
+                raise ValueError(msg)
 
-            plt.imshow(self._frames[frame])
-            plt.axis("off")
-            plt.title(title or f"Frame {frame}", loc="center")
-            plt.show()
+        # Convert single index to tuple range
+        if isinstance(frame_idx, (int, float)):
+            frame_idx = (frame_idx, frame_idx + 1)
 
-        except IndexError as e:
-            msg = f"Invalid frame index: {e}"
+        # Validate frame indices
+        start, stop = frame_idx
+        max_frames = len(self._frames)
+
+        if start < 0:
+            msg = f"Start index must be non-negative. Got {start}."
             raise ValueError(msg)
-        except TypeError as e:
-            msg = f"Invalid type for time or frame: {e}"
+        if stop > max_frames:
+            msg = f"Stop index must not exceed total frames ({max_frames}). Got {stop}."
             raise ValueError(msg)
-        except Exception as e:
-            msg = f"Unexpected error while rendering frame: {e}"
-            raise RuntimeError(msg)
+        if start >= stop:
+            msg = f"Start index ({start}) must be less than stop index ({stop})."
+            raise ValueError(msg)
 
-    def renderMedia(self, codec="gif", title=None, save=False) -> media:
-        """Render the simulation as a video or GIF, with an option to save to a file.
+        # Select subset of frames
+        return self._frames[start:stop]
+
+    def show(
+        self,
+        title: str | None = None,
+        codec: str = "gif",
+        frame_idx: int | tuple[int, int] | None = None,
+        time_idx: float | tuple[float, float] | None = None,
+    ) -> None:
+        """Render specific frame(s) as a video or GIF in a window.
 
         Args:
-            codec (str): The media format to use ("gif" or "mp4").
-            title (str): The filename or window title for the media.
-            save (bool): Whether to save the media to a file.
+            title (str, optional): Title for the rendered media.
+            codec (str, optional): Video codec/format. Defaults to "gif".
+            frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
+            time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
+
+        Raises:
+            ValueError: If no frames are captured or invalid input parameters.
 
         """
-        if not self._frames:
-            msg = "No frames captured to create media."
-            raise ValueError(msg)
-        # Display the media in a window
-        if not save:
+        try:
+            # Extract frames
+            subset_frames = self._validate_and_extract_frames(
+                frame_idx=frame_idx,
+                time_idx=time_idx,
+            )
+
+            # Show the video
             media.show_video(
-                self._frames,
-                fps=self._fps,
+                subset_frames,
+                fps=1 if len(subset_frames) == 1 else self._fps,
                 width=self._width,
                 height=self._height,
                 codec=codec,
                 title=title,
             )
-            return None
+        except Exception as e:
+            msg = "Error while showing video subset."
+            raise Exception(msg) from e
 
-        if not title.endswith(f".{codec}"):
-            title += f".{codec}"
+    def save(
+        self,
+        title: str = "render",
+        codec: str = "gif",
+        frame_idx: int | tuple[int, int] | None = None,
+        time_idx: float | tuple[float, float] | None = None,
+    ) -> str:
+        """Save specific frame(s) as a video or GIF to a file.
 
-        # Save the frames to the specified file
-        available_codecs = ["gif", "mp4", "h264", "hevc", "vp9"]
-        if codec in available_codecs:
+        Args:
+            title (str, optional): Filename for the saved media.
+            codec (str, optional): Video codec/format. Defaults to "gif".
+            frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
+            time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
+
+        Returns:
+            str: Absolute path to the saved file.
+
+        Raises:
+            ValueError: If no frames are captured or invalid input parameters.
+
+        """
+        try:
+            # Extract frames
+            subset_frames = self._validate_and_extract_frames(
+                frame_idx=frame_idx,
+                time_idx=time_idx,
+            )
+
+            # Ensure the title ends with the correct codec extension
+            if not title.endswith(f".{codec}"):
+                title += f".{codec}"
+
+            # Save the video
             media.write_video(
-                title if not None else "render",
-                self._frames,
-                fps=self._fps,
+                title,
+                subset_frames,
+                fps=1 if len(subset_frames) == 1 else self._fps,
                 codec=codec,
             )
-        else:
-            msg = f"Unsupported codec '{codec}'. Supported codecs are {', '.join(available_codecs)}"
-            raise ValueError(msg)
 
-        return os.path.abspath(title)
+            return os.path.abspath(title)
+
+        except Exception as e:
+            msg = "Error while saving video subset."
+            raise Exception(msg) from e
 
     @lru_cache(maxsize=100)
     def t2f(self, t: float) -> int:

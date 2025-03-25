@@ -71,4 +71,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    mjtb.print_success(f"{__file__} Tests passed!\n")
+    mjtb.utils.print_success(f"{__file__} Tests passed!\n")
