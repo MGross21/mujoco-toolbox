@@ -1,3 +1,6 @@
+# IDE Settings
+.vscode/
+
 # Ignore Folder/Extensions:
 **/__pycache__/
 
