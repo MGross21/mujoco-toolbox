@@ -6,8 +6,8 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable
 from functools import lru_cache
-from typing import Any, TypeAlias, Optional, Union, Tuple, List
-import matplotlib.pyplot as plt
+from typing import Any, TypeAlias
+
 import mediapy as media
 import mujoco
 import mujoco.viewer
@@ -26,15 +26,16 @@ mjData: TypeAlias = mujoco.MjData
 
 class Wrapper:
     """A class to handle MuJoCo simulations."""
-    def __init__(self, 
-                 xml:str, 
+
+    def __init__(self,
+                 xml:str,
                  duration:int=10,
                  data_rate:int=100,
                  fps:int=30,
-                 resolution:tuple[int,int]=(400,300), 
-                 initial_conditions:dict[str, list] | None=None, 
-                 controller:Callable[[mjModel, mjData, Any], None] | None=None, 
-                 *args, 
+                 resolution:tuple[int,int]=(400,300),
+                 initial_conditions:dict[str, list] | None=None,
+                 controller:Callable[[mjModel, mjData, Any], None] | None=None,
+                 *args,
                  **kwargs) -> None:
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
         self._load_model(xml, **kwargs)
@@ -244,8 +245,8 @@ class Wrapper:
 
     @property
     def data(self) -> mjData:
-        """Read-only property to access the MjData single-step object.\n
-            Use `captured_data` to access the entire simulation data.
+        r"""Read-only property to access the MjData single-step object.\n
+        Use `captured_data` to access the entire simulation data.
         """
         return self._data
 
@@ -331,12 +332,14 @@ class Wrapper:
     @initial_conditions.setter
     def initial_conditions(self, values) -> None:
         if not isinstance(values, dict):
-            raise ValueError("Initial conditions must be a dictionary.")
+            msg = "Initial conditions must be a dictionary."
+            raise ValueError(msg)
 
         invalid_keys = [key for key in values if not hasattr(mujoco.MjData(self._model), key)]
         if invalid_keys:
             SimulationData._get_public_keys(self._data)
-            raise ValueError(f"Invalid initial condition attributes: {', '.join(invalid_keys)}")
+            msg = f"Invalid initial condition attributes: {', '.join(invalid_keys)}"
+            raise ValueError(msg)
 
         self._initcond = values
 
@@ -398,15 +401,16 @@ class Wrapper:
         return self._model.opt.gravity
 
     @gravity.setter
-    def gravity(self, values: Union[list, tuple, np.ndarray]) -> None:
+    def gravity(self, values: list | tuple | np.ndarray) -> None:
         if not isinstance(values, (list, tuple, np.ndarray)) or len(values) != 3:
-            raise ValueError("Gravity must be a 3D vector.")
+            msg = "Gravity must be a 3D vector."
+            raise ValueError(msg)
         self._model.opt.gravity = np.array(values)
 
-    def run(self, 
-            render: bool = False, 
-            camera: str | None = None, 
-            interactive: bool = False, 
+    def run(self,
+            render: bool = False,
+            camera: str | None = None,
+            interactive: bool = False,
             multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
@@ -547,34 +551,36 @@ class Wrapper:
         gui.start()
 
     def _validate_and_extract_frames(
-        self, 
-        frame_idx: Optional[Union[int, Tuple[int, int]]] = None, 
-        time_idx: Optional[Union[float, Tuple[float, float]]] = None
-    ) -> List[Any]:
-        """
-        Validate and extract frames based on frame or time indices.
-        
+        self,
+        frame_idx: int | tuple[int, int] | None = None,
+        time_idx: float | tuple[float, float] | None = None,
+    ) -> list[Any]:
+        """Validate and extract frames based on frame or time indices.
+
         Args:
             frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
-        
+
         Returns:
             List of frames
-        
+
         Raises:
             ValueError: For invalid input parameters.
+
         """
         if not self._frames:
-            raise ValueError("No frames captured to render.")
-        
+            msg = "No frames captured to render."
+            raise ValueError(msg)
+
         # Validate input parameters
         if frame_idx is not None and time_idx is not None:
-            raise ValueError("Can only specify either frame_idx or time_idx, not both.")
-        
+            msg = "Can only specify either frame_idx or time_idx, not both."
+            raise ValueError(msg)
+
         # If both are None, use all frames
         if frame_idx is None and time_idx is None:
             return self._frames
-        
+
         # Handle time index conversion
         if time_idx is not None:
             if isinstance(time_idx, (int, float)):
@@ -582,52 +588,56 @@ class Wrapper:
             elif isinstance(time_idx, tuple):
                 frame_idx = (self.t2f(time_idx[0]), self.t2f(time_idx[1]))
             else:
-                raise ValueError("time_idx must be a number or a tuple of numbers.")
-        
+                msg = "time_idx must be a number or a tuple of numbers."
+                raise ValueError(msg)
+
         # Convert single index to tuple range
         if isinstance(frame_idx, (int, float)):
             frame_idx = (frame_idx, frame_idx + 1)
-        
+
         # Validate frame indices
         start, stop = frame_idx
         max_frames = len(self._frames)
-        
+
         if start < 0:
-            raise ValueError(f"Start index must be non-negative. Got {start}.")
+            msg = f"Start index must be non-negative. Got {start}."
+            raise ValueError(msg)
         if stop > max_frames:
-            raise ValueError(f"Stop index must not exceed total frames ({max_frames}). Got {stop}.")
+            msg = f"Stop index must not exceed total frames ({max_frames}). Got {stop}."
+            raise ValueError(msg)
         if start >= stop:
-            raise ValueError(f"Start index ({start}) must be less than stop index ({stop}).")
-        
+            msg = f"Start index ({start}) must be less than stop index ({stop})."
+            raise ValueError(msg)
+
         # Select subset of frames
         return self._frames[start:stop]
 
     def show(
-        self, 
-        title: Optional[str] = None, 
-        codec: str = "gif", 
-        frame_idx: Optional[Union[int, Tuple[int, int]]] = None, 
-        time_idx: Optional[Union[float, Tuple[float, float]]] = None
-    ):
-        """
-        Render specific frame(s) as a video or GIF in a window.
-        
+        self,
+        title: str | None = None,
+        codec: str = "gif",
+        frame_idx: int | tuple[int, int] | None = None,
+        time_idx: float | tuple[float, float] | None = None,
+    ) -> None:
+        """Render specific frame(s) as a video or GIF in a window.
+
         Args:
             title (str, optional): Title for the rendered media.
             codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
-        
+
         Raises:
             ValueError: If no frames are captured or invalid input parameters.
+
         """
         try:
             # Extract frames
             subset_frames = self._validate_and_extract_frames(
-                frame_idx=frame_idx, 
-                time_idx=time_idx
+                frame_idx=frame_idx,
+                time_idx=time_idx,
             )
-            
+
             # Show the video
             media.show_video(
                 subset_frames,
@@ -638,41 +648,42 @@ class Wrapper:
                 title=title,
             )
         except Exception as e:
-            raise Exception("Error while showing video subset.") from e
+            msg = "Error while showing video subset."
+            raise Exception(msg) from e
 
     def save(
-        self, 
-        title: str = "render", 
-        codec: str = "gif", 
-        frame_idx: Optional[Union[int, Tuple[int, int]]] = None, 
-        time_idx: Optional[Union[float, Tuple[float, float]]] = None
+        self,
+        title: str = "render",
+        codec: str = "gif",
+        frame_idx: int | tuple[int, int] | None = None,
+        time_idx: float | tuple[float, float] | None = None,
     ) -> str:
-        """
-        Save specific frame(s) as a video or GIF to a file.
-        
+        """Save specific frame(s) as a video or GIF to a file.
+
         Args:
             title (str, optional): Filename for the saved media.
             codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
-        
+
         Returns:
             str: Absolute path to the saved file.
-        
+
         Raises:
             ValueError: If no frames are captured or invalid input parameters.
+
         """
         try:
             # Extract frames
             subset_frames = self._validate_and_extract_frames(
-                frame_idx=frame_idx, 
-                time_idx=time_idx
+                frame_idx=frame_idx,
+                time_idx=time_idx,
             )
-            
+
             # Ensure the title ends with the correct codec extension
             if not title.endswith(f".{codec}"):
                 title += f".{codec}"
-            
+
             # Save the video
             media.write_video(
                 title,
@@ -680,12 +691,13 @@ class Wrapper:
                 fps=1 if len(subset_frames) == 1 else self._fps,
                 codec=codec,
             )
-            
+
             return os.path.abspath(title)
-        
+
         except Exception as e:
-            raise Exception("Error while saving video subset.") from e
-        
+            msg = "Error while saving video subset."
+            raise Exception(msg) from e
+
     @lru_cache(maxsize=100)
     def t2f(self, t: float) -> int:
         """Convert time to frame index."""

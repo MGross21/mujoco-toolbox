@@ -1,4 +1,5 @@
 import os
+
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import (
     COMPUTER,

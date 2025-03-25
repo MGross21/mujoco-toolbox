@@ -1,9 +1,11 @@
 import csv
 import os
 import time
+
 import matplotlib.pyplot as plt
 import mujoco
 from numpy import average
+
 import mujoco_toolbox as mjtb
 
 DURATION = 60

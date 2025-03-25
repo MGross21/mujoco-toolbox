@@ -1,5 +1,6 @@
 from mujoco_toolbox import utils
 
+
 @utils.timer
 def test_prints() -> None:
     utils.print_success("This is a success message")

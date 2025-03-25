@@ -24,8 +24,8 @@ from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controller import (
     cosine_controller,
-    random_controller,
     live_controller,
+    random_controller,
     sine_controller,
     step_controller,
 )
@@ -45,8 +45,8 @@ __all__ = [
     "Wrapper",
     "cosine_controller",
     "glovebox",
-    "random_controller",
     "live_controller",
+    "random_controller",
     "sine_controller",
     "step_controller",
 ]
