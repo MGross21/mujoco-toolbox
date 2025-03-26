@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## Unreleased
+
+### Refactoring
+
+- Remove unused scripts
+  ([`235aa68`](https://github.com/MGross21/mujoco-toolbox/commit/235aa68ba2a30243b062956691d22ab393d23edb))
+
+
 ## v0.4.5 (2025-03-26)
 
 
