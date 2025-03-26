@@ -1,12 +1,23 @@
 # CHANGELOG
 
 
-## Unreleased
+## v0.4.3 (2025-03-26)
+
+### Bug Fixes
+
+- Enhance release workflow to compare versions and conditionally publish
+  ([`3f5e9fa`](https://github.com/MGross21/mujoco-toolbox/commit/3f5e9fa5c9036234cbfb364296a2caaac9e14699))
+
+- Update command to retrieve latest version in release workflow
+  ([`cb76cbf`](https://github.com/MGross21/mujoco-toolbox/commit/cb76cbf540e6f25e6c5c29a290769e3921b5e97a))
 
 ### Chores
 
 - Add conditional check for tag push in release workflow
   ([`1d39ffc`](https://github.com/MGross21/mujoco-toolbox/commit/1d39ffc1271f7445aca25808bd7f9180d190987a))
+
+- Update version and changelog
+  ([`aedcbeb`](https://github.com/MGross21/mujoco-toolbox/commit/aedcbeb843d321a65725d53738914de381733b87))
 
 - Update version and changelog
   ([`993108b`](https://github.com/MGross21/mujoco-toolbox/commit/993108bb1ecaa5c1ee90579304e33639ec08c9fe))
