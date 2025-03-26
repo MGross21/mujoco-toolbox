@@ -8,16 +8,24 @@
 
 Streamlines the MuJoCo Physics Simulator
 
-## PyPI Package
+## Installation
+
+*Add `-U` flag to upgrade pre-existing library*
+
+### PyPI Package
+
+[![PyPI version](https://img.shields.io/pypi/v/mujoco-toolbox?labelColor=333333&color=%23800080)](https://pypi.org/project/mujoco-toolbox/)
 
 ```bash
-pip install -U mujoco-toolbox
+pip install mujoco-toolbox
 ```
 
-## Local Install
+### GitHub Package
+
+[![GitHub release](https://img.shields.io/github/v/release/MGross21/mujoco-toolbox?label=github&labelColor=333333&color=%23800080)](https://github.com/MGross21/mujoco-toolbox/releases)
 
 ```bash
-pip install -U git+https://github.com/MGross21/mujoco-toolbox.git@main
+pip install git+https://github.com/MGross21/mujoco-toolbox.git@main
 ```
 
 ## Extra Packages
