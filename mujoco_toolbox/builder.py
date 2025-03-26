@@ -18,7 +18,9 @@ class Builder:
         >>> # Merge two models from two file paths
         >>> builder = Builder("path/to/model1.xml", "path/to/model2.xml")
         >>> builder.save("path/to/merged_model.xml")
+
     """
+
     def __init__(self, *args: str) -> None:
         """Initialize with an XML string or a file path. Input is required."""
         for arg in args:

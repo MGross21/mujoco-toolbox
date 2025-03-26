@@ -445,8 +445,6 @@ class Wrapper:
             mj_step = mujoco.mj_step
             m = self._model
             d = self._data
-            h = self._height
-            w = self._width
             dur = self._duration
 
             capture_rate = self.data_rate * self.ts
@@ -461,7 +459,7 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
-            from . import COMPUTER, MAX_GEOM_SCALAR,PROGRESS_BAR
+            from . import COMPUTER, MAX_GEOM_SCALAR, PROGRESS_BAR
             from .utils import _EmptyContextManager
 
             if PROGRESS_BAR and render:
