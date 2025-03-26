@@ -1,12 +1,25 @@
 # CHANGELOG
 
 
+## v0.4.2 (2025-03-26)
+
+### Bug Fixes
+
+- Configure GitHub Token for authentication in publish workflow
+  ([`bde07f5`](https://github.com/MGross21/mujoco-toolbox/commit/bde07f50bfd2e8d569e4086d2b007da5b146b4e7))
+
+
 ## v0.4.1 (2025-03-26)
 
 ### Bug Fixes
 
 - Update GitHub Actions workflow to trigger on version tags and enhance release process
   ([`4d2d0e3`](https://github.com/MGross21/mujoco-toolbox/commit/4d2d0e3c33faa8908ed63fcc7eb347a006162ec7))
+
+### Chores
+
+- Update publish workflow and changelog handling; remove release trigger
+  ([`16668fc`](https://github.com/MGross21/mujoco-toolbox/commit/16668fc8c61d7b27007ca2ab4a0ae5732e03655c))
 
 
 ## v0.4.0 (2025-03-26)
@@ -45,6 +58,11 @@
 
 - **pub**: Update publish workflow for improved semantic-release handling
   ([`78c325e`](https://github.com/MGross21/mujoco-toolbox/commit/78c325ea635108cfea4c458d084b88453ac51803))
+
+### Chores
+
+- Release version 0.3.4
+  ([`a65a2f2`](https://github.com/MGross21/mujoco-toolbox/commit/a65a2f28208414b358483325d1e3a07fcf2b91aa))
 
 
 ## v0.3.3 (2025-03-26)
