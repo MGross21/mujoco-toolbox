@@ -70,7 +70,7 @@ jobs:
         id: release
         run: |
           # Get the latest version from semantic-release
-          LATEST_VERSION=$(poetry run semantic-release print-version)
+          LATEST_VERSION=$(poetry run semantic-release version --print)
           echo "Latest version from semantic-release: $LATEST_VERSION"
 
           # Extract the tag version to compare
