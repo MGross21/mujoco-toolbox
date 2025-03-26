@@ -3,14 +3,14 @@
 A toolbox for working with MuJoCo simulations. This package provides various utilities and controllers to facilitate
 the simulation process.
 
-Modules:
+Modules
 --------
 - `Wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
 - `Controller`: Includes sineController, cosineController, and randomController for controlling simulations.
 - `Builder`: Contains the Builder class for creating and merging MuJoCo models.
 - `assets`: Contains pre-defined assets for building MuJoCo models.
 
-Constants:
+Constants
 ----------
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
 
