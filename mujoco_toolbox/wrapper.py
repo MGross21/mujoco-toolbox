@@ -339,7 +339,7 @@ class Wrapper:
 
         invalid_keys = [key for key in values if not hasattr(mujoco.MjData(self._model), key)]
         if invalid_keys:
-            SimulationData._get_public_keys(self._data)
+            _SimulationData._get_public_keys(self._data)
             msg = f"Invalid initial condition attributes: {', '.join(invalid_keys)}"
             raise ValueError(msg)
 
@@ -438,7 +438,7 @@ class Wrapper:
 
             # self._frames = [None] * (self.duration * self.fps + 1)
             frames = []
-            sim_data = SimulationData()
+            sim_data = _SimulationData()
             total_steps = int(self._duration / self.ts)
 
             # Cache frequently used functions and objects for performance
@@ -785,7 +785,7 @@ class Wrapper:
             raise ValueError(msg) from e
 
 
-class SimulationData:
+class _SimulationData:
     """A class to store and manage simulation data."""
 
     __slots__ = ["_d"]
