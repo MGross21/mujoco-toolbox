@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.4.1 (2025-03-26)
+
+### Bug Fixes
+
+- Update GitHub Actions workflow to trigger on version tags and enhance release process
+  ([`4d2d0e3`](https://github.com/MGross21/mujoco-toolbox/commit/4d2d0e3c33faa8908ed63fcc7eb347a006162ec7))
+
+
 ## v0.4.0 (2025-03-26)
 
 ### Bug Fixes
@@ -43,9 +51,6 @@
 
 
 ## v0.3.0 (2025-03-25)
-
-
-## v0.2.3 (2025-03-24)
 
 
 ## v0.2.2 (2025-03-23)
