@@ -443,7 +443,6 @@ class Wrapper:
             h = self._height
             w = self._width
             dur = self._duration
-            num_geoms = self._geom_names.__len__()
 
             capture_rate = self.data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
@@ -457,15 +456,20 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
-            from . import COMPUTER, MAX_GEOM_SCALAR
-            if COMPUTER.IDE == "jupyter":
-                from tqdm.notebook import tqdm as ProgressBar
+            from . import COMPUTER, MAX_GEOM_SCALAR,PROGRESS_BAR
+            from .utils import _EmptyContextManager
+
+            if PROGRESS_BAR and render:
+                if COMPUTER.IDE == "jupyter":
+                    from tqdm.notebook import tqdm as ProgressBar
+                else:
+                    from tqdm import tqdm as ProgressBar
             else:
-                from tqdm import tqdm as ProgressBar
+                ProgressBar = _EmptyContextManager
 
             # PEP Convention - Prevent Naming Conflict
             _ProgressBar = ProgressBar(total=total_steps, desc="Simulation", unit=" step", leave=False)
-            _Renderer = mujoco.Renderer(m, h, w, num_geoms * MAX_GEOM_SCALAR)
+            _Renderer = mujoco.Renderer(self.model, self._height, self._width, self._geom_names.__len__() * MAX_GEOM_SCALAR)
 
             with _ProgressBar as pbar, _Renderer as renderer:
                 step = 0
@@ -485,7 +489,7 @@ class Wrapper:
                         # frame_count += 1
                         frames.append(renderer.render().copy())
 
-                    pbar.update(1)
+                        pbar.update(1) if PROGRESS_BAR else None
                     step += 1
 
                     # if verbose:
