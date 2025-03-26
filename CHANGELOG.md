@@ -1,7 +1,15 @@
 # CHANGELOG
 
 
-## Unreleased
+## v0.4.3 (2025-03-26)
+
+### Bug Fixes
+
+- Enhance release workflow to compare versions and conditionally publish
+  ([`3f5e9fa`](https://github.com/MGross21/mujoco-toolbox/commit/3f5e9fa5c9036234cbfb364296a2caaac9e14699))
+
+- Update command to retrieve latest version in release workflow
+  ([`cb76cbf`](https://github.com/MGross21/mujoco-toolbox/commit/cb76cbf540e6f25e6c5c29a290769e3921b5e97a))
 
 ### Bug Fixes
 
