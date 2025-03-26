@@ -6,8 +6,8 @@ on:
       - main
     tags:
       - v*.*.*
-  release:
-    types: [created]
+  # release:
+  #   types: [created]
   workflow_dispatch:
 
 permissions:
@@ -60,4 +60,9 @@ jobs:
         run: |
           poetry run semantic-release version
           poetry run semantic-release changelog
+          git log
+          git diff
+          git commit -am "chore: update version and changelog"
+          git push origin HEAD:main
+
           poetry run semantic-release -v --strict publish

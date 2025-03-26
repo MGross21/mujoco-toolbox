@@ -38,11 +38,6 @@
 - **pub**: Update publish workflow for improved semantic-release handling
   ([`78c325e`](https://github.com/MGross21/mujoco-toolbox/commit/78c325ea635108cfea4c458d084b88453ac51803))
 
-### Chores
-
-- Release version 0.3.4
-  ([`a65a2f2`](https://github.com/MGross21/mujoco-toolbox/commit/a65a2f28208414b358483325d1e3a07fcf2b91aa))
-
 
 ## v0.3.3 (2025-03-26)
 
