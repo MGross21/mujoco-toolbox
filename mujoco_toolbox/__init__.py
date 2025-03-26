@@ -32,7 +32,7 @@ from .controller import (
 from .utils import _Platform
 from .wrapper import Wrapper
 
-__version__ = "0.4.3"
+__version__ = "0.4.4"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
