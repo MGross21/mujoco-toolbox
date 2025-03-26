@@ -6,6 +6,9 @@
 ### Chores
 
 - Update version and changelog
+  ([`dc98e01`](https://github.com/MGross21/mujoco-toolbox/commit/dc98e01d07baf696121dd158d8bcfcfc3e61bef1))
+
+- Update version and changelog
   ([`aa0f375`](https://github.com/MGross21/mujoco-toolbox/commit/aa0f3755ad18982a6ac63f403aea36118a118aff))
 
 - Update version and changelog
