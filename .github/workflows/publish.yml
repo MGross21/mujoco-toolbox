@@ -54,6 +54,6 @@ jobs:
       - name: Run Semantic Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # Using PAT with repo scope
-          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry run semantic-release -vv publish
+          poetry run semantic-release -vv --strict publish

@@ -55,6 +55,8 @@ isort = "^6.0.1"
 flake8 = "^7.1.2"
 bandit = "^1.8.3"
 pylint = "^3.3.4"
+python-semantic-release = "^9.21.0"
+python-dotenv = "^1.1.0"
 
 [tool.semantic_release]
 version_variables = [
@@ -71,14 +73,6 @@ upload_to_release = true
 commit_version_number = true
 tag_format = "v{version}"
 commit_message = "chore(release): {version} [skip ci]"
-
-# [tool.semantic_release.plugins]
-# commit_analyzer = "@semantic-release/commit-analyzer"           # Analyzes commit messages to determine version bumps
-# release_notes_generator = "@semantic-release/release-notes-generator"  # Generates release notes based on commit messages
-# changelog = "@semantic-release/changelog"                       # Handles changelog generation
-# git = "@semantic-release/git"                                   # Commits changes (version bump, changelog) back to the repo
-# github = "@semantic-release/github"                             # Creates GitHub releases (tags) and adds release notes
-# pypi = "@semantic-release/pypi"                                 # Uploads the distribution to PyPI
 
 [tool.semantic_release.commit_analyzer]
 preset = "angular"
@@ -114,6 +108,9 @@ preset_config = {types = [
         { type = "perf", section = "Performance Improvements", hidden = false },
         { type = "refactor", section = "Refactors", hidden = false }
     ]}
+
+[tool.black]
+line-length = 79 # PEP8 line length
 
 [tool.ruff]
 line-length = 79 # PEP8 line length
