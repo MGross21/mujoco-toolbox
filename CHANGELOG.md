@@ -6,6 +6,9 @@
 ### Chores
 
 - Update version and changelog
+  ([`5fe9f0a`](https://github.com/MGross21/mujoco-toolbox/commit/5fe9f0adac5bf572462730bf8000f7162fea42f7))
+
+- Update version and changelog
   ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
 
 ### Refactoring
