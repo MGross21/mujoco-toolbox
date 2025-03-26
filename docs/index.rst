@@ -1,5 +1,5 @@
-.. Mujoco Toolbox
-.. =========================================
+Documentation
+=========================================
 
 .. automodule:: mujoco_toolbox
     :members:

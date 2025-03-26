@@ -245,9 +245,7 @@ class Wrapper:
 
     @property
     def data(self) -> mjData:
-        r"""Read-only property to access the MjData single-step object.\n
-        Use `captured_data` to access the entire simulation data.
-        """
+        """Read-only property to access the MjData single-step object. Use `captured_data` to access the entire simulation data."""
         return self._data
 
     @property
@@ -279,6 +277,7 @@ class Wrapper:
 
     @property
     def duration(self) -> float:
+        """Duration of the simulation in seconds."""
         return self._duration
 
     @duration.setter
@@ -290,6 +289,7 @@ class Wrapper:
 
     @property
     def fps(self) -> float:
+        """Frames per second."""
         return self._fps
 
     @fps.setter
@@ -301,6 +301,7 @@ class Wrapper:
 
     @property
     def resolution(self) -> tuple[int, int]:
+        """Resolution of the simulation in pixels."""
         return self._resolution
 
     @resolution.setter
@@ -327,6 +328,7 @@ class Wrapper:
 
     @property
     def initial_conditions(self):
+        """Initial conditions for the simulation."""
         return self._initcond
 
     @initial_conditions.setter
@@ -364,6 +366,7 @@ class Wrapper:
 
     @property
     def ts(self) -> float:
+        """Timestep of the simulation in seconds."""
         return self._model.opt.timestep
 
     @ts.setter
@@ -375,6 +378,7 @@ class Wrapper:
 
     @property
     def data_rate(self) -> int:
+        """Data rate of the simulation in frames per second."""
         try:
             return self._dr
         except AttributeError:
@@ -398,6 +402,7 @@ class Wrapper:
 
     @property
     def gravity(self):
+        """Gravity vector of the simulation."""
         return self._model.opt.gravity
 
     @gravity.setter
