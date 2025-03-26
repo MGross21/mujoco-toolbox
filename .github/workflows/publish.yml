@@ -44,7 +44,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-interaction
-          poetry run pip install python-semantic-release # 9.x.x
+
+      - name: Build Package
+        run: |
+          poetry build
       
       - name: Configure Git
         run: |

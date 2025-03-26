@@ -4,6 +4,9 @@
 # Ignore Folder/Extensions:
 **/__pycache__/
 
+# Generated Builds
+dist/
+
 # Logs
 **/*LOG.txt
 
