@@ -1,4 +1,4 @@
-"""Mujoco Toolbox.
+"""Mujoco Toolbox
 ==============
 A toolbox for working with MuJoCo simulations. This package provides various utilities and controllers to facilitate
 the simulation process.

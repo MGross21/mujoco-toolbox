@@ -99,7 +99,7 @@ jobs:
           git commit -am "chore: update version and changelog"
           
           # Push the changes to the main branch
-          git push origin HEAD:main
+          git push
           
           # Publish the release (to PyPI, GitHub, etc.)
           poetry run semantic-release -v --strict publish
