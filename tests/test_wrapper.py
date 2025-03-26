@@ -76,5 +76,5 @@ if __name__ == "__main__":
 
     # Iterate over the copied list and execute functions
     for i, (name, func) in enumerate(functions, start=1):
-        mjtb.utils.print_success(f"Running Test {i}: {name}", prefix=False)
+        mjtb.utils._print_success(f"Running Test {i}: {name}", prefix=False)
         func()

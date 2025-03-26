@@ -1,4 +1,4 @@
-Mujoco Toolbox
+Documentation
 =========================================
 
 .. automodule:: mujoco_toolbox
@@ -6,17 +6,17 @@ Mujoco Toolbox
     :undoc-members:
     :show-inheritance:
 
-Submodules
-==========
+.. Submodules
+.. ==========
 
-.. automodule:: mujoco_toolbox.wrapper
-    :members:
+.. .. automodule:: mujoco_toolbox.wrapper
+..     :members:
 
-.. automodule:: mujoco_toolbox.builder
-    :members:
+.. .. automodule:: mujoco_toolbox.builder
+..     :members:
 
-.. automodule:: mujoco_toolbox.utils
-    :members:
+.. .. automodule:: mujoco_toolbox.utils
+..     :members:
 
-.. automodule:: mujoco_toolbox.assets
-    :members:
+.. .. automodule:: mujoco_toolbox.assets
+..     :members:

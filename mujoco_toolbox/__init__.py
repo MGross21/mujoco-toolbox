@@ -3,14 +3,14 @@
 A toolbox for working with MuJoCo simulations. This package provides various utilities and controllers to facilitate
 the simulation process.
 
-Modules:
+Modules
 --------
 - `Wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
 - `Controller`: Includes sineController, cosineController, and randomController for controlling simulations.
 - `Builder`: Contains the Builder class for creating and merging MuJoCo models.
 - `assets`: Contains pre-defined assets for building MuJoCo models.
 
-Constants:
+Constants
 ----------
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
 
@@ -29,7 +29,7 @@ from .controller import (
     sine_controller,
     step_controller,
 )
-from .utils import _Platform, print_warning
+from .utils import _Platform
 from .wrapper import Wrapper
 
 __version__ = "0.3.0"
@@ -53,6 +53,7 @@ __all__ = [
 
 COMPUTER = _Platform()  # Singleton Instance
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
+PROGRESS_BAR: bool = False  # Enable/Disable progress bar
 CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "time",
     "qpos",
@@ -67,8 +68,10 @@ CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
 ]
 
 if __version__.startswith("0"):
-    print_warning(
+    from .utils import _print_warning
+    _print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
-del _Platform, print_warning
+    del _print_warning
+del _Platform

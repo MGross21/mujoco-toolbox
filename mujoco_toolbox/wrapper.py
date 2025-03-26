@@ -15,7 +15,7 @@ import numpy as np
 import trimesh
 import yaml
 
-from .utils import print_warning
+from .utils import _print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -245,9 +245,7 @@ class Wrapper:
 
     @property
     def data(self) -> mjData:
-        r"""Read-only property to access the MjData single-step object.\n
-        Use `captured_data` to access the entire simulation data.
-        """
+        """Read-only property to access the MjData single-step object. Use `captured_data` to access the entire simulation data."""
         return self._data
 
     @property
@@ -279,6 +277,7 @@ class Wrapper:
 
     @property
     def duration(self) -> float:
+        """Duration of the simulation in seconds."""
         return self._duration
 
     @duration.setter
@@ -290,6 +289,7 @@ class Wrapper:
 
     @property
     def fps(self) -> float:
+        """Frames per second."""
         return self._fps
 
     @fps.setter
@@ -301,6 +301,7 @@ class Wrapper:
 
     @property
     def resolution(self) -> tuple[int, int]:
+        """Resolution of the simulation in pixels."""
         return self._resolution
 
     @resolution.setter
@@ -327,6 +328,7 @@ class Wrapper:
 
     @property
     def initial_conditions(self):
+        """Initial conditions for the simulation."""
         return self._initcond
 
     @initial_conditions.setter
@@ -337,7 +339,7 @@ class Wrapper:
 
         invalid_keys = [key for key in values if not hasattr(mujoco.MjData(self._model), key)]
         if invalid_keys:
-            SimulationData._get_public_keys(self._data)
+            _SimulationData._get_public_keys(self._data)
             msg = f"Invalid initial condition attributes: {', '.join(invalid_keys)}"
             raise ValueError(msg)
 
@@ -348,7 +350,7 @@ class Wrapper:
             if hasattr(self._data, key):
                 setattr(self._data, key, value)
             else:
-                print_warning(f"'{key}' is not a valid attribute of MjData.")
+                _print_warning(f"'{key}' is not a valid attribute of MjData.")
 
     @property
     def controller(self) -> Callable[[mjModel, mjData, Any], None] | None:
@@ -364,6 +366,7 @@ class Wrapper:
 
     @property
     def ts(self) -> float:
+        """Timestep of the simulation in seconds."""
         return self._model.opt.timestep
 
     @ts.setter
@@ -375,17 +378,18 @@ class Wrapper:
 
     @property
     def data_rate(self) -> int:
+        """Data rate of the simulation in frames per second."""
         try:
             return self._dr
         except AttributeError:
-            print_warning(f"Use '{self.run.__name__}' first in order to access this value.")
+            _print_warning(f"Use '{self.run.__name__}' first in order to access this value.")
             return None
 
     @data_rate.setter
     def data_rate(self, value: int) -> None:
         if isinstance(value, float) and not isinstance(value, int):
             value = round(value)
-            print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
+            _print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
         if value <= 0:
             msg = "Data rate must be greater than 0."
             raise ValueError(msg)
@@ -398,6 +402,7 @@ class Wrapper:
 
     @property
     def gravity(self):
+        """Gravity vector of the simulation."""
         return self._model.opt.gravity
 
     @gravity.setter
@@ -433,17 +438,14 @@ class Wrapper:
 
             # self._frames = [None] * (self.duration * self.fps + 1)
             frames = []
-            sim_data = SimulationData()
+            sim_data = _SimulationData()
             total_steps = int(self._duration / self.ts)
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
             m = self._model
             d = self._data
-            h = self._height
-            w = self._width
             dur = self._duration
-            num_geoms = self._geom_names.__len__()
 
             capture_rate = self.data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
@@ -457,15 +459,20 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
-            from . import COMPUTER, MAX_GEOM_SCALAR
-            if COMPUTER.IDE == "jupyter":
-                from tqdm.notebook import tqdm as ProgressBar
+            from . import COMPUTER, MAX_GEOM_SCALAR, PROGRESS_BAR
+            from .utils import _EmptyContextManager
+
+            if PROGRESS_BAR and render:
+                if COMPUTER.IDE == "jupyter":
+                    from tqdm.notebook import tqdm as ProgressBar
+                else:
+                    from tqdm import tqdm as ProgressBar
             else:
-                from tqdm import tqdm as ProgressBar
+                ProgressBar = _EmptyContextManager
 
             # PEP Convention - Prevent Naming Conflict
             _ProgressBar = ProgressBar(total=total_steps, desc="Simulation", unit=" step", leave=False)
-            _Renderer = mujoco.Renderer(m, h, w, num_geoms * MAX_GEOM_SCALAR)
+            _Renderer = mujoco.Renderer(self.model, self._height, self._width, self._geom_names.__len__() * MAX_GEOM_SCALAR)
 
             with _ProgressBar as pbar, _Renderer as renderer:
                 step = 0
@@ -485,7 +492,7 @@ class Wrapper:
                         # frame_count += 1
                         frames.append(renderer.render().copy())
 
-                    pbar.update(1)
+                        pbar.update(1) if PROGRESS_BAR else None
                     step += 1
 
                     # if verbose:
@@ -776,7 +783,7 @@ class Wrapper:
             raise ValueError(msg) from e
 
 
-class SimulationData:
+class _SimulationData:
     """A class to store and manage simulation data."""
 
     __slots__ = ["_d"]
