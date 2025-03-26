@@ -62,8 +62,8 @@ jobs:
         run: |
           poetry run semantic-release version
           poetry run semantic-release changelog
-          git log
-          git diff
+          # git log
+          # git diff
           git add .
           git commit -am "chore: update version and changelog"
           git push origin HEAD:main
