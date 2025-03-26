@@ -1,7 +1,15 @@
 # CHANGELOG
 
 
+## v0.4.5 (2025-03-26)
+
+
 ## v0.4.4 (2025-03-26)
+
+### Bug Fixes
+
+- Streamline version push command and update module docstring formatting
+  ([`e6a3276`](https://github.com/MGross21/mujoco-toolbox/commit/e6a3276f8ca7005e9d366bb676e3cb26ee86dfbf))
 
 
 ## v0.4.3 (2025-03-26)
