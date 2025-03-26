@@ -1,6 +1,40 @@
 # CHANGELOG
 
 
+## Unreleased
+
+### Chores
+
+- Update version and changelog
+  ([`162b9f8`](https://github.com/MGross21/mujoco-toolbox/commit/162b9f8fd3b075a753ca66a338dc7ba2cef17380))
+
+- Update version and changelog
+  ([`a9dca24`](https://github.com/MGross21/mujoco-toolbox/commit/a9dca241627468673cb55cf65cae07a1c6b145e3))
+
+- Update version and changelog
+  ([`dc98e01`](https://github.com/MGross21/mujoco-toolbox/commit/dc98e01d07baf696121dd158d8bcfcfc3e61bef1))
+
+- Update version and changelog
+  ([`aa0f375`](https://github.com/MGross21/mujoco-toolbox/commit/aa0f3755ad18982a6ac63f403aea36118a118aff))
+
+- Update version and changelog
+  ([`0814d2a`](https://github.com/MGross21/mujoco-toolbox/commit/0814d2a41fe2f8c40711ed433fca8bdc82efbec9))
+
+- Update version and changelog
+  ([`3859b48`](https://github.com/MGross21/mujoco-toolbox/commit/3859b4874bf28673e0d35344f63775262c54bfe3))
+
+- Update version and changelog
+  ([`5fe9f0a`](https://github.com/MGross21/mujoco-toolbox/commit/5fe9f0adac5bf572462730bf8000f7162fea42f7))
+
+- Update version and changelog
+  ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
+
+### Refactoring
+
+- Remove unused scripts
+  ([`235aa68`](https://github.com/MGross21/mujoco-toolbox/commit/235aa68ba2a30243b062956691d22ab393d23edb))
+
+
 ## v0.4.5 (2025-03-26)
 
 
