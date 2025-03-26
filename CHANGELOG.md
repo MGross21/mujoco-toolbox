@@ -5,6 +5,12 @@
 
 ### Chores
 
+- Add conditional check for tag push in release workflow
+  ([`1d39ffc`](https://github.com/MGross21/mujoco-toolbox/commit/1d39ffc1271f7445aca25808bd7f9180d190987a))
+
+- Update version and changelog
+  ([`993108b`](https://github.com/MGross21/mujoco-toolbox/commit/993108bb1ecaa5c1ee90579304e33639ec08c9fe))
+
 - Update version and changelog
   ([`c2109a1`](https://github.com/MGross21/mujoco-toolbox/commit/c2109a1cb336fee9e9e8462efb57fbf37de5e37c))
 
