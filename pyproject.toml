@@ -127,3 +127,24 @@ ignore_missing_imports = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 strict_optional = true
+
+[tool.isort]
+profile = "black"  # Use black's code style
+known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "tqdm", "ipywidgets", "ffmpeg", "trimesh", "screeninfo", "colorama"]
+known_first_party = ["mujoco_toolbox"]
+line_length = 79  # PEP8 line length
+
+# Flake8 settings
+[tool.flake8]
+max-line-length = 79  # PEP8 line length
+extend-ignore = ["E203", "W503"]  # For compatibility with black
+
+# Bandit settings
+[tool.bandit]
+# Enable all checks, you can modify this depending on your project needs
+skips = ["B101", "B102"]  # Ignore certain checks like hardcoded passwords
+
+# Pylint settings
+[tool.pylint]
+max-line-length = 79  # PEP8 line length
+disable = ["C0114", "C0115", "C0116"]  # Disable docstring warnings
