@@ -12,7 +12,7 @@ packages = [{ include = "mujoco_toolbox" }]
 authors = [{ name = "MGross21", email = "MGross21@TODO.com" }]
 keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.10",
@@ -42,6 +42,7 @@ dependencies = [
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 repository = "https://github.com/MGross21/mujoco-toolbox"
 documentation = "https://github.com/MGross21/mujoco-toolbox"
+changelog = "https://github.com/MGross21/mujoco-toolbox/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
 
 [tool.poetry.group.dev.dependencies]
