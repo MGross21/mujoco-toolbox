@@ -60,12 +60,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # Using PAT with repo scope
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry run semantic-release version
-          poetry run semantic-release changelog
-          # git log
-          # git diff
-          git add .
-          git commit -am "chore: update version and changelog"
-          git push origin HEAD:main
-
-          poetry run semantic-release -v --strict publish
+          # Check if the event is a tag push and if it's a tag created by GitHub Actions
+          if [[ $GITHUB_EVENT_NAME == "push" && $GITHUB_REF =~ refs/tags/v.* ]]; then
+            echo "Running semantic-release for version bump"
+            poetry run semantic-release version
+            poetry run semantic-release changelog
+            git commit -am "chore: update version and changelog"
+            git push origin HEAD:main
+            poetry run semantic-release -v --strict publish
+          else
+            echo "Not a tag push, skipping release process."
+          fi
