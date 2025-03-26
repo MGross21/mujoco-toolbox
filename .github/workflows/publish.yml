@@ -57,14 +57,14 @@ jobs:
         run: |
           VERSION=$(poetry version -s)
           echo "Current version: $VERSION"
-          echo "::set-output name=version::$VERSION"  # Set output for version
+          echo "version=$VERSION" >> $GITHUB_ENV  # Set output for current version
 
       - name: Extract version from Git tag
         id: tag_version
         run: |
           VERSION_TAG=${GITHUB_REF##*/}  # Extract version from the tag (e.g., "v0.3.4")
           echo "Version from Git tag: $VERSION_TAG"
-          echo "::set-output name=tag_version::$VERSION_TAG"  # Set output for tag version
+          echo "tag_version=$VERSION_TAG" >> $GITHUB_OUTPUT   # Set output for tag version
 
       - name: Compare versions and determine release
         id: release
