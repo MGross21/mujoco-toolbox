@@ -89,8 +89,8 @@ from mujoco_toolbox.controller import (
 
 ### XML / MJCF (Native)
 
-![Glovebox](assets/images/glovebox_sample.png)
+[Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
 
 ### URDF
 
-![UR5](assets/images/ur5_render_no_gui.png)
+![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
