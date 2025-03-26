@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## Unreleased
+
+### Chores
+
+- Update version and changelog
+  ([`f06826f`](https://github.com/MGross21/mujoco-toolbox/commit/f06826f48bcab145bd0dc1d78f02be432f073033))
+
+- Update version and changelog
+  ([`1497a91`](https://github.com/MGross21/mujoco-toolbox/commit/1497a91b9b9ec76fedb79b945f01b9e1bee696be))
+
+- Update version and changelog
+  ([`73e8b17`](https://github.com/MGross21/mujoco-toolbox/commit/73e8b178f0881ba818c1759d7a2d78eec5ec05ae))
+
+
 ## v0.4.2 (2025-03-26)
 
 ### Bug Fixes
