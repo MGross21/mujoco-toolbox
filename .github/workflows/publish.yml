@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - v*.*.*
   release:
     types: [created]
   workflow_dispatch:
@@ -56,4 +58,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # Using PAT with repo scope
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
+          poetry run semantic-release version
+          poetry run semantic-release changelog
           poetry run semantic-release -v --strict publish
