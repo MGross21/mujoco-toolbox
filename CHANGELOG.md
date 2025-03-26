@@ -1,6 +1,9 @@
 # CHANGELOG
 
 
+## Unreleased
+
+
 ## v0.4.2 (2025-03-26)
 
 ### Bug Fixes
