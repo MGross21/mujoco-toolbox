@@ -1,16 +1,19 @@
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+version = "0.3.0"
 
 [project]
 name = "mujoco-toolbox"
-version = "0.3.0"
+dynamic = ["version"] # Enable dynamic versioning
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
-license = "MIT"
+license = { file = "LICENSE" }
 packages = [{ include = "mujoco_toolbox" }]
 authors = [{ name = "MGross21", email = "MGross21@TODO.com" }]
-keywords = ["MuJoCo", "robotics", "simulation", "toolbox", "wrapper"]
+keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
