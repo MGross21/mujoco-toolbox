@@ -42,7 +42,7 @@ dependencies = [
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 repository = "https://github.com/MGross21/mujoco-toolbox"
-documentation = "https://github.com/MGross21/mujoco-toolbox"
+documentation = "https://mgross21.github.io/mujoco-toolbox/"
 changelog = "https://github.com/MGross21/mujoco-toolbox/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
 
