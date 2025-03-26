@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+### Chores
+
+- Update version and changelog
+  ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
+
 ### Refactoring
 
 - Remove unused scripts
