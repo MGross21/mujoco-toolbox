@@ -44,7 +44,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-interaction
-          pip install python-semantic-release # 9.x.x
+          poetry run pip install python-semantic-release # 9.x.x
       
       - name: Configure Git
         run: |
@@ -56,4 +56,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # Using PAT with repo scope
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          semantic-release -vv publish
+          poetry run semantic-release -vv publish
