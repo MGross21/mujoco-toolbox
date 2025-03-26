@@ -97,7 +97,7 @@ from mujoco_toolbox.controller import (
 
 ### XML / MJCF (Native)
 
-[Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
+![Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
 
 ### URDF
 
