@@ -5,10 +5,8 @@ on:
     branches:
       - main
     tags:
-      - v*.*.*
-  # release:
-  #   types: [created]
-  workflow_dispatch:
+      - v*.*.*  # Trigger on version tag pushes (e.g., v1.2.3)
+  workflow_dispatch:  # Allows manual trigger
 
 permissions:
   contents: write
@@ -47,27 +45,61 @@ jobs:
           pip install poetry
           poetry config virtualenvs.in-project true
           poetry install --no-interaction
-      
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # Set up GitHub Token for authentication
           git remote set-url origin https://github-actions:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
 
-      - name: Run Semantic Release
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # Using PAT with repo scope
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      - name: Get current version from pyproject.toml
+        id: get_version
         run: |
-          # Check if the event is a tag push and if it's a tag created by GitHub Actions
-          if [[ $GITHUB_EVENT_NAME == "push" && $GITHUB_REF =~ refs/tags/v.* ]]; then
-            echo "Running semantic-release for version bump"
-            poetry run semantic-release version
-            poetry run semantic-release changelog
-            git commit -am "chore: update version and changelog"
-            git push origin HEAD:main
-            poetry run semantic-release -v --strict publish
+          VERSION=$(poetry version -s)
+          echo "Current version: $VERSION"
+          echo "::set-output name=version::$VERSION"  # Set output for version
+
+      - name: Extract version from Git tag
+        id: tag_version
+        run: |
+          VERSION_TAG=${GITHUB_REF##*/}  # Extract version from the tag (e.g., "v0.3.4")
+          echo "Version from Git tag: $VERSION_TAG"
+          echo "::set-output name=tag_version::$VERSION_TAG"  # Set output for tag version
+
+      - name: Compare versions and determine release
+        id: release
+        run: |
+          # Get the latest version from semantic-release
+          LATEST_VERSION=$(poetry run semantic-release print-version)
+          echo "Latest version from semantic-release: $LATEST_VERSION"
+
+          # Extract the tag version to compare
+          VERSION_TAG=${{ steps.tag_version.outputs.tag_version }}
+          echo "Version from Git tag: $VERSION_TAG"
+
+          # Compare current version with the tag version
+          if [ "$VERSION_TAG" != "$LATEST_VERSION" ]; then
+            echo "run_release=true" >> $GITHUB_ENV  # Set flag to true if version needs updating
           else
-            echo "Not a tag push, skipping release process."
+            echo "run_release=false" >> $GITHUB_ENV  # Skip release if versions match
           fi
+
+      - name: Commit and Publish
+        if: env.run_release == 'true'
+        env:
+          # Set the tokens as environment variables for secure authentication
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}  # GitHub token for authentication
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}  # PyPI token for publishing
+        run: |
+          # Run semantic-release to bump version, update changelog, and publish release
+          poetry run semantic-release version  # Update version in pyproject.toml
+          poetry run semantic-release changelog  # Update changelog
+          
+          # Commit the changes (version bump, changelog)
+          git commit -am "chore: update version and changelog"
+          
+          # Push the changes to the main branch
+          git push origin HEAD:main
+          
+          # Publish the release (to PyPI, GitHub, etc.)
+          poetry run semantic-release -v --strict publish
