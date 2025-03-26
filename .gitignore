@@ -18,6 +18,7 @@ dist/
 *.mp4
 
 # Environment
+.env
 *env/
 *.egg-info
 build/
