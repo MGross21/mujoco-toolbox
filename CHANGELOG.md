@@ -6,6 +6,18 @@
 ### Chores
 
 - Update version and changelog
+  ([`13478e2`](https://github.com/MGross21/mujoco-toolbox/commit/13478e239201771654fc9b05845115dc3d5a846e))
+
+- Update version and changelog
+  ([`b8baa40`](https://github.com/MGross21/mujoco-toolbox/commit/b8baa40344992ba8884c6f68001346c1a1e84a88))
+
+- Update version and changelog
+  ([`2f7e749`](https://github.com/MGross21/mujoco-toolbox/commit/2f7e749a79a2790420ca8a68067cdb0af97117dc))
+
+- Update version and changelog
+  ([`08517a8`](https://github.com/MGross21/mujoco-toolbox/commit/08517a84a23bb5983a0e75f896f5e2e4ea299fbf))
+
+- Update version and changelog
   ([`f06826f`](https://github.com/MGross21/mujoco-toolbox/commit/f06826f48bcab145bd0dc1d78f02be432f073033))
 
 - Update version and changelog
@@ -13,6 +25,9 @@
 
 - Update version and changelog
   ([`73e8b17`](https://github.com/MGross21/mujoco-toolbox/commit/73e8b178f0881ba818c1759d7a2d78eec5ec05ae))
+
+- **version**: Bump release. remove verbosity
+  ([`6609c4c`](https://github.com/MGross21/mujoco-toolbox/commit/6609c4c3c61f19860a93141ab72b9bc0c735903c))
 
 
 ## v0.4.2 (2025-03-26)
