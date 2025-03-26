@@ -20,7 +20,7 @@ def timer(func):
 
     return time_wrapper
 
-def print_warning(*args, prefix: bool = True) -> None:
+def _print_warning(*args, prefix: bool = True) -> None:
     """Prints the first argument as an orange warning message and prints the other arguments in regular text, all on the same line.
 
     Args:
@@ -49,7 +49,7 @@ def print_warning(*args, prefix: bool = True) -> None:
             print(f"\033[38;5;214m{message}\033[0m", end=" ")  # Orange ANSI escape code
             print(*args[1:])
 
-def print_success(*args, prefix: bool = True) -> None:
+def _print_success(*args, prefix: bool = True) -> None:
     """Prints the first argument as a green success message and prints the other arguments in regular text, all on the same line.
 
     Args:
@@ -121,5 +121,5 @@ class _Platform:
             monitor = get_monitors()[0]
             return (monitor.width, monitor.height), True
         except Exception:
-            print_warning("Detected headless operation. Disabling GUI...")
+            _print_warning("Detected headless operation. Disabling GUI...")
             return (1920, 1080), False

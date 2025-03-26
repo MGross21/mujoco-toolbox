@@ -14,15 +14,15 @@ class Builder:
             raise ValueError(msg)
         if len(args) > 1:
             # Create a new Builder instance for each additional argument and merge them
-            self.tree, self.root = self.load_model(args[0])
+            self.tree, self.root = self._load_model(args[0])
             for additional_arg in args[1:]:
                 additional_builder = Builder(additional_arg)
                 self.__add__(additional_builder)
         else:
             xml_input = args[0]
-            self.tree, self.root = self.load_model(xml_input)
+            self.tree, self.root = self._load_model(xml_input)
 
-    def load_model(self, xml_input):
+    def _load_model(self, xml_input):
         """Load a MuJoCo model from a file or XML string."""
         if not isinstance(xml_input, str):
             msg = "Input must be either an XML string or a file path"
@@ -37,7 +37,7 @@ class Builder:
 
                 # If it's a URDF (robot tag), wrap it in mujoco
                 if root.tag == "robot":
-                    return self.wrap_urdf_in_mujoco(tree)
+                    return self._wrap_urdf_in_mujoco(tree)
 
                 # If root is not mujoco, wrap it
                 if root.tag != "mujoco":
@@ -57,7 +57,7 @@ class Builder:
 
             # Handle URDF files
             if xml_input.lower().endswith(".urdf"):
-                return self.wrap_urdf_in_mujoco(ET.parse(xml_input))
+                return self._wrap_urdf_in_mujoco(ET.parse(xml_input))
 
             # Parse regular XML file
             try:
@@ -75,7 +75,7 @@ class Builder:
                 msg = f"Invalid XML file: {xml_input}"
                 raise ValueError(msg)
 
-    def wrap_urdf_in_mujoco(self, urdf_input):
+    def _wrap_urdf_in_mujoco(self, urdf_input):
         """Wrap a URDF inside <mujoco> tags for MuJoCo compatibility.
         Input can be a file path, ElementTree, or XML string.
         """
@@ -116,7 +116,7 @@ class Builder:
         # Create a new tree with the <mujoco> root
         return ET.ElementTree(mujoco_elem), mujoco_elem
 
-    def merge_tags(self, tag_name, root_1, root_2) -> None:
+    def _merge_tags(self, tag_name, root_1, root_2) -> None:
         """Merge a specific tag (e.g., worldbody, asset) from two models."""
         section_1 = root_1.find(tag_name)
         section_2 = root_2.find(tag_name)
@@ -140,7 +140,7 @@ class Builder:
             model_root = other.root
         elif isinstance(other, str):
             # If the input is a string, load as XML
-            _, model_root = self.load_model(other)
+            _, model_root = self._load_model(other)
         else:
             msg = "Addition only supported between Builder objects or with XML strings/files"
             raise TypeError(msg)
@@ -151,7 +151,7 @@ class Builder:
 
         # Merge all relevant sections
         for section in sections_to_merge:
-            self.merge_tags(section, self.root, model_root)
+            self._merge_tags(section, self.root, model_root)
 
         # Return self to allow for method chaining
         return self
@@ -207,5 +207,5 @@ class Builder:
 
     @property
     def xml(self):
-        """Property to quickly grab the XML string of the model."""
+        """XML string of the model."""
         return str(self)

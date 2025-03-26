@@ -29,7 +29,7 @@ from .controller import (
     sine_controller,
     step_controller,
 )
-from .utils import _Platform, print_warning
+from .utils import _Platform, _print_warning
 from .wrapper import Wrapper
 
 __version__ = "0.3.0"
@@ -67,8 +67,8 @@ CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
 ]
 
 if __version__.startswith("0"):
-    print_warning(
+    _print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
-del _Platform, print_warning
+del _Platform, _print_warning

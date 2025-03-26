@@ -151,12 +151,12 @@ def live_controller(model, data, **kwargs) -> None:
         None
 
     """
-    from .utils import print_warning
+    from .utils import _print_warning
     for key, value in kwargs.get("controller_params", {}).items():
         if hasattr(data, key):
             setattr(data, key, value)
         else:
-            print_warning(f"'{key}' is not a valid attribute of MjData. Skipping...")
+            _print_warning(f"'{key}' is not a valid attribute of MjData. Skipping...")
 
     # untested
     # if hasattr(data, 'control'):

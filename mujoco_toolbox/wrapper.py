@@ -15,7 +15,7 @@ import numpy as np
 import trimesh
 import yaml
 
-from .utils import print_warning
+from .utils import _print_warning
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -348,7 +348,7 @@ class Wrapper:
             if hasattr(self._data, key):
                 setattr(self._data, key, value)
             else:
-                print_warning(f"'{key}' is not a valid attribute of MjData.")
+                _print_warning(f"'{key}' is not a valid attribute of MjData.")
 
     @property
     def controller(self) -> Callable[[mjModel, mjData, Any], None] | None:
@@ -378,14 +378,14 @@ class Wrapper:
         try:
             return self._dr
         except AttributeError:
-            print_warning(f"Use '{self.run.__name__}' first in order to access this value.")
+            _print_warning(f"Use '{self.run.__name__}' first in order to access this value.")
             return None
 
     @data_rate.setter
     def data_rate(self, value: int) -> None:
         if isinstance(value, float) and not isinstance(value, int):
             value = round(value)
-            print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
+            _print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
         if value <= 0:
             msg = "Data rate must be greater than 0."
             raise ValueError(msg)
