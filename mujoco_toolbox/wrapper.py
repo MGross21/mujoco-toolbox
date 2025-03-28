@@ -1,4 +1,5 @@
 import os
+from contextlib import nullcontext
 import sys
 import threading
 import time
@@ -8,7 +9,8 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeAlias
 
-from contextlib import nullcontext
+from rich.progress import Progress, BarColumn, TimeRemainingColumn
+from rich.console import Console
 import mediapy as media
 import mujoco
 import mujoco.viewer
@@ -444,38 +446,48 @@ class Wrapper:
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
-            m = self._model
-            d = self._data
+            m,d = self._model, self._data
             dur = self._duration
+            num_geoms = m.ngeom
 
             capture_rate = self.data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
 
-            # TODO: Pre-allocate frame length
-            # frame_count = 0
+            # Pre-allocate frame length
+            max_frames = int(self._duration / self.ts)
+            frames = [None] * max_frames
+            frame_count = 0
 
             if multi_thread:
                 #    num_threads =  COMPUTER.CPU_COUNT
                 # TODO: Implement multi-threading
                 pass
 
-            from . import COMPUTER, MAX_GEOM_SCALAR, PROGRESS_BAR
-            from .utils import _EmptyContextManager
+            from . import MAX_GEOM_SCALAR, PROGRESS_BAR
 
-            if PROGRESS_BAR and render:
-                if COMPUTER.IDE == "jupyter":
-                    from tqdm.notebook import tqdm as ProgressBar
-                else:
-                    from tqdm import tqdm as ProgressBar
-            else:
-                ProgressBar = nullcontext
+            PBAR_ON = False # TODO: Implement Progress Bar (CURRENTLY: Disabled)
 
-            # PEP Convention - Prevent Naming Conflict
-            _ProgressBar = ProgressBar(total=total_steps, desc="Simulation", unit=" step", leave=False)
-            _Renderer = mujoco.Renderer(self.model, self._height, self._width, self._geom_names.__len__() * MAX_GEOM_SCALAR)
+            # Progress Bar using rich
+            _ProgressBar = (
+                Progress(
+                    BarColumn(bar_width=40, completed_style="green", undone_style="dim white"),
+                    TimeRemainingColumn(style="bright_white"),
+                    console=Console(style="white on black"),  # Terminal with white text on black background
+                )
+                if PBAR_ON
+                else nullcontext()
+            )
+            # Mujoco Renderer
+            _Renderer = mujoco.Renderer(
+                self.model,
+                self._height,
+                self._width,
+                num_geoms * MAX_GEOM_SCALAR
+            ) if render else nullcontext()
 
             with _ProgressBar as pbar, _Renderer as renderer:
+                task = pbar.add_task("[green]Simulating...", total=total_steps) if pbar else None
                 step = 0
                 while d.time < dur:
                     mj_step(m, d)
@@ -484,16 +496,14 @@ class Wrapper:
                     if step % capture_interval == 0:
                         sim_data.capture(d)
 
-                    if render and step % render_interval == 0:
-                        if camera is None:
-                            renderer.update_scene(d)
-                        else:
-                            renderer.update_scene(d, camera)
-                        # self._frames[frame_count] = renderer.render().copy() # BUG: simulation attempts to write more frames than allocated
-                        # frame_count += 1
-                        frames.append(renderer.render().copy())
+                    if renderer and step % render_interval == 0:
+                        renderer.update_scene(d, camera if camera else -1)
 
-                        pbar.update(1) if PROGRESS_BAR else None
+                        frames[frame_count] = renderer.render()
+                        frame_count += 1  # Increment frame count after capturing the frame
+
+                        if pbar:
+                            pbar.update(task, advance=1)
                     step += 1
 
                     # if verbose:
@@ -508,10 +518,11 @@ class Wrapper:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
         finally:
+            # Cleanup
             mujoco.set_mjcb_control(None)
-            # Expose local variables
             self._captured_data = sim_data
-            self._frames = frames
+            # Trim pre-allocated frames to the actual number of frames captured
+            self._frames = [f for f in frames[:frame_count] if f is not None]
 
         return self
 

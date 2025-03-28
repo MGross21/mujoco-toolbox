@@ -53,7 +53,7 @@ __all__ = [
 
 COMPUTER = _Platform()  # Singleton Instance
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
-PROGRESS_BAR: bool = False  # Enable/Disable progress bar
+# PROGRESS_BAR: bool = False  # Enable/Disable progress bar
 CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "time",
     "qpos",
