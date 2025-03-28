@@ -417,6 +417,7 @@ class Wrapper:
             render: bool = False,
             camera: str | None = None,
             interactive: bool = False,
+            show_menu: bool = True,
             multi_thread: bool = False) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
@@ -424,8 +425,9 @@ class Wrapper:
             render (bool): If True, renders the simulation.
             camera (str): The camera view to render from, defaults to None.
             data_rate (int): How often to capture data, expressed as frames per second.
-            interactive (bool): If True, opens an interactive viewer window. (not implemented yet)
-            multi_thread (bool): If True, runs the simulation in multi-threaded mode. (not implemented yet)
+            interactive (bool): If True, opens an interactive viewer window.
+            show_menu (bool): If True, shows the menu in the interactive viewer. `Interactive` must be True.
+            multi_thread (bool): If True, runs the simulation in multi-threaded mode.
 
         Returns:
             self: The current Wrapper object for method chaining.
@@ -433,6 +435,11 @@ class Wrapper:
         """
         # TODO: Integrate interactive mujoco.viewer into this method
         # Eventually rename this to run() and point to sub-methods for different modes
+
+        if interactive or show_menu:
+            raise NotImplementedError("Interactive mode (w/ menu option) is not yet implemented.")
+        if multi_thread:
+            raise NotImplementedError("Multi-threading is not yet implemented.")
         try:
             mujoco.set_mjcb_control(self._controller) if self._controller else None
             mujoco.mj_resetData(self._model, self._data)
@@ -462,6 +469,10 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
+            # if interactive:
+            #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
+            #     gui.start()
+
             # Mujoco Renderer
             if render:
                 from . import MAX_GEOM_SCALAR
@@ -470,13 +481,14 @@ class Wrapper:
             
             step = 0
             while d.time < dur:
-                mj_step(m, d)
+                if not interactive:
+                    mj_step(m, d)
 
                 # Capture data at the specified rate
                 if step % capture_interval == 0:
                     sim_data.capture(d)
 
-                if render and step % render_interval == 0:
+                if render and renderer and step % render_interval == 0:
                     renderer.update_scene(d, camera if camera else -1)
 
                     frames[frame_count] = renderer.render()
@@ -488,12 +500,17 @@ class Wrapper:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
         finally:
-            # Cleanup
+            # SHUTDOWN
+            if render:
+                renderer.close()
+            # if interactive:
+            #     gui.join()
+            # CLEANUP
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
-            renderer.close() if render else None
             # Trim pre-allocated frames to the actual number of frames captured
             self._frames = [f for f in frames[:frame_count] if f is not None]
+
 
         return self
 
