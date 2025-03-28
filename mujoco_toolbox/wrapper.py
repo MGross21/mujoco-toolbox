@@ -9,8 +9,6 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeAlias
 
-from rich.progress import Progress, BarColumn, TimeRemainingColumn
-from rich.console import Console
 import mediapy as media
 import mujoco
 import mujoco.viewer
@@ -464,20 +462,8 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
-            from . import MAX_GEOM_SCALAR, PROGRESS_BAR
-
-            PBAR_ON = False # TODO: Implement Progress Bar (CURRENTLY: Disabled)
-
-            # Progress Bar using rich
-            _ProgressBar = (
-                Progress(
-                    BarColumn(bar_width=40, completed_style="green", undone_style="dim white"),
-                    TimeRemainingColumn(style="bright_white"),
-                    console=Console(style="white on black"),  # Terminal with white text on black background
-                )
-                if PBAR_ON
-                else nullcontext()
-            )
+            from . import MAX_GEOM_SCALAR
+            
             # Mujoco Renderer
             _Renderer = mujoco.Renderer(
                 self.model,
@@ -486,8 +472,7 @@ class Wrapper:
                 num_geoms * MAX_GEOM_SCALAR
             ) if render else nullcontext()
 
-            with _ProgressBar as pbar, _Renderer as renderer:
-                task = pbar.add_task("[green]Simulating...", total=total_steps) if pbar else None
+            with _Renderer as renderer:
                 step = 0
                 while d.time < dur:
                     mj_step(m, d)
@@ -502,8 +487,6 @@ class Wrapper:
                         frames[frame_count] = renderer.render()
                         frame_count += 1  # Increment frame count after capturing the frame
 
-                        if pbar:
-                            pbar.update(task, advance=1)
                     step += 1
 
                     # if verbose:
