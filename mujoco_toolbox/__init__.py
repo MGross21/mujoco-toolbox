@@ -22,7 +22,7 @@ This package is still under development. Report any issues to https://github.com
 
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
-from .controller import (
+from .controllers import (
     cos,
     live,
     random,
