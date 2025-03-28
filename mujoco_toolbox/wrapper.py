@@ -1,5 +1,6 @@
 import os
 from contextlib import nullcontext
+import cv2
 import sys
 import threading
 import time
@@ -8,6 +9,9 @@ from collections import defaultdict
 from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeAlias
+import sys
+from screeninfo import get_monitors
+from multiprocessing import cpu_count
 
 import mediapy as media
 import mujoco
@@ -30,14 +34,14 @@ class Wrapper:
 
     def __init__(self,
                  xml:str,
+                 *,
                  duration:int=10,
                  data_rate:int=100,
                  fps:int=30,
                  resolution:tuple[int,int]=(400,300),
                  initial_conditions:dict[str, list] | None=None,
                  controller:Callable[[mjModel, mjData, Any], None] | None=None,
-                 *args,
-                 **kwargs) -> None:
+                 **kwargs: Any) -> None:
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
         self._load_model(xml, **kwargs)
 
@@ -314,8 +318,8 @@ class Wrapper:
             msg = "Resolution must be at least 1x1 pixels."
             raise ValueError(msg)
 
-        from . import COMPUTER
-        screen_width, screen_height = COMPUTER.RESOLUTION
+        monitor0 = get_monitors()[0]
+        screen_width, screen_height = monitor0.width, monitor0.height
 
         if values[0] > screen_width or values[1] > screen_height:
             msg = "Resolution must be less than the screen resolution."
@@ -436,7 +440,7 @@ class Wrapper:
         # TODO: Integrate interactive mujoco.viewer into this method
         # Eventually rename this to run() and point to sub-methods for different modes
 
-        if interactive or show_menu:
+        if interactive:
             raise NotImplementedError("Interactive mode (w/ menu option) is not yet implemented.")
         if multi_thread:
             raise NotImplementedError("Multi-threading is not yet implemented.")
@@ -465,7 +469,7 @@ class Wrapper:
             frame_count = 0
 
             if multi_thread:
-                #    num_threads =  COMPUTER.CPU_COUNT
+                num_threads =  cpu_count()
                 # TODO: Implement multi-threading
                 pass
 
@@ -645,15 +649,22 @@ class Wrapper:
                 time_idx=time_idx,
             )
 
-            # Show the video
-            media.show_video(
-                subset_frames,
-                fps=1 if len(subset_frames) == 1 else self._fps,
-                width=self._width,
-                height=self._height,
-                codec=codec,
-                title=title,
-            )
+            if "ipykernel" in sys.modules:  # Check if running in Jupyter
+                # Show the video
+                media.show_video(
+                    subset_frames,
+                    fps=1 if len(subset_frames) == 1 else self._fps,
+                    width=self._width,
+                    height=self._height,
+                    codec=codec,
+                    title=title,
+                )
+            else:
+                for frame in subset_frames:
+                    cv2.imshow("Video", frame)
+                    if cv2.waitKey(int(1000 / self._fps)) & 0xFF == ord("q"):
+                        break
+                cv2.destroyAllWindows()
         except Exception as e:
             msg = "Error while showing video subset."
             raise Exception(msg) from e

@@ -102,3 +102,7 @@ from mujoco_toolbox.controllers import (
 ### URDF
 
 ![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
+
+## Merging Capabilities
+
+![Humanoid in Box](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/human_in_box.png)

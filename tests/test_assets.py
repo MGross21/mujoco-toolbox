@@ -1,13 +1,6 @@
 import os
-
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import (
-    COMPUTER,
-    WORLD_ASSETS,
-    Builder,
-    Wrapper,
-    glovebox,
-)
+from mujoco_toolbox import *
 
 ####################
 # TESTING DESCRIPTION:
@@ -45,10 +38,12 @@ def main() -> None:
 
     # w.reload()
 
-    out = Wrapper(Builder(humanoid, glovebox(5, 5, 5), urdf).xml, meshdir=meshes)
+    out = Wrapper(Builder(humanoid, glovebox(depth=0.7, width=0.8, height=1.55), urdf).xml, resolution=(800,600), meshdir=meshes)
 
-    if COMPUTER.GUI_ENABLED:
+    if mjtb.GUI_ENABLED:
+        out.gravity = [0,0,0]
         out.liveView(show_menu=False)
+        # out..run(render=mjtb.GUI_ENABLED, camera="glovebox_cam").show()
 
 if __name__ == "__main__":
     main()
