@@ -462,14 +462,12 @@ class Wrapper:
                 # TODO: Implement multi-threading
                 pass
 
-            from . import MAX_GEOM_SCALAR
-            
             # Mujoco Renderer
             if render:
+                from . import MAX_GEOM_SCALAR
                 max_geom = m.ngeom * MAX_GEOM_SCALAR
                 renderer = mujoco.Renderer(m, h, w, max_geom)
             
-
             step = 0
             while d.time < dur:
                 mj_step(m, d)
@@ -485,14 +483,6 @@ class Wrapper:
                     frame_count += 1  # Increment frame count after capturing the frame
 
                 step += 1
-
-                    # if verbose:
-                    #     for warning in mujoco.mjtWarning:
-                    #         if d.warning[warning].number > 0:
-                    #             print_warning(f"{warning.name} - {d.warning[warning].number} occurrences")
-                    # else:
-                    #     if any(d.warning[warning].number > 0 for warning in mujoco.mjtWarning):
-                    #         print_warning("Please check MUJOCO_LOG.txt for more details.")
 
         except Exception as e:
             msg = "An error occurred while running the simulation."
