@@ -89,7 +89,7 @@ class _Platform:
         self.ARCHITECTURE = platform.architecture()[0]
         self.PYTHON_IMPLEMENTATION = platform.python_implementation()
         self.RESOLUTION, self.GUI_ENABLED = self.get_resolution()
-        # self.NUM_MONITORS = get_monitors().__len__()
+        self.NUM_MONITORS = get_monitors()
 
     def __repr__(self) -> str:
         return (
@@ -104,7 +104,7 @@ class _Platform:
             f"Resolution (disp0): {self.RESOLUTION}\n"
             f"GUI Enabled: {self.GUI_ENABLED}"
         )
-
+    
     def __str__(self) -> str:
         return self.__repr__()
 

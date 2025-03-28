@@ -77,7 +77,7 @@ def generate_performance_chart() -> None:
     plt.title("Performance Comparison")
     plt.savefig(os.path.join(data_dir, "performance_comparison.png"))
 
-    if mjtb.COMPUTER.GUI_ENABLED:
+    if mjtb.GUI_ENABLED:
         plt.show()
 
     # Generate CSV
@@ -157,7 +157,7 @@ def progress_over_time():
     plt.tight_layout()
     plt.savefig(os.path.join(data_dir, "performance_over_time.png"), dpi=300)
 
-    if mjtb.COMPUTER.GUI_ENABLED:
+    if mjtb.GUI_ENABLED:
         plt.show()
 
 if __name__ == "__main__":

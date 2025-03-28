@@ -39,7 +39,6 @@ __license__ = "MIT"
 __status__ = "Development"
 __all__ = [
     "CAPTURE_PARAMETERS",
-    "COMPUTER",
     "WORLD_ASSETS",
     "Builder",
     "Wrapper",
@@ -51,9 +50,8 @@ __all__ = [
     "step",
 ]
 
-COMPUTER = _Platform()  # Singleton Instance
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
-# PROGRESS_BAR: bool = False  # Enable/Disable progress bar
+GUI_ENABLED: bool = _Platform().NUM_MONITORS is not None
 CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "time",
     "qpos",
