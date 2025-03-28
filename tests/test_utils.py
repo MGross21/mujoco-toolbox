@@ -13,4 +13,4 @@ def computer_test() -> None:
 if __name__ == "__main__":
     test_prints()
     computer_test()
-    mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")
+    utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")
