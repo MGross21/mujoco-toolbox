@@ -1,4 +1,5 @@
 from mujoco_toolbox import utils
+import os
 
 
 @utils.timer
@@ -12,4 +13,4 @@ def computer_test() -> None:
 if __name__ == "__main__":
     test_prints()
     computer_test()
-    utils._print_success(f"{__file__} Tests passed!\n")
+    mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")

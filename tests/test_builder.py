@@ -1,4 +1,5 @@
 import mujoco_toolbox as mjtb
+import os
 
 # First Model (string1) - A simple model with an asset and a body (plane)
 string1 = """
@@ -71,4 +72,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    mjtb.utils._print_success(f"{__file__} Tests passed!\n")
+    mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")
