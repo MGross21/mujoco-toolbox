@@ -1,10 +1,12 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0",  "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry]
+version = "0.0.0"
 
 [project]
 name = "mujoco-toolbox"
-version = "0.3.4"
 dynamic = ["version"]
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
@@ -19,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<4.0"
 dependencies = [
     "mujoco",
     "numpy",
@@ -27,8 +29,7 @@ dependencies = [
     "matplotlib",
     "pyyaml",
     "mediapy",
-    "tqdm",
-    "ipywidgets",
+    "rich",
     "ffmpeg",
     "trimesh",
     "screeninfo",
@@ -36,8 +37,11 @@ dependencies = [
 ]
 
 # [project.extras]
-# beautified = ["colorama","ipywidgets","tqdm"]
+# beautified = ["colorama", "rich"]
 # gym = ["gym"]
+
+[tool.poetry-dynamic-versioning]
+enable = true
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
@@ -58,6 +62,7 @@ bandit = "^1.8.3"
 pylint = "^3.3.4"
 python-semantic-release = "^9.21.0"
 python-dotenv = "^1.1.0"
+poetry-dynamic-versioning = "^1.0.0"
 
 [tool.semantic_release]
 version_variables = [
@@ -130,7 +135,7 @@ strict_optional = true
 
 [tool.isort]
 profile = "black"  # Use black's code style
-known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "tqdm", "ipywidgets", "ffmpeg", "trimesh", "screeninfo", "colorama"]
+known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "tqdm", "ffmpeg", "trimesh", "screeninfo", "colorama"]
 known_first_party = ["mujoco_toolbox"]
 line_length = 79  # PEP8 line length
 
