@@ -6,6 +6,9 @@ on:
       - main
     tags:
       - v*.*.*  # Trigger on version tag pushes (e.g., v1.2.3)
+    paths-ignore:
+      - 'pyproject.toml'  # Ignore version changes in pyproject.toml
+      - 'CHANGELOG.md'    # Ignore changelog updates
   workflow_dispatch:  # Allows manual trigger
 
 permissions:
@@ -17,6 +20,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Skip this workflow if the commit message contains [skip ci]
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
       - name: Checkout repository
@@ -95,8 +100,8 @@ jobs:
           poetry run semantic-release version  # Update version in pyproject.toml
           poetry run semantic-release changelog  # Update changelog
           
-          # Commit the changes (version bump, changelog)
-          git commit -am "chore: update version and changelog"
+          # Commit the changes with [skip ci] to prevent workflow loop
+          git commit -am "chore: update version and changelog [skip ci]"
           
           # Push the changes to the main branch
           git push
