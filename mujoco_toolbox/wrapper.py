@@ -444,9 +444,9 @@ class Wrapper:
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
-            m,d = self._model, self._data
+            m, d = self._model, self._data
+            h, w = self._height, self._width
             dur = self._duration
-            num_geoms = m.ngeom
 
             capture_rate = self.data_rate * self.ts
             capture_interval = max(1, int(1.0 / capture_rate))
@@ -465,29 +465,26 @@ class Wrapper:
             from . import MAX_GEOM_SCALAR
             
             # Mujoco Renderer
-            _Renderer = mujoco.Renderer(
-                self.model,
-                self._height,
-                self._width,
-                num_geoms * MAX_GEOM_SCALAR
-            ) if render else nullcontext()
+            if render:
+                max_geom = m.ngeom * MAX_GEOM_SCALAR
+                renderer = mujoco.Renderer(m, h, w, max_geom)
+            
 
-            with _Renderer as renderer:
-                step = 0
-                while d.time < dur:
-                    mj_step(m, d)
+            step = 0
+            while d.time < dur:
+                mj_step(m, d)
 
-                    # Capture data at the specified rate
-                    if step % capture_interval == 0:
-                        sim_data.capture(d)
+                # Capture data at the specified rate
+                if step % capture_interval == 0:
+                    sim_data.capture(d)
 
-                    if renderer and step % render_interval == 0:
-                        renderer.update_scene(d, camera if camera else -1)
+                if render and step % render_interval == 0:
+                    renderer.update_scene(d, camera if camera else -1)
 
-                        frames[frame_count] = renderer.render()
-                        frame_count += 1  # Increment frame count after capturing the frame
+                    frames[frame_count] = renderer.render()
+                    frame_count += 1  # Increment frame count after capturing the frame
 
-                    step += 1
+                step += 1
 
                     # if verbose:
                     #     for warning in mujoco.mjtWarning:
@@ -504,6 +501,7 @@ class Wrapper:
             # Cleanup
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
+            renderer.close() if render else None
             # Trim pre-allocated frames to the actual number of frames captured
             self._frames = [f for f in frames[:frame_count] if f is not None]
 
