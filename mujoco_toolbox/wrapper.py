@@ -8,6 +8,7 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeAlias
 
+from contextlib import nullcontext
 import mediapy as media
 import mujoco
 import mujoco.viewer
@@ -468,7 +469,7 @@ class Wrapper:
                 else:
                     from tqdm import tqdm as ProgressBar
             else:
-                ProgressBar = _EmptyContextManager
+                ProgressBar = nullcontext
 
             # PEP Convention - Prevent Naming Conflict
             _ProgressBar = ProgressBar(total=total_steps, desc="Simulation", unit=" step", leave=False)

@@ -123,12 +123,3 @@ class _Platform:
         except Exception:
             _print_warning("Detected headless operation. Disabling GUI...")
             return (1920, 1080), False
-
-class _EmptyContextManager:
-    __slots__ = ()
-    def __init__(self, *args, **kwargs) -> None:
-        pass
-    def __enter__(self):
-        pass
-    def __exit__(self, _exc_type, _exc_value, _traceback):
-        pass
