@@ -1,5 +1,4 @@
-from numpy import cos, pi, random, sin
-
+import numpy as np
 
 def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
     """Common helper function for controller logic to reduce redundancy.
@@ -29,7 +28,7 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
         data.qpos[axis] = value
 
 
-def step_controller(model, data, **kwargs) -> None:
+def step(model, data, **kwargs) -> None:
     """A step controller for the simulation.
 
     Args:
@@ -57,7 +56,7 @@ def step_controller(model, data, **kwargs) -> None:
     _apply_control(model, data, amplitude, joint=joint, axis=axis, delay=delay)
 
 
-def sine_controller(model, data, **kwargs) -> None:
+def sin(model, data, **kwargs) -> None:
     """A simple sine wave controller for the simulation.
 
     Args:
@@ -81,11 +80,11 @@ def sine_controller(model, data, **kwargs) -> None:
         msg = "Delay must be non-negative."
         raise ValueError(msg)
 
-    value = amplitude * sin(2 * pi * frequency * data.time + phase)
+    value = amplitude * np.sin(2 * np.pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def cosine_controller(model, data, **kwargs) -> None:
+def cos(model, data, **kwargs) -> None:
     """A simple cosine wave controller for the simulation.
 
     Args:
@@ -109,11 +108,11 @@ def cosine_controller(model, data, **kwargs) -> None:
         msg = "Delay must be non-negative."
         raise ValueError(msg)
 
-    value = amplitude * cos(2 * pi * frequency * data.time + phase)
+    value = amplitude * np.cos(2 * np.pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def random_controller(model, data, **kwargs) -> None:
+def random(model, data, **kwargs) -> None:
     """A random controller for the simulation.
 
     Args:
@@ -138,10 +137,10 @@ def random_controller(model, data, **kwargs) -> None:
         msg = "Cannot specify both 'joint' and 'axis'."
         raise ValueError(msg)
 
-    value = amplitude * random.rand()
+    value = amplitude * np.random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
-def live_controller(model, data, **kwargs) -> None:
+def live(model, data, **kwargs) -> None:
     """A real-time controller for the simulation.
 
     Args:

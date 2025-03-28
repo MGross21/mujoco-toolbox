@@ -23,11 +23,11 @@ This package is still under development. Report any issues to https://github.com
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controller import (
-    cosine_controller,
-    live_controller,
-    random_controller,
-    sine_controller,
-    step_controller,
+    cos,
+    live,
+    random,
+    sin,
+    step,
 )
 from .utils import _Platform
 from .wrapper import Wrapper
@@ -43,12 +43,12 @@ __all__ = [
     "WORLD_ASSETS",
     "Builder",
     "Wrapper",
-    "cosine_controller",
+    "cos",
     "glovebox",
-    "live_controller",
-    "random_controller",
-    "sine_controller",
-    "step_controller",
+    "live",
+    "random",
+    "sin",
+    "step",
 ]
 
 COMPUTER = _Platform()  # Singleton Instance
@@ -73,5 +73,3 @@ if __version__.startswith("0"):
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
-    del _print_warning
-del _Platform

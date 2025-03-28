@@ -23,7 +23,7 @@ def test_xml1() -> None:
         duration=10,
         fps=20,
         resolution=(800, 600),
-        controller=mjtb.sine_controller,
+        controller=mjtb.sin,
         amplitude=1e-5,
         frequency=1e-5,
     ).run(render=mjtb.COMPUTER.GUI_ENABLED)
