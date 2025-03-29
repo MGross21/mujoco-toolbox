@@ -5,7 +5,7 @@ from multiprocessing import cpu_count
 from time import time
 
 from colorama import Fore, Style, init
-from screeninfo import ScreenInfoError, get_monitors
+import screeninfo
 
 
 def timer(func):
@@ -89,7 +89,7 @@ class _Platform:
         self.ARCHITECTURE = platform.architecture()[0]
         self.PYTHON_IMPLEMENTATION = platform.python_implementation()
         self.RESOLUTION, self.GUI_ENABLED = self.get_resolution()
-        self.NUM_MONITORS = get_monitors()
+        self.NUM_MONITORS = monitors()
 
     def __repr__(self) -> str:
         return (
@@ -114,11 +114,11 @@ class _Platform:
             return "jupyter"
         return "terminal" if hasattr(sys, "ps1") else "script"
 
-    def get_monitors(self) -> list:
+    def monitors(self) -> list:
         """Returns a list of active monitors."""
         try:
-            return get_monitors()
-        except ScreenInfoError as e:
+            return screeninfo.get_monitors()
+        except screeninfo.ScreenInfoError as e:
             _print_warning("Error retrieving monitors:", e)
             return []
 
@@ -126,7 +126,7 @@ class _Platform:
     def get_resolution():
         """Detects screen resolution and potential headless operation."""
         try:
-            monitor = _Platform.get_monitors()[0]
+            monitor = _Platform.monitors()[0]
             return (monitor.width, monitor.height), True
         except Exception:
             _print_warning("Detected headless operation. Disabling GUI...")
