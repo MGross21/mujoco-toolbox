@@ -4,8 +4,8 @@ from functools import wraps
 from multiprocessing import cpu_count
 from time import time
 
-from colorama import Fore, Style, init
 import screeninfo
+from colorama import Fore, Style, init
 
 
 def timer(func):
