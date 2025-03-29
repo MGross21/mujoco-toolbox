@@ -79,18 +79,34 @@ import mujoco_toolbox as mjtb
 mjtb.Wrapper("path/to/your/xml").run(render=True).save()
 ```
 
+*Bypass shorthand. NOTE: Warning will be triggered*
+```python
+mjtb.Wrapper("path/to/your/xml").save()
+```
+
 ## Pre-Made Controllers
 
 ```python
 from mujoco_toolbox.controllers import (
     cos,
     random,
-    live,
+    real_time,
     sin,
     step,
 )
-
 # Wrapper can use custom controllers as well!
+```
+
+## Instantiating a Digital Twin
+
+```python
+import mujoco_toolbox as mjtb
+from mujoco_toolbox.controllers import real_time
+
+with mjtb.Wrapper("path/to/xml", controller=real_time) as digitaltwin:
+    digitaltwin.liveView(show_menu=False) # Open the simulation window
+    while True:
+        digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"_mjData_kwargs_here_": value})
 ```
 
 ## File Support
