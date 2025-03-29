@@ -844,10 +844,12 @@ class Wrapper:
 
         """
 
+        # BUG: Fix this to work properly
+        raise NotImplementedError("This method is not implemented yet.")
         for obj_type in mujoco_object_types:
             try:
                 obj_name = mujoco.mj_id2name(self._model, obj_type, id)
-                if obj_name < 0:
+                if obj_name is None:
                     continue
                 return obj_name
             except mujoco.FatalError:
