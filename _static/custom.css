@@ -1,0 +1,22 @@
+:root {
+  --color-background-primary: #1e1e1e;
+  --color-background-secondary: #2d2d2d;
+  --color-background-hover: #3e3e3e;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #c0c0c0;
+  --color-link: #4e9a06;
+  --color-link-visited: #bb4b4b;
+}
+
+body {
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+a {
+  color: var(--color-link);
+}
+
+a:visited {
+  color: var(--color-link-visited);
+}
