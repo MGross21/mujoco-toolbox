@@ -1,4 +1,5 @@
 import pytest
+
 import mujoco_toolbox as mjtb
 
 # Test data
@@ -56,45 +57,45 @@ def builder():
 def builder_with_args():
     return mjtb.Builder(string1, string2, string3, string4)
 
-def test_builder_creation(builder):
+def test_builder_creation(builder) -> None:
     assert builder is not None, "Builder object is empty"
     assert len(builder) > 0, "Builder object has no elements"
 
-def test_builder_with_args_creation(builder_with_args):
+def test_builder_with_args_creation(builder_with_args) -> None:
     assert builder_with_args is not None, "Builder2 object is empty"
     assert len(builder_with_args) > 0, "Builder2 object has no elements"
 
-def test_builder_merge():
+def test_builder_merge() -> None:
     builder1 = mjtb.Builder(string1)
     builder2 = mjtb.Builder(string2)
     merged_builder = builder1 + builder2
     assert merged_builder is not None, "Merged builder is empty"
     assert len(merged_builder) >= len(builder1), "Merged builder did not increase in size"
 
-def test_builder_save(tmp_path):
+def test_builder_save(tmp_path) -> None:
     builder = mjtb.Builder(string1)
     save_path = tmp_path / "test_model.xml"
     builder.save(str(save_path))
     assert save_path.exists(), "Saved file does not exist"
 
-def test_builder_str_representation(builder):
+def test_builder_str_representation(builder) -> None:
     xml_str = str(builder)
     assert xml_str.startswith("<mujoco>"), "String representation does not start with <mujoco>"
     assert "</mujoco>" in xml_str, "String representation does not end with </mujoco>"
 
-def test_builder_property_xml(builder):
+def test_builder_property_xml(builder) -> None:
     xml_str = builder.xml
     assert xml_str.startswith("<mujoco>"), "XML property does not start with <mujoco>"
     assert "</mujoco>" in xml_str, "XML property does not end with </mujoco>"
 
-def test_builder_invalid_input():
+def test_builder_invalid_input() -> None:
     with pytest.raises(ValueError, match="Input is required to initialize the Builder"):
         mjtb.Builder()
 
     with pytest.raises(TypeError, match="Input must be an XML string or a file path"):
         mjtb.Builder(123)
 
-def test_builder_merge_sections():
+def test_builder_merge_sections() -> None:
     builder1 = mjtb.Builder(string1)
     builder2 = mjtb.Builder(string2)
     merged_builder = builder1 + builder2
