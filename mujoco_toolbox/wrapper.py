@@ -311,8 +311,10 @@ class Wrapper:
 
     @frames.deleter
     def frames(self) -> None:
-        # BUG: This is not working as intended
-        self._frames.clear()
+        # Safely delete frames if they exist
+        if hasattr(self, "_frames") and isinstance(self._frames, list):
+            self._frames.clear()
+        self._frames = None
         import gc
         gc.collect()
 
@@ -913,10 +915,12 @@ class _SimulationData:
         return shapes
 
     def __del__(self) -> None:
-        self._d.clear()
-        import gc
-
-        gc.collect()
+        """Safely clean up resources during object deletion."""
+        try:
+            if hasattr(self, "_d") and self._d is not None:
+                self._d.clear()
+        except Exception:
+            pass  # Suppress all exceptions during cleanup
 
     def __len__(self) -> int:
         if not self._d:
