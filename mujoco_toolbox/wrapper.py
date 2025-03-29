@@ -32,15 +32,15 @@ mjData: TypeAlias = mujoco.MjData
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
     def __init__(self,
-                 xml:str,
+                 xml: str,
                  *,
-                 duration:int=10,
-                 data_rate:int=100,
-                 fps:int=30,
-                 resolution:tuple[int,int]=(400,300),
-                 initial_conditions:dict[str, list] | None=None,
-                 controller:Callable[[mjModel, mjData, Any], None] | None=None,
-                 meshdir:str="meshes",
+                 duration: int = 10,
+                 data_rate: int = 100,
+                 fps: int = 30,
+                 resolution: tuple[int, int] = None,
+                 initial_conditions: dict[str, list] | None = None,
+                 controller: Callable[[mjModel, mjData, Any], None] | None = None,
+                 meshdir: str = "meshes/",
                  **kwargs: Any) -> None:
         
         """
@@ -77,13 +77,10 @@ class Wrapper:
                 width, height = (400, 300)
             self.resolution = width, height
         else:
-            self.resolution = resolution    
-
-        # self.resolution = resolution or (self._model.vis.Global.offwidth, 
-        #                                 self._model.vis.Global.offheight)
+            self.resolution = resolution
         
         self.controller = controller
-
+            
         # Predefined simulation parameters but can be overridden
         # TODO: Currently Causing Bugs when occluded from XML Code
         self.ts = kwargs.get("ts", self._model.opt.timestep)
@@ -91,9 +88,6 @@ class Wrapper:
 
         self._data = mujoco.MjData(self._model)
         self.init_conditions = initial_conditions or {} # MUST BE AFTER DATA INITIALIZATION
-
-        # Mesh Directory
-        self._meshdir = meshdir
 
         # Auto-Populate the names of bodies, joints, and actuators
         self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
@@ -345,27 +339,24 @@ class Wrapper:
     @property
     def resolution(self) -> tuple[int, int]:
         """Resolution of the simulation in pixels."""
-        return self._resolution
+        return (self._model.vis.Global.offwidth, 
+                self._model.vis.Global.offheight)
 
     @resolution.setter
     def resolution(self, values) -> None:
-        if len(values) != 2:
-            msg = "Resolution must be a tuple of width and height."
-            raise ValueError(msg)
-        if values[0] < 1 or values[1] < 1:
-            msg = "Resolution must be at least 1x1 pixels."
-            raise ValueError(msg)
+        if not (isinstance(values, tuple) and len(values) == 2):
+            raise ValueError("Resolution must be a tuple of width and height.")
+        if any(v < 1 for v in values):
+            raise ValueError("Resolution must be at least 1x1 pixels.")
 
         monitor0 = get_monitors()[0]
         screen_width, screen_height = monitor0.width, monitor0.height
 
         if values[0] > screen_width or values[1] > screen_height:
-            msg = "Resolution must be less than the screen resolution."
-            raise ValueError(msg)
+            _print_warning(f"Resolution exceeds screen size ({screen_width}x{screen_height}).")
 
-        self._resolution = tuple(int(value) for value in values)
-        self._width, self._height = self._resolution
-        # Match changes to the model's visual settings
+        self._width, self._height = map(int, values)
+        # Update the model's visual settings to match the new resolution
         self._model.vis.Global.offwidth = self._width
         self._model.vis.Global.offheight = self._height
 
