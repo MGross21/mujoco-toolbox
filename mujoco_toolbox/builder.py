@@ -1,8 +1,11 @@
 import os
+from io import BytesIO
 from pathlib import Path
-from typing import Tuple
+from typing import Union, Optional, Any, cast
+from xml.etree.ElementTree import ElementTree, Element  # Import for type annotations
+import xml.etree.ElementTree as StdET  # For element creation
 
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as ET  # For secure parsing
 
 class Builder:
     """
@@ -55,7 +58,20 @@ class Builder:
             xml_input = args[0]
             self.tree, self.root = self._load_model(xml_input)
 
-    def _load_model(self, xml_input: str) -> Tuple[ET, ET]:
+    def _create_element_tree(self, root: Element) -> ElementTree:
+        """Create an ElementTree from a root element in a defusedxml-safe way.
+        
+        Args:
+            root: Root element for the tree.
+            
+        Returns:
+            ElementTree: A new ElementTree with the given root.
+        """
+        # Convert to string and parse back to create a tree
+        xml_string = StdET.tostring(root)
+        return ET.parse(BytesIO(xml_string))
+
+    def _load_model(self, xml_input: str) -> tuple[ElementTree, Element]:
         """Load a MuJoCo model from a file or XML string.
         
         Args:
@@ -78,7 +94,8 @@ class Builder:
             # Try parsing as XML string
             try:
                 root = ET.fromstring(xml_input)
-                tree = ET.ElementTree(root)
+                # Create tree using our safe method
+                tree = self._create_element_tree(root)
 
                 # If it's a URDF (robot tag), wrap it in mujoco
                 if root.tag == "robot":
@@ -86,9 +103,10 @@ class Builder:
 
                 # If root is not mujoco, wrap it
                 if root.tag != "mujoco":
-                    mujoco_elem = ET.Element("mujoco")
+                    mujoco_elem = StdET.Element("mujoco")
                     mujoco_elem.append(root)
-                    tree = ET.ElementTree(mujoco_elem)
+                    # Create tree using our safe method
+                    tree = self._create_element_tree(mujoco_elem)
 
                 return tree, tree.getroot()
             except ET.ParseError:
@@ -111,9 +129,10 @@ class Builder:
 
                 # If root is not mujoco, wrap it
                 if root.tag != "mujoco":
-                    mujoco_elem = ET.Element("mujoco")
+                    mujoco_elem = StdET.Element("mujoco")
                     mujoco_elem.append(root)
-                    tree = ET.ElementTree(mujoco_elem)
+                    # Create tree using our safe method
+                    tree = self._create_element_tree(mujoco_elem)
 
                 return tree, tree.getroot()
             except ET.ParseError:
@@ -121,8 +140,8 @@ class Builder:
                 raise ValueError(msg) from None
 
     def _wrap_urdf_in_mujoco(
-        self, urdf_input: str | ET.ElementTree
-    ) -> tuple[ET.ElementTree, ET.Element]:
+        self, urdf_input: Union[str, ElementTree]
+    ) -> tuple[ElementTree, Element]:
         """Wrap a URDF inside <mujoco> tags for MuJoCo compatibility.
         
         Args:
@@ -141,7 +160,8 @@ class Builder:
             if urdf_input.strip().startswith("<"):
                 try:
                     root = ET.fromstring(urdf_input)
-                    tree = ET.ElementTree(root)
+                    # Create tree using our safe method
+                    tree = self._create_element_tree(root)
                 except ET.ParseError:
                     msg = "Invalid URDF XML string provided"
                     raise ValueError(msg) from None
@@ -152,11 +172,12 @@ class Builder:
                 except Exception:
                     msg = f"Could not parse URDF file: {urdf_input}"
                     raise ValueError(msg) from None
-        # Handle ElementTree input
-        elif isinstance(urdf_input, ET.ElementTree):
-            tree = urdf_input
+        # Handle ElementTree input using duck typing
+        elif hasattr(urdf_input, 'getroot') and callable(getattr(urdf_input, 'getroot')):
+            # Handle both standard ElementTree and defusedxml ElementTree
+            tree = urdf_input  # type: ignore
         else:
-            msg = "URDF input must be a string or ElementTree"
+            msg = "URDF input must be a string or ElementTree-like object with getroot() method"
             raise TypeError(msg)
 
         root = tree.getroot()
@@ -166,13 +187,14 @@ class Builder:
             return tree, root
 
         # Create mujoco element and append the URDF root
-        mujoco_elem = ET.Element("mujoco")
+        mujoco_elem = StdET.Element("mujoco")
         mujoco_elem.append(root)
 
-        # Create a new tree with the <mujoco> root
-        return ET.ElementTree(mujoco_elem), mujoco_elem
+        # Create a new tree with the <mujoco> root using our safe method
+        tree = self._create_element_tree(mujoco_elem)
+        return tree, tree.getroot()
 
-    def _merge_tags(self, tag_name: str, root_1: ET.Element, root_2: ET.Element) -> None:
+    def _merge_tags(self, tag_name: str, root_1: Element, root_2: Element) -> None:
         """Merge a specific tag (e.g., worldbody, asset) from two models.
         
         Args:
@@ -185,7 +207,7 @@ class Builder:
 
         # If target section doesn't exist in model 1 but exists in model 2, create it
         if section_1 is None and section_2 is not None:
-            section_1 = ET.SubElement(root_1, tag_name)
+            section_1 = StdET.SubElement(root_1, tag_name)
 
         # Only proceed if both sections exist now
         if section_1 is not None and section_2 is not None:
@@ -193,7 +215,7 @@ class Builder:
             for element in list(section_2):  # Use list() to avoid modification
                 section_1.append(element)
 
-    def __add__(self, other: "Builder") -> "Builder":
+    def __add__(self, other: Union["Builder", str]) -> "Builder":
         """Implement the + operator for merging two models.
         
         Args:
@@ -205,7 +227,7 @@ class Builder:
         Raises:
             TypeError: If other is not a Builder or string.
         """
-        model_root = None
+        model_root: Optional[Element] = None
 
         if isinstance(other, Builder):
             # Merge the current model with another Builder instance
@@ -230,7 +252,7 @@ class Builder:
         # Return self to allow for method chaining
         return self
 
-    def __radd__(self, other: "Builder") -> "Builder":
+    def __radd__(self, other: Union["Builder", int]) -> "Builder":
         """Implement the reverse + operator for merging two models.
         
         Args:
@@ -264,7 +286,7 @@ class Builder:
             raise ValueError(msg)
         return os.path.abspath(file_path)
 
-    def _indent_xml(self, elem: ET.Element, level: int = 0) -> None:
+    def _indent_xml(self, elem: Element, level: int = 0) -> None:
         """Add proper indentation to make the XML file more readable.
         
         Args:
@@ -296,7 +318,8 @@ class Builder:
         if self.tree is not None:
             # Format the XML with proper indentation
             self._indent_xml(self.root)
-            return ET.tostring(self.root, encoding="unicode", method="xml")
+            # Use standard ElementTree's tostring with proper encoding
+            return StdET.tostring(self.root, encoding="unicode", method="xml")
         msg = "No model loaded. Cannot generate string."
         raise ValueError(msg)
 
