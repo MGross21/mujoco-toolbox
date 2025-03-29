@@ -516,44 +516,36 @@ class Wrapper:
             #     gui.start()
 
             # Mujoco Renderer
-            if render:
-                from . import MAX_GEOM_SCALAR
-                max_geom = m.ngeom * MAX_GEOM_SCALAR
-                renderer = mujoco.Renderer(m, h, w, max_geom)
-            
-            step = 0
-            while d.time < dur:
-                if not interactive:
-                    mj_step(m, d)
+            from . import MAX_GEOM_SCALAR
+            max_geom = m.ngeom * MAX_GEOM_SCALAR
+            _Renderer = mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
 
-                # Capture data at the specified rate
-                if step % capture_interval == 0:
-                    sim_data.capture(d)
+            with _Renderer as renderer:
+                step = 0
+                while d.time < dur:
+                    if not interactive:
+                        mj_step(m, d)
 
-                if render and renderer and step % render_interval == 0:
-                    renderer.update_scene(d, camera if camera else -1)
+                    # Capture data at the specified rate
+                    if step % capture_interval == 0:
+                        sim_data.capture(d)
 
-                    frames[frame_count] = renderer.render()
-                    frame_count += 1  # Increment frame count after capturing the frame
+                    if render and renderer and step % render_interval == 0:
+                        renderer.update_scene(d, camera if camera else -1)
 
-                step += 1
+                        frames[frame_count] = renderer.render()
+                        frame_count += 1  # Increment frame count after capturing the frame
 
+                    step += 1
         except Exception as e:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
         finally:
-            # SHUTDOWN
-            if render:
-                renderer.close()
-            # if interactive:
-            #     gui.join()
-            # CLEANUP
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
-            # Trim pre-allocated frames to the actual number of frames captured
             self._frames = [f for f in frames[:frame_count] if f is not None]
-
-
+            # if interactive:
+            #     gui.join()
         return self
 
     def _window(self, show_menu: bool =True) -> None:
