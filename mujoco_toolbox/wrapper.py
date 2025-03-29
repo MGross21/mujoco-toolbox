@@ -17,7 +17,6 @@ import mujoco.viewer
 import numpy as np
 import trimesh
 import yaml
-from screeninfo import get_monitors
 
 from .utils import _print_warning
 
