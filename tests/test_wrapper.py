@@ -78,5 +78,5 @@ if __name__ == "__main__":
     for i, (name, func) in enumerate(functions, start=1):
         mjtb.utils._print_success(f"Running Test {i}: {name}", prefix=False)
         func()
-    
+
     mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")

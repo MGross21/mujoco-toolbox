@@ -7,7 +7,6 @@ import mujoco
 from numpy import average
 
 import mujoco_toolbox as mjtb
-import pandas as pd
 
 DURATION = 60
 DATA_RATE = 1000
@@ -93,7 +92,7 @@ def generate_performance_chart() -> None:
         writer.writerow(["MuJoCo", *mujoco_version, times[0]])
         writer.writerow(["MuJoCo Toolbox", *mjtb_version, times[1]])
 
-def progress_over_time():
+def progress_over_time() -> None:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     csv_file = os.path.join(data_dir, "performance_data.csv")
 
@@ -101,7 +100,7 @@ def progress_over_time():
         print(f"No data found at {csv_file}")
         return
 
-    with open(csv_file, mode="r") as file:
+    with open(csv_file) as file:
         data = list(csv.DictReader(file))
 
     # Separate and process data
@@ -117,7 +116,7 @@ def progress_over_time():
 
     # Sort toolbox data by version
     toolbox_versions, toolbox_performances = zip(
-        *sorted(toolbox_data.items(), key=lambda x: tuple(map(int, x[0].split("."))))
+        *sorted(toolbox_data.items(), key=lambda x: tuple(map(int, x[0].split(".")))), strict=False,
     )
 
     # Plot data

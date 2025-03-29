@@ -1,4 +1,4 @@
-"""Mujoco Toolbox
+"""Mujoco Toolbox.
 ==============
 
 A toolbox for working with MuJoCo simulations. This package provides various
@@ -31,8 +31,8 @@ from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controllers import (
     cos,
-    real_time,
     random,
+    real_time,
     sin,
     step,
 )
@@ -51,8 +51,8 @@ __all__ = [
     "Wrapper",
     "cos",
     "glovebox",
-    "real_time",
     "random",
+    "real_time",
     "sin",
     "step",
 ]

@@ -1,6 +1,5 @@
-"""
-This module provides a set of controllers for the MuJoCo physics engine. 
-Each controller applies a specific type of control signal to the simulation, 
+"""This module provides a set of controllers for the MuJoCo physics engine.
+Each controller applies a specific type of control signal to the simulation,
 such as step signals, sine waves, cosine waves, random signals, or real-time adjustments.
 
 Functions:
@@ -17,6 +16,7 @@ Functions:
 """
 
 import numpy as np
+
 
 def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
     """Common helper function for controller logic to reduce redundancy.

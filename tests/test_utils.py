@@ -1,5 +1,6 @@
-from mujoco_toolbox import utils
 import os
+
+from mujoco_toolbox import utils
 
 
 @utils.timer

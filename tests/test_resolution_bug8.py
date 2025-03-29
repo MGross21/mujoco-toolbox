@@ -36,8 +36,9 @@ model = """
 # Fixing: https://github.com/MGross21/mujoco-toolbox/issues/8
 # This test ensures that the resolution is set correctly when resolution
 # is set in xml but not in wrapper
-from mujoco_toolbox import Wrapper
 import numpy as np
+
+from mujoco_toolbox import Wrapper
 
 out = Wrapper(model)
 

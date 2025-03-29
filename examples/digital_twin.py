@@ -1,12 +1,11 @@
-import os
 import time
 from itertools import cycle
+from pathlib import Path
 
 import numpy as np
 
 import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
-from pathlib import Path
 
 # Load the model
 model_dir = str(Path(__file__).resolve().parent.parent / "tests" / "models" / "UR5")
@@ -26,9 +25,9 @@ desired = {
 num_steps = 1000
 qpos_sequence = np.linspace(initial["qpos"], desired["qpos"], num_steps)
 
-with mjtb.Wrapper(urdf, 
-                  meshdir=meshes, 
-                  initial_conditions=initial, 
+with mjtb.Wrapper(urdf,
+                  meshdir=meshes,
+                  initial_conditions=initial,
                   controller=real_time) as ur5:
     ur5.liveView(show_menu=False) # Open the simulation window
     ur5.gravity = [0, 0, 0]

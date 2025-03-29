@@ -1,24 +1,23 @@
 import os
-from contextlib import nullcontext
-import cv2
 import sys
 import threading
 import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import nullcontext
 from functools import lru_cache
-from typing import Any, TypeAlias
-import sys
-from screeninfo import get_monitors
 from multiprocessing import cpu_count
+from typing import Any, TypeAlias
 
+import cv2
 import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
 import trimesh
 import yaml
+from screeninfo import get_monitors
 
 from .utils import _print_warning
 
@@ -48,25 +47,24 @@ mujoco_object_types = [
     mujoco.mjtObj.mjOBJ_NUMERIC,
     mujoco.mjtObj.mjOBJ_TEXT,
     mujoco.mjtObj.mjOBJ_KEY,
-    mujoco.mjtObj.mjOBJ_PLUGIN
+    mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
 
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
+
     def __init__(self,
                  xml: str,
                  *,
                  duration: int = 10,
                  data_rate: int = 100,
                  fps: int = 30,
-                 resolution: tuple[int, int] = None,
+                 resolution: tuple[int, int] | None = None,
                  initial_conditions: dict[str, list] | None = None,
                  controller: Callable[[mjModel, mjData, Any], None] | None = None,
                  meshdir: str = "meshes/",
                  **kwargs: Any) -> None:
-        
-        """
-        Initialize the Wrapper class for managing MuJoCo simulations.
+        """Initialize the Wrapper class for managing MuJoCo simulations.
 
         Args:
             xml (str): Path to the XML or URDF file, or an XML string defining the model.
@@ -78,6 +76,7 @@ class Wrapper:
             controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom controller function for the simulation. Defaults to None.
             meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes".
             **kwargs (Any): Additional keyword arguments for model configuration.
+
         """
         # Pre-load mesh
         self._meshdir = meshdir
@@ -101,9 +100,9 @@ class Wrapper:
             self.resolution = width, height
         else:
             self.resolution = resolution
-        
+
         self.controller = controller
-            
+
         # Predefined simulation parameters but can be overridden
         # TODO: Currently Causing Bugs when occluded from XML Code
         self.ts = kwargs.get("ts", self._model.opt.timestep)
@@ -360,15 +359,17 @@ class Wrapper:
     @property
     def resolution(self) -> tuple[int, int]:
         """Resolution of the simulation in pixels."""
-        return (self._model.vis.Global.offwidth, 
+        return (self._model.vis.Global.offwidth,
                 self._model.vis.Global.offheight)
 
     @resolution.setter
     def resolution(self, values) -> None:
         if not (isinstance(values, tuple) and len(values) == 2):
-            raise ValueError("Resolution must be a tuple of width and height.")
+            msg = "Resolution must be a tuple of width and height."
+            raise ValueError(msg)
         if any(v < 1 for v in values):
-            raise ValueError("Resolution must be at least 1x1 pixels.")
+            msg = "Resolution must be at least 1x1 pixels."
+            raise ValueError(msg)
 
         monitor0 = get_monitors()[0]
         screen_width, screen_height = monitor0.width, monitor0.height
@@ -491,9 +492,11 @@ class Wrapper:
         # Eventually rename this to run() and point to sub-methods for different modes
 
         if interactive:
-            raise NotImplementedError("Interactive mode (w/ menu option) is not yet implemented.")
+            msg = "Interactive mode (w/ menu option) is not yet implemented."
+            raise NotImplementedError(msg)
         if multi_thread:
-            raise NotImplementedError("Multi-threading is not yet implemented.")
+            msg = "Multi-threading is not yet implemented."
+            raise NotImplementedError(msg)
         try:
             mujoco.set_mjcb_control(self._controller) if self._controller else None
             mujoco.mj_resetData(self._model, self._data)
@@ -501,7 +504,7 @@ class Wrapper:
             # self._frames = [None] * (self.duration * self.fps + 1)
             frames = []
             sim_data = _SimulationData()
-            total_steps = int(self._duration / self.ts)
+            int(self._duration / self.ts)
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
@@ -519,9 +522,8 @@ class Wrapper:
             frame_count = 0
 
             if multi_thread:
-                num_threads =  cpu_count()
+                cpu_count()
                 # TODO: Implement multi-threading
-                pass
 
             # if interactive:
             #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
@@ -664,7 +666,7 @@ class Wrapper:
 
         # Select subset of frames
         return self._frames[start:stop]
-    
+
     def _skip_rendering(self) -> None:
         try:
             if not hasattr(self, "_frames") or self._frames is None:
@@ -695,7 +697,7 @@ class Wrapper:
 
         """
         self._skip_rendering() # Enables rendering if not already done
-            
+
         try:
             # Extract frames
             subset_frames = self._validate_and_extract_frames(
@@ -745,7 +747,6 @@ class Wrapper:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
-
         self._skip_rendering() # Enables rendering if not already done
 
         try:
@@ -807,7 +808,7 @@ class Wrapper:
             msg = f"Data '{data_name}' not found for body '{body_name}'."
             raise ValueError(msg)
         return self._captured_data.unwrap()[body_id][data_name]
-    
+
     def name2id(self, name: str) -> int:
         """Get the name of a body given its index.
 
@@ -818,7 +819,6 @@ class Wrapper:
             int: The index of the body.
 
         """
-
         for obj_type in mujoco_object_types:
             try:
                 obj_id = mujoco.mj_name2id(self._model, obj_type, name)
@@ -843,7 +843,6 @@ class Wrapper:
             str: The name of the body.
 
         """
-
         for obj_type in mujoco_object_types:
             try:
                 obj_name = mujoco.mj_id2name(self._model, obj_type, id)
