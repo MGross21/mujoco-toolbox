@@ -28,6 +28,28 @@ assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later.
 mjModel: TypeAlias = mujoco.MjModel
 mjData: TypeAlias = mujoco.MjData
 
+mujoco_object_types = [
+    mujoco.mjtObj.mjOBJ_BODY,
+    mujoco.mjtObj.mjOBJ_JOINT,
+    mujoco.mjtObj.mjOBJ_GEOM,
+    mujoco.mjtObj.mjOBJ_SITE,
+    mujoco.mjtObj.mjOBJ_CAMERA,
+    mujoco.mjtObj.mjOBJ_LIGHT,
+    mujoco.mjtObj.mjOBJ_MESH,
+    mujoco.mjtObj.mjOBJ_HFIELD,
+    mujoco.mjtObj.mjOBJ_TEXTURE,
+    mujoco.mjtObj.mjOBJ_MATERIAL,
+    mujoco.mjtObj.mjOBJ_PAIR,
+    mujoco.mjtObj.mjOBJ_EXCLUDE,
+    mujoco.mjtObj.mjOBJ_EQUALITY,
+    mujoco.mjtObj.mjOBJ_TENDON,
+    mujoco.mjtObj.mjOBJ_ACTUATOR,
+    mujoco.mjtObj.mjOBJ_SENSOR,
+    mujoco.mjtObj.mjOBJ_NUMERIC,
+    mujoco.mjtObj.mjOBJ_TEXT,
+    mujoco.mjtObj.mjOBJ_KEY,
+    mujoco.mjtObj.mjOBJ_PLUGIN
+]
 
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
@@ -785,8 +807,33 @@ class Wrapper:
             msg = f"Data '{data_name}' not found for body '{body_name}'."
             raise ValueError(msg)
         return self._captured_data.unwrap()[body_id][data_name]
+    
+    def name2id(self, name: str) -> int:
+        """Get the name of a body given its index.
 
-    def getID(self, id: int) -> str:
+        Args:
+            name (str): The name of the body.
+
+        Returns:
+            int: The index of the body.
+
+        """
+
+        for obj_type in mujoco_object_types:
+            try:
+                obj_id = mujoco.mj_name2id(self._model, obj_type, name)
+                if obj_id < 0:
+                    continue
+                return obj_id
+            except mujoco.FatalError:
+                continue
+            except mujoco.UnexpectedError:
+                continue
+            except Exception:
+                continue
+        return None
+
+    def id2name(self, id: int) -> str:
         """Get the name of a body given its ID.
 
         Args:
@@ -796,10 +843,21 @@ class Wrapper:
             str: The name of the body.
 
         """
-        if id < 0 or id >= self._model.nbody:
-            msg = f"Invalid body ID: {id}"
-            raise ValueError(msg)
-        return mujoco.mj_id2name(self._model, mujoco.mjtObj.mjOBJ_BODY, id)
+
+        for obj_type in mujoco_object_types:
+            try:
+                obj_name = mujoco.mj_id2name(self._model, obj_type, id)
+                if obj_name < 0:
+                    continue
+                return obj_name
+            except mujoco.FatalError:
+                continue
+            except mujoco.UnexpectedError:
+                continue
+            except Exception:
+                continue
+        return None
+
 
     def saveYAML(self, name="Model") -> None:
         """Save simulation data to a YAML file.
