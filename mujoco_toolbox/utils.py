@@ -5,7 +5,7 @@ from multiprocessing import cpu_count
 from time import time
 
 from colorama import Fore, Style, init
-from screeninfo import get_monitors, ScreenInfoError
+from screeninfo import ScreenInfoError, get_monitors
 
 
 def timer(func):
@@ -113,7 +113,7 @@ class _Platform:
         if "ipykernel" in sys.modules and not sys.stdin.isatty():
             return "jupyter"
         return "terminal" if hasattr(sys, "ps1") else "script"
-    
+
     def get_monitors(self) -> list:
         """Returns a list of active monitors."""
         try:
