@@ -843,9 +843,9 @@ class Wrapper:
             str: The name of the body.
 
         """
-
         # BUG: Fix this to work properly
-        raise NotImplementedError("This method is not implemented yet.")
+        msg = "This method is not implemented yet."
+        raise NotImplementedError(msg)
         for obj_type in mujoco_object_types:
             try:
                 obj_name = mujoco.mj_id2name(self._model, obj_type, id)

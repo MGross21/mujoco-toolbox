@@ -39,7 +39,7 @@ def test_name2id_lights() -> None:
     assert test.name2id("top") == 0
     assert test.name2id("nonexistent_light") is None
 
-def test_id2name():
+def test_id2name() -> None:
     for i in range(test.model.njnt):
         assert test.id2name(i) == test.model.joint(i).name
     for i in range(test.model.nbody):
