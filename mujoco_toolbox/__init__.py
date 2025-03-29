@@ -58,7 +58,7 @@ __all__ = [
 ]
 
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
-GUI_ENABLED: bool = _Platform().NUM_MONITORS > 0
+GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
 CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "time",
     "qpos",
