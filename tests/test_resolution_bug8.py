@@ -37,9 +37,11 @@ model = """
 # This test ensures that the resolution is set correctly when resolution
 # is set in xml but not in wrapper
 from mujoco_toolbox import Wrapper
+import numpy as np
 
 out = Wrapper(model)
 
 assert out.resolution == (800, 600), "Resolution does not match expected value."
+assert np.array_equal(out.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
 out.run(render=True).save()
