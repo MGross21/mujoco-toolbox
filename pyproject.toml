@@ -1,10 +1,12 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0",  "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry]
+version = "0.0.0"
 
 [project]
 name = "mujoco-toolbox"
-version = "0.3.4"
 dynamic = ["version"]
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
@@ -19,30 +21,35 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<4.0"
 dependencies = [
-    "mujoco",
-    "numpy",
-    "scipy",
-    "matplotlib",
-    "pyyaml",
-    "mediapy",
-    "tqdm",
-    "ipywidgets",
-    "ffmpeg",
-    "trimesh",
-    "screeninfo",
-    "colorama"
+    "mujoco",   # MuJoCo Python bindings
+    "numpy",    # For numerical operations and array handling
+    "scipy",    # For scientific computing and numerical operations
+    "matplotlib",   # For plotting and visualization
+    "pyyaml",   # For YAML file handling
+    "mediapy",  # For video and image processing
+    "rich",     # For pretty printing and progress bars
+    "ffmpeg",   # Video processing
+    "opencv-python", # Video showing
+    "trimesh",  # 3D geometry processing library
+    "screeninfo", # Screen resolution handling
+    "colorama", # Colored terminal output
+    "defusedxml"  # Safe XML parsing
+    
 ]
 
 # [project.extras]
-# beautified = ["colorama","ipywidgets","tqdm"]
+# beautified = ["colorama", "rich"]
 # gym = ["gym"]
+
+[tool.poetry-dynamic-versioning]
+enable = true
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
 repository = "https://github.com/MGross21/mujoco-toolbox"
-documentation = "https://github.com/MGross21/mujoco-toolbox"
+documentation = "https://mgross21.github.io/mujoco-toolbox/"
 changelog = "https://github.com/MGross21/mujoco-toolbox/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
 
@@ -58,6 +65,7 @@ bandit = "^1.8.3"
 pylint = "^3.3.4"
 python-semantic-release = "^9.21.0"
 python-dotenv = "^1.1.0"
+poetry-dynamic-versioning = "^1.0.0"
 
 [tool.semantic_release]
 version_variables = [
@@ -118,9 +126,10 @@ line-length = 79 # PEP8 line length
 [tool.ruff.lint]
 # select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules
 select = ["ALL"]    # Enable all rules
-ignore = ["T20"]    # Rules to Ignore
+ignore = ["T20","INP001"]    # Rules to Ignore
 fixable = ["ALL"]   # Enable auto-fixing for all fixable issues
 extend-select = ["I", "B", "Q", "S"]
+exclude = ["*venv/", "*__pycache__", "build/", "dist/", ".tox/", ".eggs/", ".git/", ".idea/", ".mypy_cache/"]  # Exclude these directories from linting
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -130,7 +139,7 @@ strict_optional = true
 
 [tool.isort]
 profile = "black"  # Use black's code style
-known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "tqdm", "ipywidgets", "ffmpeg", "trimesh", "screeninfo", "colorama"]
+known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "ffmpeg", "trimesh", "screeninfo", "colorama"]
 known_first_party = ["mujoco_toolbox"]
 line_length = 79  # PEP8 line length
 

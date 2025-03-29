@@ -1,6 +1,8 @@
+import pytest
+
 import mujoco_toolbox as mjtb
 
-# First Model (string1) - A simple model with an asset and a body (plane)
+# Test data
 string1 = """
 <mujoco>
   <asset>
@@ -15,7 +17,6 @@ string1 = """
 </mujoco>
 """
 
-# Second Model (string2) - A model with a box and sphere with materials
 string2 = """
 <mujoco>
   <asset>
@@ -33,7 +34,6 @@ string2 = """
 </mujoco>
 """
 
-# Third Model (string3) - Adding light and camera
 string3 = """
 <mujoco>
   <worldbody>
@@ -43,32 +43,61 @@ string3 = """
 </mujoco>
 """
 
-# Fourth Model (string4) - Simulation settings (timestep and gravity)
 string4 = """
 <mujoco>
   <option timestep="0.002" gravity="0 0 -9.81"/>
 </mujoco>
 """
 
+@pytest.fixture
+def builder():
+    return mjtb.Builder(string1) + mjtb.Builder(string2) + mjtb.Builder(string3) + mjtb.Builder(string4)
 
-def main() -> None:
-    builder = mjtb.Builder(string1)\
-            + mjtb.Builder(string2)\
-            + mjtb.Builder(string3)\
-            + mjtb.Builder(string4)
+@pytest.fixture
+def builder_with_args():
+    return mjtb.Builder(string1, string2, string3, string4)
 
+def test_builder_creation(builder) -> None:
     assert builder is not None, "Builder object is empty"
+    assert len(builder) > 0, "Builder object has no elements"
 
-    args = [string1, string2, string3, string4]
+def test_builder_with_args_creation(builder_with_args) -> None:
+    assert builder_with_args is not None, "Builder2 object is empty"
+    assert len(builder_with_args) > 0, "Builder2 object has no elements"
 
-    builder2 = mjtb.Builder(*args)
+def test_builder_merge() -> None:
+    builder1 = mjtb.Builder(string1)
+    builder2 = mjtb.Builder(string2)
+    merged_builder = builder1 + builder2
+    assert merged_builder is not None, "Merged builder is empty"
+    assert len(merged_builder) >= len(builder1), "Merged builder did not increase in size"
 
-    assert builder2 is not None, "Builder2 object is empty"
+def test_builder_save(tmp_path) -> None:
+    builder = mjtb.Builder(string1)
+    save_path = tmp_path / "test_model.xml"
+    builder.save(str(save_path))
+    assert save_path.exists(), "Saved file does not exist"
 
-    if mjtb.COMPUTER.GUI_ENABLED:
-        mjtb.Wrapper(builder.xml).liveView(show_menu=False)
-        mjtb.Wrapper(builder2.xml).liveView(show_menu=False)
+def test_builder_str_representation(builder) -> None:
+    xml_str = str(builder)
+    assert xml_str.startswith("<mujoco>"), "String representation does not start with <mujoco>"
+    assert "</mujoco>" in xml_str, "String representation does not end with </mujoco>"
 
-if __name__ == "__main__":
-    main()
-    mjtb.utils._print_success(f"{__file__} Tests passed!\n")
+def test_builder_property_xml(builder) -> None:
+    xml_str = builder.xml
+    assert xml_str.startswith("<mujoco>"), "XML property does not start with <mujoco>"
+    assert "</mujoco>" in xml_str, "XML property does not end with </mujoco>"
+
+def test_builder_invalid_input() -> None:
+    with pytest.raises(ValueError, match="Input is required to initialize the Builder"):
+        mjtb.Builder()
+
+    with pytest.raises(TypeError, match="Input must be an XML string or a file path"):
+        mjtb.Builder(123)
+
+def test_builder_merge_sections() -> None:
+    builder1 = mjtb.Builder(string1)
+    builder2 = mjtb.Builder(string2)
+    merged_builder = builder1 + builder2
+    assert merged_builder.root.find("asset") is not None, "Merged builder is missing 'asset' section"
+    assert merged_builder.root.find("worldbody") is not None, "Merged builder is missing 'worldbody' section"

@@ -1,0 +1,6 @@
+poetry
+semantic-release
+pre-commit
+pytest
+ipykernel
+virtualenv

@@ -1,4 +1,21 @@
-from numpy import cos, pi, random, sin
+"""This module provides a set of controllers for the MuJoCo physics engine.
+Each controller applies a specific type of control signal to the simulation,
+such as step signals, sine waves, cosine waves, random signals, or real-time adjustments.
+
+Functions:
+    step(model, data, **kwargs) -> None:
+        Applies a step signal to the simulation.
+    sin(model, data, **kwargs) -> None:
+        Applies a sine wave signal to the simulation.
+    cos(model, data, **kwargs) -> None:
+        Applies a cosine wave signal to the simulation.
+    random(model, data, **kwargs) -> None:
+        Applies a random signal to the simulation.
+    real_time(model, data, **kwargs) -> None:
+        Applies real-time adjustments to the simulation based on provided parameters.
+"""
+
+import numpy as np
 
 
 def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
@@ -29,7 +46,7 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
         data.qpos[axis] = value
 
 
-def step_controller(model, data, **kwargs) -> None:
+def step(model, data, **kwargs) -> None:
     """A step controller for the simulation.
 
     Args:
@@ -57,7 +74,7 @@ def step_controller(model, data, **kwargs) -> None:
     _apply_control(model, data, amplitude, joint=joint, axis=axis, delay=delay)
 
 
-def sine_controller(model, data, **kwargs) -> None:
+def sin(model, data, **kwargs) -> None:
     """A simple sine wave controller for the simulation.
 
     Args:
@@ -81,11 +98,11 @@ def sine_controller(model, data, **kwargs) -> None:
         msg = "Delay must be non-negative."
         raise ValueError(msg)
 
-    value = amplitude * sin(2 * pi * frequency * data.time + phase)
+    value = amplitude * np.sin(2 * np.pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def cosine_controller(model, data, **kwargs) -> None:
+def cos(model, data, **kwargs) -> None:
     """A simple cosine wave controller for the simulation.
 
     Args:
@@ -109,11 +126,11 @@ def cosine_controller(model, data, **kwargs) -> None:
         msg = "Delay must be non-negative."
         raise ValueError(msg)
 
-    value = amplitude * cos(2 * pi * frequency * data.time + phase)
+    value = amplitude * np.cos(2 * np.pi * frequency * data.time + phase)
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def random_controller(model, data, **kwargs) -> None:
+def random(model, data, **kwargs) -> None:
     """A random controller for the simulation.
 
     Args:
@@ -138,10 +155,10 @@ def random_controller(model, data, **kwargs) -> None:
         msg = "Cannot specify both 'joint' and 'axis'."
         raise ValueError(msg)
 
-    value = amplitude * random.rand()
+    value = amplitude * np.random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
-def live_controller(model, data, **kwargs) -> None:
+def real_time(model, data, *args, **kwargs) -> None:
     """A real-time controller for the simulation.
 
     Args:
@@ -152,7 +169,10 @@ def live_controller(model, data, **kwargs) -> None:
 
     """
     from .utils import _print_warning
-    for key, value in kwargs.get("controller_params", {}).items():
+    if not args:
+        _print_warning("No arguments provided to real_time controller. Skipping...")
+        return
+    for key, value in args[0].items():
         if hasattr(data, key):
             setattr(data, key, value)
         else:

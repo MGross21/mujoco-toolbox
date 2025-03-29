@@ -1,9 +1,13 @@
-import os
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import mujoco_toolbox as mjtb
 
-sys.path.insert(0, os.path.abspath(".."))
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Project information
 project = mjtb.__name__
@@ -24,5 +28,6 @@ exclude_patterns = []
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
-def setup(app) -> None:
+def setup(app: "Sphinx") -> None:
+    """Custom Sphinx setup function."""
     app.add_css_file("custom.css")

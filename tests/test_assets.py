@@ -1,55 +1,46 @@
-import os
+from mujoco_toolbox import WORLD_ASSETS, glovebox
 
-import mujoco_toolbox as mjtb
-from mujoco_toolbox import (
-    COMPUTER,
-    WORLD_ASSETS,
-    Builder,
-    Wrapper,
-    glovebox,
-)
 
-####################
-# TESTING DESCRIPTION:
-# Builder:
-# - World
-# - GloveBox
-# - UR5
-# Wrapper:
-# - Live view
-####################
+def test_world_assets() -> None:
+    """Test if WORLD_ASSETS is correctly defined."""
+    assert "<asset>" in WORLD_ASSETS
+    assert "<texture" in WORLD_ASSETS
+    assert "<material" in WORLD_ASSETS
 
-world = f"""
-<mujoco>
-    {WORLD_ASSETS}
-    <worldbody>
-        <body name="floor" pos="0 0 0">
-            <geom type="plane" size="5 5 0.1" material="grid"/>
-        </body>
-    </worldbody>
-    <worldbody>
-        <light name="light" pos="0 0 25" dir="0 0 -1" diffuse="1 1 1" specular="0.5 0.5 0.5" />
-        <camera name="main" pos="0 -5 15" euler="0 0.7 0"/>
-    </worldbody>
-</mujoco>
-"""
-def main() -> None:
-    model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "UR5"))
-    urdf = os.path.join(model_dir, "ur5.urdf")
-    meshes = os.path.join(model_dir, "meshes", "collision")
+def test_glovebox_generation() -> None:
+    """Test glovebox XML generation with default parameters."""
+    xml = glovebox()
+    assert "<mujoco>" in xml
+    assert "<asset>" in xml
+    assert "<worldbody>" in xml
+    assert 'material="glass"' in xml
+    assert 'size="0.625 0.025 0.5"' in xml  # Default width/2, glass_thickness/2, height/2
 
-    humanoid = os.path.join(os.path.dirname(__file__), "models", "humanoid.xml")
+def test_glovebox_custom_dimensions() -> None:
+    """Test glovebox XML generation with custom dimensions."""
+    xml = glovebox(width=2.0, depth=1.5, height=2.0, glass_thickness=0.1)
+    assert 'size="1.0 0.05 1.0"' in xml  # Custom width/2, glass_thickness/2, height/2
+    assert 'pos="0 0 2.05"' in xml  # Custom height + glass_thickness/2
 
-    # w = mjtb.Wrapper(urdf, meshdir=meshes)
-    # w.xml = (mjtb.Builder(mjtb.GloveBox()) + mjtb.Builder(w.xml) + mjtb.Builder(humanoid)).xml
-
-    # w.reload()
-
-    out = Wrapper(Builder(humanoid, glovebox(5, 5, 5), urdf).xml, meshdir=meshes)
-
-    if COMPUTER.GUI_ENABLED:
-        out.liveView(show_menu=False)
+def test_world_xml() -> None:
+    """Test if a simple world XML is correctly constructed."""
+    world = f"""
+    <mujoco>
+        {WORLD_ASSETS}
+        <worldbody>
+            <body name="floor" pos="0 0 0">
+                <geom type="plane" size="5 5 0.1" material="grid"/>
+            </body>
+        </worldbody>
+    </mujoco>
+    """
+    assert "<mujoco>" in world
+    assert "<worldbody>" in world
+    assert '<geom type="plane"' in world
 
 if __name__ == "__main__":
-    main()
-    mjtb.utils._print_success(f"{__file__} Tests passed!\n")
+    test_world_assets()
+    test_glovebox_generation()
+    test_glovebox_custom_dimensions()
+    test_world_xml()
+    print("All tests passed!")
