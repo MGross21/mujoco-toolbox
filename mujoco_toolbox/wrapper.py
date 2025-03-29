@@ -30,8 +30,7 @@ mjData: TypeAlias = mujoco.MjData
 
 
 class Wrapper:
-    """A class to handle MuJoCo simulations."""
-
+    """Wrapper class for managing MuJoCo simulations."""
     def __init__(self,
                  xml:str,
                  *,
@@ -41,14 +40,30 @@ class Wrapper:
                  resolution:tuple[int,int]=(400,300),
                  initial_conditions:dict[str, list] | None=None,
                  controller:Callable[[mjModel, mjData, Any], None] | None=None,
+                 meshdir:str="meshes",
                  **kwargs: Any) -> None:
+        
+        """
+        Initialize the Wrapper class for managing MuJoCo simulations.
+
+        Args:
+            xml (str): Path to the XML or URDF file, or an XML string defining the model.
+            duration (int, optional): Duration of the simulation in seconds. Defaults to 10.
+            data_rate (int, optional): Data capture rate in frames per second. Defaults to 100.
+            fps (int, optional): Frames per second for rendering. Defaults to 30.
+            resolution (tuple[int, int], optional): Resolution of the simulation in pixels (width, height). Defaults to (400, 300).
+            initial_conditions (dict[str, list] | None, optional): Initial conditions for the simulation. Defaults to None.
+            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom controller function for the simulation. Defaults to None.
+            meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes".
+            **kwargs (Any): Additional keyword arguments for model configuration.
+        """
         # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
         self._load_model(xml, **kwargs)
 
         self.duration = duration
         self.fps = fps
         self.data_rate = data_rate
-        self.resolution = resolution  # recursively sets width and height
+        self.resolution = resolution if not 
         self.controller = controller
 
         # Predefined simulation parameters but can be overridden
@@ -58,6 +73,9 @@ class Wrapper:
 
         self._data = mujoco.MjData(self._model)
         self.init_conditions = initial_conditions or {} # MUST BE AFTER DATA INITIALIZATION
+
+        # Mesh Directory
+        self._meshdir = meshdir
 
         # Auto-Populate the names of bodies, joints, and actuators
         self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]

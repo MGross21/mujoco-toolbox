@@ -16,6 +16,10 @@ Constants
 ----------
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
 
+License
+--------
+This project is licensed under the `MIT License`. See the `LICENSE` file for details.
+
 Notes
 -----
 This package is still under development. Report any issues to:

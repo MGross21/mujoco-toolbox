@@ -1,3 +1,21 @@
+"""
+This module provides a set of controllers for the MuJoCo physics engine. 
+Each controller applies a specific type of control signal to the simulation, 
+such as step signals, sine waves, cosine waves, random signals, or real-time adjustments.
+
+Functions:
+    step(model, data, **kwargs) -> None:
+        Applies a step signal to the simulation.
+    sin(model, data, **kwargs) -> None:
+        Applies a sine wave signal to the simulation.
+    cos(model, data, **kwargs) -> None:
+        Applies a cosine wave signal to the simulation.
+    random(model, data, **kwargs) -> None:
+        Applies a random signal to the simulation.
+    real_time(model, data, **kwargs) -> None:
+        Applies real-time adjustments to the simulation based on provided parameters.
+"""
+
 import numpy as np
 
 def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:

@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
+from typing import Tuple
 
 import defusedxml.ElementTree as ET
-
 
 class Builder:
     """
@@ -55,7 +55,7 @@ class Builder:
             xml_input = args[0]
             self.tree, self.root = self._load_model(xml_input)
 
-    def _load_model(self, xml_input: str) -> tuple[ET.ElementTree, ET.Element]:
+    def _load_model(self, xml_input: str) -> Tuple[ET, ET]:
         """Load a MuJoCo model from a file or XML string.
         
         Args:
