@@ -1,5 +1,6 @@
-from mujoco_toolbox import Wrapper, WORLD_ASSETS
 import os
+
+from mujoco_toolbox import Wrapper
 
 FILE_NAME = "test.yml"
 

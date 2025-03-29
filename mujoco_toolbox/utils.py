@@ -104,7 +104,7 @@ class _Platform:
             f"Resolution (disp0): {self.RESOLUTION}\n"
             f"GUI Enabled: {self.GUI_ENABLED}"
         )
-    
+
     def __str__(self) -> str:
         return self.__repr__()
 

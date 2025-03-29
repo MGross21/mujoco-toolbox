@@ -1,5 +1,6 @@
-import mujoco_toolbox as mjtb
 import os
+
+import mujoco_toolbox as mjtb
 
 # First Model (string1) - A simple model with an asset and a body (plane)
 string1 = """

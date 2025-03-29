@@ -1,9 +1,11 @@
-import os
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import mujoco_toolbox as mjtb
-from pathlib import Path
-from sphinx.application import Sphinx
+
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
