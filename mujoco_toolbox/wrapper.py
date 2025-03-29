@@ -371,12 +371,6 @@ class Wrapper:
             msg = "Resolution must be at least 1x1 pixels."
             raise ValueError(msg)
 
-        monitor0 = get_monitors()[0]
-        screen_width, screen_height = monitor0.width, monitor0.height
-
-        if values[0] > screen_width or values[1] > screen_height:
-            _print_warning(f"Resolution exceeds screen size ({screen_width}x{screen_height}).")
-
         self._width, self._height = map(int, values)
         # Update the model's visual settings to match the new resolution
         self._model.vis.Global.offwidth = self._width
