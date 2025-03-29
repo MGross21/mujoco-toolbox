@@ -16,6 +16,7 @@ dist/
 # Other Output
 *.gif
 *.mp4
+*test.yml
 
 # Environment
 .env
