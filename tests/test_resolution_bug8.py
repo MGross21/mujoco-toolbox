@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
+
 from mujoco_toolbox import Wrapper
 
+
 # Test to ensure resolution is set correctly
-def test_resolution():
+def test_resolution() -> None:
     model = """
     <mujoco>
         <visual>
@@ -41,7 +43,7 @@ def test_resolution():
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
 # Test to ensure gravity is enabled and matches expected value
-def test_gravity():
+def test_gravity() -> None:
     model = """
     <mujoco>
         <option>
@@ -58,7 +60,7 @@ def test_gravity():
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
 # Test to ensure rendering works without errors
-def test_rendering():
+def test_rendering() -> None:
     model = """
     <mujoco>
         <visual>

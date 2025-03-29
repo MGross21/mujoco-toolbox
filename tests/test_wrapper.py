@@ -1,5 +1,7 @@
 import os
+
 import numpy as np
+
 import mujoco_toolbox as mjtb
 
 
@@ -24,7 +26,7 @@ TESTING_MODELS = [
 TESTING_MODELS = [model for model in TESTING_MODELS if os.path.exists(model)]
 
 
-def test_xml1():
+def test_xml1() -> None:
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
 
@@ -47,7 +49,7 @@ def test_xml1():
         "Captured data length does not match simulation parameters."
 
 
-def test_urdf1():
+def test_urdf1() -> None:
     """Test 2: Run UR5 URDF simulation."""
     ur = os.path.join(os.getcwd(), "tests", "models", "UR5")
     model = os.path.join(ur, "UR5.urdf")
@@ -76,7 +78,7 @@ def test_urdf1():
         "Simulation data size does not match requested parameters."
 
 
-def test_mujoco_core_array():
+def test_mujoco_core_array() -> None:
     """Test 3: Run simulations for all models in TESTING_MODELS."""
     for model in map(str, TESTING_MODELS):
         with mjtb.Wrapper(xml=model) as m:
