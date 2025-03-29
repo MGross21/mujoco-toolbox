@@ -57,7 +57,8 @@ class Wrapper:
             meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes".
             **kwargs (Any): Additional keyword arguments for model configuration.
         """
-        # xml = "<mujoco></mujoco>" if xml.strip() == "<mujoco/>" else xml
+        # Pre-load mesh
+        self._meshdir = meshdir
         self._load_model(xml, **kwargs)
 
         self.duration = duration
@@ -174,7 +175,7 @@ class Wrapper:
             mujoco_tag = ET.Element("mujoco")
 
             # Get main meshdir (parent directory for meshes)
-            meshdir = kwargs.get("meshdir", "meshes/")  # Default as tuple
+            meshdir = self._meshdir
             if not os.path.isabs(meshdir):
                 urdf_dir = os.path.dirname(os.path.abspath(urdf_path))
                 meshdir = os.path.join(urdf_dir, meshdir)
@@ -184,10 +185,8 @@ class Wrapper:
                 msg = f"Mesh directory not found: {meshdir}"
                 raise FileNotFoundError(msg)
 
-            # If no explicit subdirs are provided, auto-detect subdirectories with STL files
-            subdirs = kwargs.get("meshdir_sub")
-            if not subdirs:
-                subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith(".stl") for f in files)]
+            # Auto-detect subdirectories with STL files
+            subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith(".stl") for f in files)]
                 # logger.info(f"Auto-detected subdirectories: {subdirs}")
 
             # Convert relative subdir paths to absolute based on meshdir
