@@ -297,9 +297,9 @@ class Wrapper:
     @property
     def frames(self) -> list[np.ndarray]:
         """Read-only property to access the captured frames."""
-        if self._frames is None:
-            msg = "No frames captured yet."
-            raise ValueError(msg)
+        if not hasattr(self, "_frames") or self._frames is None:
+            msg = "No frames captured yet. Run the simulation with render=True to capture frames."
+            raise AttributeError(msg) from None
         return self._frames
 
     @frames.deleter
