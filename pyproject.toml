@@ -23,18 +23,20 @@ classifiers = [
 ]
 requires-python = ">=3.10,<4.0"
 dependencies = [
-    "mujoco",
-    "numpy",
-    "scipy",
-    "matplotlib",
-    "pyyaml",
-    "mediapy",
-    "rich",
-    "ffmpeg",
-    "opencv-python",
-    "trimesh",
-    "screeninfo",
-    "colorama"
+    "mujoco",   # MuJoCo Python bindings
+    "numpy",    # For numerical operations and array handling
+    "scipy",    # For scientific computing and numerical operations
+    "matplotlib",   # For plotting and visualization
+    "pyyaml",   # For YAML file handling
+    "mediapy",  # For video and image processing
+    "rich",     # For pretty printing and progress bars
+    "ffmpeg",   # Video processing
+    "opencv-python", # Video showing
+    "trimesh",  # 3D geometry processing library
+    "screeninfo", # Screen resolution handling
+    "colorama", # Colored terminal output
+    "defusedxml"  # Safe XML parsing
+    
 ]
 
 # [project.extras]
@@ -124,9 +126,10 @@ line-length = 79 # PEP8 line length
 [tool.ruff.lint]
 # select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules
 select = ["ALL"]    # Enable all rules
-ignore = ["T20"]    # Rules to Ignore
+ignore = ["T20","INP001"]    # Rules to Ignore
 fixable = ["ALL"]   # Enable auto-fixing for all fixable issues
 extend-select = ["I", "B", "Q", "S"]
+exclude = ["*venv/", "*__pycache__", "build/", "dist/", ".tox/", ".eggs/", ".git/", ".idea/", ".mypy_cache/"]  # Exclude these directories from linting
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -136,7 +139,7 @@ strict_optional = true
 
 [tool.isort]
 profile = "black"  # Use black's code style
-known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "tqdm", "ffmpeg", "trimesh", "screeninfo", "colorama"]
+known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "ffmpeg", "trimesh", "screeninfo", "colorama"]
 known_first_party = ["mujoco_toolbox"]
 line_length = 79  # PEP8 line length
 

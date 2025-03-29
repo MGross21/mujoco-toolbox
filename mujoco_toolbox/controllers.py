@@ -140,7 +140,7 @@ def random(model, data, **kwargs) -> None:
     value = amplitude * np.random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
-def live(model, data, **kwargs) -> None:
+def real_time(model, data, **kwargs) -> None:
     """A real-time controller for the simulation.
 
     Args:

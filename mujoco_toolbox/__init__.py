@@ -1,12 +1,14 @@
 """Mujoco Toolbox
 ==============
-A toolbox for working with MuJoCo simulations. This package provides various utilities and controllers to facilitate
-the simulation process.
+
+A toolbox for working with MuJoCo simulations. This package provides various
+utilities and controllers to facilitate a faster simulation process.
 
 Modules
 --------
 - `Wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
-- `Controller`: Includes sineController, cosineController, and randomController for controlling simulations.
+- `Controller`: Includes sineController, cosineController, and randomController
+    for controlling simulations.
 - `Builder`: Contains the Builder class for creating and merging MuJoCo models.
 - `assets`: Contains pre-defined assets for building MuJoCo models.
 
@@ -16,7 +18,8 @@ Constants
 
 Notes
 -----
-This package is still under development. Report any issues to https://github.com/MGross21/mujoco-toolbox/issues.
+This package is still under development. Report any issues to:
+https://github.com/MGross21/mujoco-toolbox/issues.
 
 """
 
@@ -24,7 +27,7 @@ from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controllers import (
     cos,
-    live,
+    real_time,
     random,
     sin,
     step,
@@ -44,7 +47,7 @@ __all__ = [
     "Wrapper",
     "cos",
     "glovebox",
-    "live",
+    "real_time",
     "random",
     "sin",
     "step",

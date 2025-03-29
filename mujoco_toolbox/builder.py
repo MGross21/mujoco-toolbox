@@ -1,37 +1,52 @@
 import os
-import xml.etree.ElementTree as ET
+from pathlib import Path
+
+import defusedxml.ElementTree as ET
 
 
 class Builder:
-    """Builder class for loading, merging, and saving MuJoCo models from XML strings or file paths.
+    """
+    Builder class for loading, merging, and saving MuJoCo 
+    models from XML strings or file paths.
 
     Attributes:
         xml (str): XML string of the model.
 
     Examples:
-        >>> # Load a model
-        >>> builder1 = Builder("path/to/model1.xml")
-        >>> # Merge two models from two object instances
-        >>> builder2 = Builder("path/to/model2.xml")
-        >>> merged_builder = builder1 + builder2
-        >>> merged_builder.save("path/to/merged_model.xml")
-        >>> # Merge two models from two file paths
-        >>> builder = Builder("path/to/model1.xml", "path/to/model2.xml")
-        >>> builder.save("path/to/merged_model.xml")
-
+        ```python
+        # Load a model
+        builder1 = Builder("path/to/model1.xml")
+        # Merge two models from two object instances
+        builder2 = Builder("path/to/model2.xml")
+        merged_builder = builder1 + builder2
+        merged_builder.save("path/to/merged_model.xml")
+        # Merge two models from two file paths
+        builder = Builder("path/to/model1.xml", "path/to/model2.xml")
+        builder.save("path/to/merged_model.xml")
+        ```
     """
 
     def __init__(self, *args: str) -> None:
-        """Initialize with an XML string or a file path. Input is required."""
+        """Initialize with XML strings or file paths.
+        
+        Args:
+            *args: XML strings or file paths.
+            
+        Raises:
+            TypeError: If any input is not a string.
+            ValueError: If no input is provided.
+        """
         for arg in args:
             if not isinstance(arg, str):
                 msg = "Input must be an XML string or a file path"
                 raise TypeError(msg)
+        
         if len(args) == 0:
             msg = "Input is required to initialize the Builder"
             raise ValueError(msg)
+            
         if len(args) > 1:
-            # Create a new Builder instance for each additional argument and merge them
+            # Merge multiple Builder instances
             self.tree, self.root = self._load_model(args[0])
             for additional_arg in args[1:]:
                 additional_builder = Builder(additional_arg)
@@ -40,11 +55,23 @@ class Builder:
             xml_input = args[0]
             self.tree, self.root = self._load_model(xml_input)
 
-    def _load_model(self, xml_input):
-        """Load a MuJoCo model from a file or XML string."""
+    def _load_model(self, xml_input: str) -> tuple[ET.ElementTree, ET.Element]:
+        """Load a MuJoCo model from a file or XML string.
+        
+        Args:
+            xml_input: XML string or file path.
+            
+        Returns:
+            tuple: ElementTree and root Element.
+            
+        Raises:
+            TypeError: If input is not a string.
+            ValueError: If XML is invalid.
+            FileNotFoundError: If file path doesn't exist.
+        """
         if not isinstance(xml_input, str):
             msg = "Input must be either an XML string or a file path"
-            raise ValueError(msg)
+            raise TypeError(msg) from None
 
         # Check if input is an XML string
         if xml_input.strip().startswith("<"):
@@ -66,12 +93,12 @@ class Builder:
                 return tree, tree.getroot()
             except ET.ParseError:
                 msg = "Invalid XML string provided"
-                raise ValueError(msg)
+                raise ValueError(msg) from None
         else:
             # Treat input as file path
-            if not os.path.exists(xml_input):
+            if not Path(xml_input).exists():
                 msg = f"File not found: {xml_input}"
-                raise FileNotFoundError(msg)
+                raise FileNotFoundError(msg) from None
 
             # Handle URDF files
             if xml_input.lower().endswith(".urdf"):
@@ -91,11 +118,22 @@ class Builder:
                 return tree, tree.getroot()
             except ET.ParseError:
                 msg = f"Invalid XML file: {xml_input}"
-                raise ValueError(msg)
+                raise ValueError(msg) from None
 
-    def _wrap_urdf_in_mujoco(self, urdf_input):
+    def _wrap_urdf_in_mujoco(
+        self, urdf_input: str | ET.ElementTree
+    ) -> tuple[ET.ElementTree, ET.Element]:
         """Wrap a URDF inside <mujoco> tags for MuJoCo compatibility.
-        Input can be a file path, ElementTree, or XML string.
+        
+        Args:
+            urdf_input: File path, ElementTree, or XML string.
+            
+        Returns:
+            tuple: ElementTree and root Element.
+            
+        Raises:
+            TypeError: If input is not a string or ElementTree.
+            ValueError: If URDF is invalid.
         """
         # Handle string input (could be a file path or XML string)
         if isinstance(urdf_input, str):
@@ -106,14 +144,14 @@ class Builder:
                     tree = ET.ElementTree(root)
                 except ET.ParseError:
                     msg = "Invalid URDF XML string provided"
-                    raise ValueError(msg)
+                    raise ValueError(msg) from None
             else:
                 # It's a file path
                 try:
                     tree = ET.parse(urdf_input)
-                except:
+                except Exception:
                     msg = f"Could not parse URDF file: {urdf_input}"
-                    raise ValueError(msg)
+                    raise ValueError(msg) from None
         # Handle ElementTree input
         elif isinstance(urdf_input, ET.ElementTree):
             tree = urdf_input
@@ -123,7 +161,7 @@ class Builder:
 
         root = tree.getroot()
 
-        # Handle the case where the root might already be a mujoco element
+        # If root is already present in a mujoco element
         if root.tag == "mujoco":
             return tree, root
 
@@ -134,8 +172,14 @@ class Builder:
         # Create a new tree with the <mujoco> root
         return ET.ElementTree(mujoco_elem), mujoco_elem
 
-    def _merge_tags(self, tag_name, root_1, root_2) -> None:
-        """Merge a specific tag (e.g., worldbody, asset) from two models."""
+    def _merge_tags(self, tag_name: str, root_1: ET.Element, root_2: ET.Element) -> None:
+        """Merge a specific tag (e.g., worldbody, asset) from two models.
+        
+        Args:
+            tag_name: Tag name to merge.
+            root_1: First model root element.
+            root_2: Second model root element.
+        """
         section_1 = root_1.find(tag_name)
         section_2 = root_2.find(tag_name)
 
@@ -146,11 +190,21 @@ class Builder:
         # Only proceed if both sections exist now
         if section_1 is not None and section_2 is not None:
             # Merge the contents by appending all elements from model 2 to model 1
-            for element in list(section_2):  # Use list() to avoid modification during iteration
+            for element in list(section_2):  # Use list() to avoid modification
                 section_1.append(element)
 
-    def __add__(self, other):
-        """Implement the + operator for merging two models."""
+    def __add__(self, other: "Builder") -> "Builder":
+        """Implement the + operator for merging two models.
+        
+        Args:
+            other: Another Builder object or XML string.
+            
+        Returns:
+            Builder: Self with merged content.
+            
+        Raises:
+            TypeError: If other is not a Builder or string.
+        """
         model_root = None
 
         if isinstance(other, Builder):
@@ -164,8 +218,10 @@ class Builder:
             raise TypeError(msg)
 
         # List of sections to merge
-        sections_to_merge = ["asset", "worldbody", "camera", "light", "contact", "equality",
-                            "sensor", "actuator", "default", "tendon", "include"]
+        sections_to_merge = [
+            "asset", "worldbody", "camera", "light", "contact", "equality",
+            "sensor", "actuator", "default", "tendon", "include"
+        ]
 
         # Merge all relevant sections
         for section in sections_to_merge:
@@ -174,14 +230,31 @@ class Builder:
         # Return self to allow for method chaining
         return self
 
-    def __radd__(self, other):
-        """Implement the reverse + operator for merging two models."""
+    def __radd__(self, other: "Builder") -> "Builder":
+        """Implement the reverse + operator for merging two models.
+        
+        Args:
+            other: Another Builder object or 0 (for sum()).
+            
+        Returns:
+            Builder: Self with merged content.
+        """
         if other == 0:  # Handle sum() starting value
             return self
         return self.__add__(other)
 
-    def save(self, file_path) -> "os.path":
-        """Save the merged model to a file."""
+    def save(self, file_path: str) -> str:
+        """Save the merged model to a file.
+        
+        Args:
+            file_path: Path to save the model.
+            
+        Returns:
+            str: Absolute path to the saved file.
+            
+        Raises:
+            ValueError: If no model is loaded.
+        """
         if self.tree is not None:
             # Format the XML with proper indentation before saving
             self._indent_xml(self.root)
@@ -191,8 +264,13 @@ class Builder:
             raise ValueError(msg)
         return os.path.abspath(file_path)
 
-    def _indent_xml(self, elem, level=0) -> None:
-        """Add proper indentation to make the XML file more readable."""
+    def _indent_xml(self, elem: ET.Element, level: int = 0) -> None:
+        """Add proper indentation to make the XML file more readable.
+        
+        Args:
+            elem: XML element to indent.
+            level: Indentation level.
+        """
         i = "\n" + level * "  "
         if len(elem):
             if not elem.text or not elem.text.strip():
@@ -207,7 +285,14 @@ class Builder:
             elem.tail = i
 
     def __str__(self) -> str:
-        """Return the XML string of the model."""
+        """Return the XML string of the model.
+        
+        Returns:
+            str: XML string representation.
+            
+        Raises:
+            ValueError: If no model is loaded.
+        """
         if self.tree is not None:
             # Format the XML with proper indentation
             self._indent_xml(self.root)
@@ -216,14 +301,26 @@ class Builder:
         raise ValueError(msg)
 
     def __repr__(self) -> str:
-        """Return the XML string of the model."""
+        """Return the XML string of the model.
+        
+        Returns:
+            str: XML string representation.
+        """
         return self.__str__()
 
     def __len__(self) -> int:
-        """Return the number of elements in the model."""
+        """Return the number of elements in the model.
+        
+        Returns:
+            int: Number of elements in the model.
+        """
         return len(self.root) if self.root is not None else 0
 
     @property
-    def xml(self):
-        """XML string of the model."""
+    def xml(self) -> str:
+        """XML string of the model.
+        
+        Returns:
+            str: XML string representation.
+        """
         return str(self)
