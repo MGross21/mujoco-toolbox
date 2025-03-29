@@ -660,6 +660,16 @@ class Wrapper:
 
         # Select subset of frames
         return self._frames[start:stop]
+    
+    def _skip_rendering(self) -> None:
+        try:
+            if not hasattr(self, "_frames") or self._frames is None:
+                msg = "Simulation has not been rendered yet. Running the simulation now..."
+                raise AttributeError(msg)
+        except AttributeError as e:
+            _print_warning(str(e))
+            self.run(render=True)
+
 
     def show(
         self,
@@ -680,6 +690,8 @@ class Wrapper:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
+        self._skip_rendering() # Enables rendering if not already done
+            
         try:
             # Extract frames
             subset_frames = self._validate_and_extract_frames(
@@ -729,6 +741,9 @@ class Wrapper:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
+
+        self._skip_rendering() # Enables rendering if not already done
+
         try:
             # Extract frames
             subset_frames = self._validate_and_extract_frames(
