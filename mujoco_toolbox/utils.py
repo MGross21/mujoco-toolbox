@@ -89,7 +89,7 @@ class _Platform:
         self.ARCHITECTURE = platform.architecture()[0]
         self.PYTHON_IMPLEMENTATION = platform.python_implementation()
         self.RESOLUTION, self.GUI_ENABLED = self.get_resolution()
-        self.NUM_MONITORS = monitors()
+        self.NUM_MONITORS = self.monitors()
 
     def __repr__(self) -> str:
         return (
