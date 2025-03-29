@@ -63,7 +63,25 @@ class Wrapper:
         self.duration = duration
         self.fps = fps
         self.data_rate = data_rate
-        self.resolution = resolution if not 
+
+        # (Trying to Fix #8)
+        # https://github.com/MGross21/mujoco-toolbox/issues/8
+        if resolution is None:
+            # Extract resolution from XML if available
+            root = ET.fromstring(self.xml)
+            global_tag = root.find(".//global")
+            if global_tag is not None:
+                width = int(global_tag.get("offwidth", 400))
+                height = int(global_tag.get("offheight", 300))
+            else:
+                width, height = (400, 300)
+            self.resolution = width, height
+        else:
+            self.resolution = resolution    
+
+        # self.resolution = resolution or (self._model.vis.Global.offwidth, 
+        #                                 self._model.vis.Global.offheight)
+        
         self.controller = controller
 
         # Predefined simulation parameters but can be overridden
