@@ -540,7 +540,7 @@ class Wrapper:
                     if render and renderer and step % render_interval == 0:
                         renderer.update_scene(d, camera if camera else -1)
 
-                        frames[frame_count] = renderer.render()
+                        frames[frame_count] = renderer.render() # copy not required
                         frame_count += 1  # Increment frame count after capturing the frame
 
                     step += 1
