@@ -53,7 +53,7 @@ def mujoco_standard():
 
 def mujoco_tbx():
     start_time = time.time()
-    mjtb.Wrapper(MODEL, DURATION, DATA_RATE).run()
+    mjtb.Wrapper(MODEL, duration=DURATION, data_rate=DATA_RATE).run(multi_thread=False)
     end_time = time.time()
     return end_time - start_time
 
