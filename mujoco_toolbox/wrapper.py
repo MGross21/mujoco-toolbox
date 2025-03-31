@@ -550,7 +550,7 @@ class Wrapper:
         finally:
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
-            self._frames = [f for f in frames[:frame_count] if f is not None]
+            self._frames = [f for f in frames[:frame_count-1] if f is not None]
             # if interactive:
             #     gui.join()
         return self
