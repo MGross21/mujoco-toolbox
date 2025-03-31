@@ -77,14 +77,15 @@ ffmpeg -version
 import mujoco_toolbox as mjtb
 
 mjtb.Wrapper("path/to/your/xml").run(render=True).save()
-```
 
-*Bypass shorthand. NOTE: Warning will be triggered*
-```python
+# Shorthand Bypass
+# Will use run(render=True) and warning will be displayed 
 mjtb.Wrapper("path/to/your/xml").save()
 ```
 
-## Pre-Made Controllers
+## Controllers
+
+### Pre-Made
 
 ```python
 from mujoco_toolbox.controllers import (
@@ -94,7 +95,15 @@ from mujoco_toolbox.controllers import (
     sin,
     step,
 )
-# Wrapper can use custom controllers as well!
+```
+
+### Custom
+
+```python
+
+def foo(model: MjModel, data: MjData,**kwargs):
+    # Perform logic based on model/data objects
+    # ie. PID Controller
 ```
 
 ## Instantiating a Digital Twin
@@ -106,19 +115,45 @@ from mujoco_toolbox.controllers import real_time
 with mjtb.Wrapper("path/to/xml", controller=real_time) as digitaltwin:
     digitaltwin.liveView(show_menu=False) # Open the simulation window
     while True:
-        digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"_mjData_kwargs_here_": value})
+        digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"Mujoco MjData Object": value})
 ```
+
+See `MjData` objects [here](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata)
 
 ## File Support
 
 ### XML / MJCF (Native)
 
+```python
+import mujoco_toolbox as mjtb
+
+mjtb.Wrapper("path/to/xml")
+```
+
 ![Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
 
 ### URDF
 
+```python
+import mujoco_toolbox as mjtb
+
+mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files")
+```
+
 ![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
 
 ## Merging Capabilities
+
+```python
+from mujoco_toolbox import Builder, Wrapper
+
+Obj = Builder("path/to/xml_1") + Builder("path/to/xml_2") + ...
+# OR
+Obj = Builder("path/to/xml_1","path/to/xml_2", ... )
+
+# Then
+Wrapper(Obj.xml)
+
+```
 
 ![Humanoid in Box](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/human_in_box.png)
