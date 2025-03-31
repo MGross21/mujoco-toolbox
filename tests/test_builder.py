@@ -83,11 +83,6 @@ def test_builder_str_representation(builder) -> None:
     assert xml_str.startswith("<mujoco>"), "String representation does not start with <mujoco>"
     assert "</mujoco>" in xml_str, "String representation does not end with </mujoco>"
 
-def test_builder_property_xml(builder) -> None:
-    xml_str = builder.xml
-    assert xml_str.startswith("<mujoco>"), "XML property does not start with <mujoco>"
-    assert "</mujoco>" in xml_str, "XML property does not end with </mujoco>"
-
 def test_builder_invalid_input() -> None:
     with pytest.raises(ValueError, match="Input is required to initialize the Builder"):
         mjtb.Builder()

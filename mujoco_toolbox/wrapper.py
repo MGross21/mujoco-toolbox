@@ -19,6 +19,7 @@ import trimesh
 import yaml
 
 from .utils import _print_warning
+from .builder import Builder
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -53,7 +54,7 @@ class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
     def __init__(self,
-                 xml: str,
+                 xml: str | Builder,
                  *,
                  duration: int = 10,
                  data_rate: int = 100,
@@ -79,6 +80,8 @@ class Wrapper:
         """
         # Pre-load mesh
         self._meshdir = meshdir
+        if isinstance(xml, Builder):
+            xml = xml.__str__() # May Not be necessary
         self._load_model(xml, **kwargs)
 
         self.duration = duration

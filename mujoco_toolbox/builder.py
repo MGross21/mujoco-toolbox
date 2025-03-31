@@ -354,13 +354,3 @@ class Builder:
 
         """
         return len(self.root) if self.root is not None else 0
-
-    @property
-    def xml(self) -> str:
-        """XML string of the model.
-
-        Returns:
-            str: XML string representation.
-
-        """
-        return str(self)

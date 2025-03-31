@@ -152,7 +152,7 @@ Obj = Builder("path/to/xml_1") + Builder("path/to/xml_2") + ...
 Obj = Builder("path/to/xml_1","path/to/xml_2", ... )
 
 # Then
-Wrapper(Obj.xml)
+Wrapper(Obj)
 
 ```
 
