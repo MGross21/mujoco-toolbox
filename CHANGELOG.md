@@ -1,9 +1,32 @@
 # CHANGELOG
 
 
-## Unreleased
+## v0.5.0 (2025-04-03)
+
+### Bug Fixes
+
+- Adjust frame count in wrapper to exclude the last frame
+  ([`0d5919f`](https://github.com/MGross21/mujoco-toolbox/commit/0d5919f807474fd2f7b7d66a5d05a5296200ad61))
+
+- Update controller method calls and remove unnecessary copy in rendering
+  ([`e069007`](https://github.com/MGross21/mujoco-toolbox/commit/e069007ebd81ff3fa799e65976815385a33d494a))
+
+- Update mesh directory path in UR5e model XML
+  ([`abd2220`](https://github.com/MGross21/mujoco-toolbox/commit/abd22201e6fac08f22f7a505fe356044675d2bdf))
+
+- Update mujoco_tbx to use keyword arguments for clarity
+  ([`54ee0f6`](https://github.com/MGross21/mujoco-toolbox/commit/54ee0f6ae5772b2a2d5eb472037ba4ffdc30d944))
+
+- Update Wrapper to accept Builder instances and adjust README example
+  ([`f57d7d3`](https://github.com/MGross21/mujoco-toolbox/commit/f57d7d37dc41ba379d12c5d23db210149665dbc7))
 
 ### Chores
+
+- Update pyproject.toml for versioning and dependencies organization
+  ([`a4e8f35`](https://github.com/MGross21/mujoco-toolbox/commit/a4e8f356b2ec48270abc2333f2c4ae9a70281481))
+
+- Update version and changelog
+  ([`8a88875`](https://github.com/MGross21/mujoco-toolbox/commit/8a888751fb3d6df95924a5aa9e44a73a2b8a2e2a))
 
 - Update version and changelog
   ([`162b9f8`](https://github.com/MGross21/mujoco-toolbox/commit/162b9f8fd3b075a753ca66a338dc7ba2cef17380))
@@ -29,7 +52,20 @@
 - Update version and changelog
   ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
 
+### Documentation
+
+- Enhance README with clearer examples and structure for controllers and merging capabilities
+  ([`3b1954c`](https://github.com/MGross21/mujoco-toolbox/commit/3b1954c7d2b553f862cc7e3ee2bea04fa7af5273))
+
+### Features
+
+- Implement Loader class for loading MuJoCo models from XML and URDF files
+  ([`b13403b`](https://github.com/MGross21/mujoco-toolbox/commit/b13403b394074cbbf29f61a7a94d2c889600dcf3))
+
 ### Refactoring
+
+- Change monitors method to static method in _Platform class
+  ([`a0f6e37`](https://github.com/MGross21/mujoco-toolbox/commit/a0f6e37f68dde8eba12ca7b57db6aa27130aa8d3))
 
 - Remove unused scripts
   ([`235aa68`](https://github.com/MGross21/mujoco-toolbox/commit/235aa68ba2a30243b062956691d22ab393d23edb))
@@ -166,6 +202,9 @@
 
 
 ## v0.3.0 (2025-03-25)
+
+
+## v0.2.3 (2025-03-24)
 
 
 ## v0.2.2 (2025-03-23)

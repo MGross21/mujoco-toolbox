@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "mujoco-toolbox"
-version = "0.4.5"
+version = "0.5.0"
 requires-python = ">=3.10,<4.0"
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
@@ -74,6 +74,14 @@ pylint = "^3.3.4"
 python-semantic-release = "^9.21.0"
 python-dotenv = "^1.1.0"
 
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+
+[tool.semantic_release.branches.dev]
+match = "dev"
+prerelease = false
+
 [tool.semantic_release]
 version_variables = [
     "pyproject.toml:version",
@@ -81,7 +89,6 @@ version_variables = [
     "CITATION.cff:version",
 
 ]
-branch = "main"
 changelog_file = "CHANGELOG.md"
 build_command = "poetry build"
 dist_path = "dist/"
