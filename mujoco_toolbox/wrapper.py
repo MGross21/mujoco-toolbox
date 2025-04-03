@@ -20,6 +20,7 @@ import yaml
 
 from .utils import _print_warning
 from .builder import Builder
+from .loader import Loader
 
 assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
 assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
@@ -54,13 +55,14 @@ class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
     def __init__(self,
-                 xml: str | Builder,
+                 xml: str,
                  *,
                  duration: int = 10,
                  data_rate: int = 100,
                  fps: int = 30,
                  resolution: tuple[int, int] | None = None,
                  initial_conditions: dict[str, list] | None = None,
+                 keyframe: int | None = None,
                  controller: Callable[[mjModel, mjData, Any], None] | None = None,
                  meshdir: str = "meshes/",
                  **kwargs: Any) -> None:
@@ -78,32 +80,19 @@ class Wrapper:
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         """
-        # Pre-load mesh
+        # Load the model
         self._meshdir = meshdir
-        if isinstance(xml, Builder):
-            xml = xml.__str__() # May Not be necessary
-        self._load_model(xml, **kwargs)
+        loader = Loader(xml=xml, meshdir=meshdir)
+        self.xml = loader.xml
+        self._model = loader.model
 
+        # Simulation Parameters
         self.duration = duration
         self.fps = fps
         self.data_rate = data_rate
-
-        # (Trying to Fix #8)
-        # https://github.com/MGross21/mujoco-toolbox/issues/8
-        if resolution is None:
-            # Extract resolution from XML if available
-            root = ET.fromstring(self.xml)
-            global_tag = root.find(".//global")
-            if global_tag is not None:
-                width = int(global_tag.get("offwidth", 400))
-                height = int(global_tag.get("offheight", 300))
-            else:
-                width, height = (400, 300)
-            self.resolution = width, height
-        else:
-            self.resolution = resolution
-
         self.controller = controller
+
+        self.resolution = resolution or self._extract_resolution()
 
         # Predefined simulation parameters but can be overridden
         # TODO: Currently Causing Bugs when occluded from XML Code
@@ -111,160 +100,42 @@ class Wrapper:
         self.gravity = kwargs.get("gravity", self._model.opt.gravity)
 
         self._data = mujoco.MjData(self._model)
-        self.init_conditions = initial_conditions or {} # MUST BE AFTER DATA INITIALIZATION
+        self._keyframe = keyframe
+        self.init_conditions = initial_conditions or {} #Must be after data is initialized
 
-        # Auto-Populate the names of bodies, joints, and actuators
-        self._body_names = [self._model.body(i).name for i in range(self._model.nbody)]
-        self._geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
-        self._joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
-        self._actuator_names = [
-            self._model.actuator(i).name for i in range(self._model.nu)
-        ]
+        self._initialize_names()
 
-    def _load_model(self, xml: str, **kwargs: Any) -> None:
-        """Load a MuJoCo model from an XML file or a string."""
-        try:
-            # Check if the path exists
-            if os.path.exists(xml):
-                # Convert the XML path to an absolute path
-                xml_path = os.path.abspath(xml)
-                # Extract and validate file extension
-                extension = os.path.splitext(xml_path)[1].lower()[1:]
+    def _initialize_names(self) -> None:
+        """Populate body, joint, and actuator names."""
+        self.body_names = [self._model.body(i).name for i in range(self._model.nbody)]
+        self.geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
+        self.joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
+        self.actuator_names = [self._model.actuator(i).name for i in range(self._model.nu)]
 
-                if extension == "xml":
-                    self._load_xml_file(xml_path)
-                elif extension == "urdf":
-                    self._load_urdf_file(xml_path, **kwargs)
-                else:
-                    msg = f"Unsupported file extension: '{extension}'. Please provide an XML or URDF file."
-                    raise ValueError(msg)
-            else:
-                # If the file doesn't exist, assume it's a string and attempt to load it as XML
-                try:
-                    ET.fromstring(xml)  # Try parsing the string as XML
-                    self._load_xml_string(xml)
-                except ET.ParseError:
-                    msg = f"Model not able to be loaded from the provided XML string: {xml}"
-                    raise ValueError(msg)
-        except FileNotFoundError as e:
-            msg = f"Failed to load the MuJoCo model: {e}"
-            raise FileNotFoundError(msg) from e
-        except ValueError as e:
-            msg = f"Invalid value encountered while loading the model: {e}"
-            raise ValueError(msg) from e
-        except Exception as e:
-            msg = f"Unexpected error while loading the MuJoCo model: {e}"
-            raise Exception(msg)
-
-    def _load_xml_file(self, xml: str, **kwargs) -> None:
-        """Load a MuJoCo model from an XML file."""
-        self._model = mujoco.MjModel.from_xml_path(xml)
-        with open(xml) as f:
-            self.xml = f.read()
-        template = kwargs.get("template")
-        if template:
-            try:
-                self.xml = self.xml.format(**template)
-            except KeyError:
-                msg = "Template key error. Ensure the template keys match the placeholders in the XML."
-                raise ValueError(msg)
-            except Exception:
-                msg = "Error formatting XML with template"
-                raise ValueError(msg)
-        self._model = mujoco.MjModel.from_xml_string(self.xml)
-
-    def _load_urdf_file(self, urdf_path: str, **kwargs: Any) -> None:
-        """Process and load a URDF file for use with MuJoCo."""
-        # BUG: Generate actuators from joints in URDF so the controller can actually work
-
-        def convert_dae_to_stl(meshdir: str) -> None:
-            """Convert all DAE files in a directory (including subdirectories) to STL."""
-            if not os.path.exists(meshdir):
-                msg = f"Directory not found: {meshdir}"
-                raise FileNotFoundError(msg)
-            for filename in os.listdir(meshdir):
-                if filename.lower().endswith(".dae"):
-                    dae_path = os.path.join(meshdir, filename)
-                    stl_path = os.path.splitext(dae_path)[0] + ".stl"
-                    try:
-                        trimesh.load_mesh(dae_path).export(stl_path)
-                        # logger.info(f"Converted: {os.path.basename(dae_path)} -> {os.path.basename(stl_path)}")
-                    except Exception:
-                        msg = f"Error converting {filename}"
-                        raise ValueError(msg)
-
-        try:
-            robot = ET.parse(urdf_path).getroot()
-            mujoco_tag = ET.Element("mujoco")
-
-            # Get main meshdir (parent directory for meshes)
-            meshdir = self._meshdir
-            if not os.path.isabs(meshdir):
-                urdf_dir = os.path.dirname(os.path.abspath(urdf_path))
-                meshdir = os.path.join(urdf_dir, meshdir)
-
-            # Ensure meshdir exists
-            if not os.path.exists(meshdir):
-                msg = f"Mesh directory not found: {meshdir}"
-                raise FileNotFoundError(msg)
-
-            # Auto-detect subdirectories with STL files
-            subdirs = [os.path.relpath(root, meshdir) for root, _, files in os.walk(meshdir) if any(f.endswith(".stl") for f in files)]
-                # logger.info(f"Auto-detected subdirectories: {subdirs}")
-
-            # Convert relative subdir paths to absolute based on meshdir
-            full_meshdirs = [
-                os.path.join(meshdir, subdir) if not os.path.isabs(subdir) else subdir
-                for subdir in subdirs
-            ]
-
-            # Add <compiler> tag with the main meshdir (required for MuJoCo)
-            compiler_attrs = {
-                "meshdir": meshdir,  # Use the main meshdir
-                "balanceinertia": kwargs.get("balanceinertia", "true"),
-                "discardvisual": "false",
-            }
-            ET.SubElement(mujoco_tag, "compiler", **compiler_attrs)
-
-            # Create <asset> tag (required for MuJoCo)
-            asset_tag = ET.SubElement(mujoco_tag, "asset")
-
-
-            # Process all valid mesh directories
-            for full_meshdir in full_meshdirs:
-                if os.path.exists(full_meshdir):
-                    convert_dae_to_stl(full_meshdir)  # Convert DAE to STL in the origin directory
-
-                    # Walk through all files in the directory
-                    for root, _, files in os.walk(full_meshdir):
-                        for filename in files:
-                            if filename.lower().endswith(".stl"):
-                                relative_dir = os.path.relpath(root, meshdir)  # Extract subdir name
-                                mesh_name = f"{os.path.splitext(filename)[0]}_{relative_dir.replace(os.sep, '_')}"  # Format: base_visual
-                                mesh_file_relative = os.path.join(relative_dir, filename)
-                                ET.SubElement(asset_tag, "mesh", name=mesh_name, file=mesh_file_relative)
-
-            robot.insert(0, mujoco_tag)
-            self.xml = ET.tostring(robot, encoding="unicode").replace(".dae", ".stl")
-            self._model = mujoco.MjModel.from_xml_string(self.xml)
-        except Exception as e:
-            msg = f"Failed to process URDF file: {e}"
-            raise ValueError(msg)
-
-    def _load_xml_string(self, xml: str) -> None:
-        """Load a MuJoCo model from an XML string."""
-        try:
-            self._model = mujoco.MjModel.from_xml_string(xml)
-            self.xml = xml
-        except Exception as e:
-            msg = f"Failed to load the MuJoCo model from XML string: {e}"
-            raise ValueError(msg)
+    def _extract_resolution(self) -> tuple[int, int]:
+        root = ET.fromstring(self.xml)
+        global_tag = root.find(".//global")
+        return (int(global_tag.get("offwidth", 400)), int(global_tag.get("offheight", 300))) if global_tag else (400, 300)
 
     def reload(self) -> "Wrapper":
-        """Reload the model and data objects."""
-        # TODO: Move all model loading to Builder Method
-        self._model = mujoco.MjModel.from_xml_string(self.xml)
+        """Reload the model and data objects.
+        
+        Returns:
+            Wrapper: Self for method chaining.
+        """
+        # Use the Loader to handle model reloading
+        loader = Loader(self.xml, meshdir=self._meshdir)
+        self._model = loader.model
         self._data = mujoco.MjData(self._model)
+        
+        # Reinitialize names and apply initial conditions
+        self._initialize_names()
+        
+        # Apply initial conditions
+        for key, value in getattr(self, '_initcond', {}).items():
+            if hasattr(self._data, key):
+                setattr(self._data, key, value)
+        
         return self
 
     def __str__(self) -> str:
@@ -276,12 +147,12 @@ class Wrapper:
             f"  Duration: {self.duration}s [fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
             f"  Resolution: {self._width}W x {self._height}H\n"
-            f"  Bodies ({self.model.nbody}): {', '.join(self._body_names[:5])}"
-            f"{' ...' if len(self._body_names) > 5 else ''}\n"
-            f"  Joints ({self.model.njnt}): {', '.join(self._joint_names[:5])}"
-            f"{' ...' if len(self._joint_names) > 5 else ''}\n"
-            f"  Actuators ({self.model.nu}): {', '.join(self._actuator_names[:5])}"
-            f"{' ...' if len(self._actuator_names) > 5 else ''}\n"
+            f"  Bodies ({self.model.nbody}): {', '.join(self.body_names[:5])}"
+            f"{' ...' if len(self.body_names) > 5 else ''}\n"
+            f"  Joints ({self.model.njnt}): {', '.join(self.joint_names[:5])}"
+            f"{' ...' if len(self.joint_names) > 5 else ''}\n"
+            f"  Actuators ({self.model.nu}): {', '.join(self.actuator_names[:5])}"
+            f"{' ...' if len(self.actuator_names) > 5 else ''}\n"
             f"  Controller: {self.controller.__name__ if self.controller else None}\n"
             f")"
         )
@@ -304,6 +175,18 @@ class Wrapper:
     def data(self) -> mjData:
         """Read-only property to access the MjData single-step object. Use `captured_data` to access the entire simulation data."""
         return self._data
+    
+    @property
+    def keyframe(self) -> int | None:
+        """Keyframe index for the simulation."""
+        return self._keyframe
+    
+    @keyframe.setter
+    def keyframe(self, value: int | None) -> None:
+        if value is not None and not isinstance(value, int):
+            msg = "Keyframe must be an integer."
+            raise ValueError(msg)
+        self._keyframe = value
 
     @property
     def captured_data(self) -> dict[str, np.ndarray]:
@@ -494,8 +377,10 @@ class Wrapper:
             msg = "Multi-threading is not yet implemented."
             raise NotImplementedError(msg)
         try:
-            mujoco.set_mjcb_control(self._controller) if self._controller else None
             mujoco.mj_resetData(self._model, self._data)
+            mujoco.set_mjcb_control(self._controller) if self._controller else None
+            mujoco.mj_resetDataKeyframe(self._model, self._data, self._keyframe) if self._keyframe else None
+
 
             # self._frames = [None] * (self.duration * self.fps + 1)
             frames = []
@@ -793,7 +678,7 @@ class Wrapper:
             np.ndarray: The data for the specified body.
 
         """
-        if body_name not in self._body_names:
+        if body_name not in self.body_names:
             msg = f"Body '{body_name}' not found in the model."
             raise ValueError(msg)
         body_id = self._model.body(body_name).id
