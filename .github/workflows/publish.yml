@@ -1,113 +1,55 @@
-name: PyPI
+name: Publish
+description: |
+  This workflow is triggered on version tag pushes and handles the release process.
+  It uses Semantic Release to automatically determine the next version based on commit messages.
+  It also publishes the package to PyPI and creates a changelog.
+  The workflow is designed to be triggered only on version tags (e.g., v1.2.3).
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
-    branches:
-      - main
     tags:
-      - v*.*.*  # Trigger on version tag pushes (e.g., v1.2.3)
-    paths-ignore:
-      - 'pyproject.toml'  # Ignore version changes in pyproject.toml
-      - 'CHANGELOG.md'    # Ignore changelog updates
-  workflow_dispatch:  # Allows manual trigger
+      - "v*.*.*"  # Only run on version tags (e.g., v1.2.3)
+  workflow_dispatch:
 
 permissions:
-  contents: write
-  id-token: write
+  contents: write      # Needed for changelog commit and tag creation (if used)
+  id-token: write      # Needed for trusted publishing to PyPI
   packages: write
   pull-requests: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
-    # Skip this workflow if the commit message contains [skip ci]
-    if: '!contains(github.event.head_commit.message, "[skip ci]")'
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: false  # Disable credentials from checkout action
+          fetch-depth: 0  # Ensure all history and tags are available
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: python-3.10-pip-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            python-3.10-pip-
-
-      - name: Install Poetry and dependencies
+      - name: Install Poetry & project dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install --upgrade pip
           pip install poetry
           poetry config virtualenvs.in-project true
-          poetry install --no-interaction
+          poetry install --no-root --no-interaction
+          pip install python-semantic-release
 
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://github-actions:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
 
-      - name: Get current version from pyproject.toml
-        id: get_version
-        run: |
-          VERSION=$(poetry version -s)
-          echo "Current version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_ENV  # Set output for current version
-
-      - name: Extract version from Git tag
-        id: tag_version
-        run: |
-          VERSION_TAG=${GITHUB_REF##*/}  # Extract version from the tag (e.g., "v0.3.4")
-          echo "Version from Git tag: $VERSION_TAG"
-          echo "tag_version=$VERSION_TAG" >> $GITHUB_OUTPUT   # Set output for tag version
-
-      - name: Compare versions and determine release
-        id: release
-        run: |
-          # Get the latest version from semantic-release
-          LATEST_VERSION=$(poetry run semantic-release version --print)
-          echo "Latest version from semantic-release: $LATEST_VERSION"
-
-          # Extract the tag version to compare
-          VERSION_TAG=${{ steps.tag_version.outputs.tag_version }}
-          echo "Version from Git tag: $VERSION_TAG"
-
-          # Compare current version with the tag version
-          if [ "$VERSION_TAG" != "$LATEST_VERSION" ]; then
-            echo "run_release=true" >> $GITHUB_ENV  # Set flag to true if version needs updating
-          else
-            echo "run_release=false" >> $GITHUB_ENV  # Skip release if versions match
-          fi
-
-      - name: Commit and Publish
-        if: env.run_release == 'true'
+      - name: Run Semantic Release (tag-based)
         env:
-          # Set the tokens as environment variables for secure authentication
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}  # GitHub token for authentication
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}  # PyPI token for publishing
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: |
-          # Run semantic-release to bump version, update changelog, and publish release
-          poetry run semantic-release version  # Update version in pyproject.toml
-          poetry run semantic-release changelog  # Update changelog
-          
-          # Commit the changes with [skip ci] to prevent workflow loop
-          git commit -am "chore: update version and changelog [skip ci]"
-          
-          # Push the changes to the main branch
-          git push
-          
-          # Publish the release (to PyPI, GitHub, etc.)
-          poetry run semantic-release -v --strict publish
+          poetry run semantic-release publish
