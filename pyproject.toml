@@ -80,7 +80,7 @@ prerelease = false
 
 [tool.semantic_release.branches.dev]
 match = "dev"
-prerelease = false
+prerelease = true
 
 [tool.semantic_release]
 version_variables = [
