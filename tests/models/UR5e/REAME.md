@@ -1,0 +1,1 @@
+Source: https://github.com/google-deepmind/mujoco_menagerie/tree/main/universal_robots_ur5e
