@@ -198,7 +198,7 @@ class Wrapper:
     def __enter__(self) -> "Wrapper":  # noqa: D105
         return self
 
-    def __exit__(self: "Wrapper", **kwargs) -> None:  # noqa: ANN001, D105
+    def __exit__(self: "Wrapper", *args, **kwargs) -> None:  # noqa: ANN001, D105
         mujoco.set_mjcb_control(None)
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
