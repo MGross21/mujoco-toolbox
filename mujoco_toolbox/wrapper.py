@@ -158,7 +158,7 @@ class Wrapper:
         self._initialize_names()  # Reinitialize names and apply ic's
 
         # Apply initial conditions
-        for key, value in getattr(self, "_initcond", {}).items():
+        for key, value in getattr(self, "init_conditions", {}).items():
             if hasattr(self._data, key):
                 setattr(self._data, key, value)
 
@@ -198,7 +198,7 @@ class Wrapper:
     def __enter__(self) -> "Wrapper":  # noqa: D105
         return self
 
-    def __exit__(self: "Wrapper", _, __, ___) -> None:  # noqa: ANN001, D105
+    def __exit__(self: "Wrapper", **kwargs) -> None:  # noqa: ANN001, D105
         mujoco.set_mjcb_control(None)
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
@@ -309,12 +309,12 @@ class Wrapper:
         )
 
     @property
-    def initial_conditions(self):
+    def initial_conditions(self) -> dict[str, list]:
         """Initial conditions for the simulation."""
-        return self._initcond
+        return self.init_conditions
 
     @initial_conditions.setter
-    def initial_conditions(self, values: dict) -> None:
+    def initial_conditions(self, values: dict[str, list]) -> None:
         if not isinstance(values, dict):
             msg = "Initial conditions must be a dictionary."
             raise TypeError(msg)
@@ -332,7 +332,7 @@ class Wrapper:
             )
             raise ValueError(msg)
 
-        self._initcond = values
+        self.init_conditions = values
 
         # Apply initial conditions directly when set
         for key, value in values.items():
@@ -461,7 +461,7 @@ class Wrapper:
 
             # Pre-allocate frame length
             max_frames = int(self._duration / self.ts)
-            frames = [None] * max_frames
+            frames = np.empty((max_frames, *self.resolution, 3), dtype=np.uint8)
             frame_count = 0
 
             if multi_thread:
@@ -506,7 +506,7 @@ class Wrapper:
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
             self._frames = [
-                f for f in frames[: frame_count - 1] if f is not None
+                f for f in frames[:frame_count] if isinstance(f, np.ndarray)
             ]
             # if interactive:
             #     gui.join()
@@ -759,7 +759,7 @@ class Wrapper:
 
     def body_data(
         self, body_name: str, data_name: str | None = None
-    ) -> np.ndarray:
+    ) -> dict[str, np.ndarray] | np.ndarray:
         """Get the data for a specific body in the simulation.
 
         Args:
@@ -767,7 +767,7 @@ class Wrapper:
             data_name (str): The name of the data to retrieve.
 
         Returns:
-            np.ndarray: The data for the specified body.
+            dict[str, np.ndarray] | np.ndarray: The data for the specified body.
 
         """
         if body_name not in self.body_names:
