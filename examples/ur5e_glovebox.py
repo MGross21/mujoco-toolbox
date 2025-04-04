@@ -15,4 +15,4 @@ with Wrapper(build) as env:
     mujoco.mj_resetDataKeyframe(env._model, env._data, 0)
 
     # print(env.body_names)
-    env.liveView(show_menu=False)
+    env.launch(show_menu=False)

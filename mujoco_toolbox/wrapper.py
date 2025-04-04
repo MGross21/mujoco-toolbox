@@ -1,4 +1,10 @@
-import os
+"""
+Wrapper module for managing MuJoCo simulations.
+
+This module provides a `Wrapper` class to handle MuJoCo simulations, including
+loading models, running simulations, capturing data, and rendering frames.
+"""
+
 import sys
 import threading
 import time
@@ -6,7 +12,6 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable
 from contextlib import nullcontext
-from functools import lru_cache
 from multiprocessing import cpu_count
 from typing import Any, TypeAlias
 
@@ -15,19 +20,16 @@ import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
-import trimesh
+from pathlib import Path
 import yaml
 
-from .utils import _print_warning
-from .builder import Builder
 from .loader import Loader
+from .utils import _print_warning
 
-assert sys.version_info >= (3, 10), "This code requires Python 3.10.0 or later."
-assert mujoco.__version__ >= "2.0.0", "This code requires MuJoCo 2.0.0 or later."
+mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
+mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
 
-mjModel: TypeAlias = mujoco.MjModel
-mjData: TypeAlias = mujoco.MjData
-
+# pylint: disable=E1101
 mujoco_object_types = [
     mujoco.mjtObj.mjOBJ_BODY,
     mujoco.mjtObj.mjOBJ_JOINT,
@@ -51,34 +53,54 @@ mujoco_object_types = [
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
 
+
+class SimulationError(Exception):
+    """Custom exception for simulation-related errors."""
+
+    pass
+
+
+class SimulationWarning(Warning):
+    """Custom warning for simulation-related issues."""
+
+    pass
+
+
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
-    def __init__(self,
-                 xml: str,
-                 *,
-                 duration: int = 10,
-                 data_rate: int = 100,
-                 fps: int = 30,
-                 resolution: tuple[int, int] | None = None,
-                 initial_conditions: dict[str, list] | None = None,
-                 keyframe: int | None = None,
-                 controller: Callable[[mjModel, mjData, Any], None] | None = None,
-                 meshdir: str = "meshes/",
-                 **kwargs: Any) -> None:
-        """Initialize the Wrapper class for managing MuJoCo simulations.
+    # pylint: disable=E1101
+    def __init__(
+        self,
+        xml: str,
+        *,
+        duration: int = 10,
+        data_rate: int = 100,
+        fps: int = 30,
+        resolution: tuple[int, int] | None = None,
+        initial_conditions: dict[str, list] | None = None,
+        keyframe: int | None = None,
+        controller: Callable[[mjModel, mjData, Any], None] | None = None,  # noqa: E501
+        meshdir: str = "meshes/",
+        **kwargs: Any,
+    ) -> None:  # noqa: ANN401
+        """
+        Initialize the Wrapper class for managing MuJoCo simulations.
 
         Args:
-            xml (str): Path to the XML or URDF file, or an XML string defining the model.
+            xml (str): Path to the XML file or string defining the model.
             duration (int, optional): Duration of the simulation in seconds. Defaults to 10.
             data_rate (int, optional): Data capture rate in frames per second. Defaults to 100.
             fps (int, optional): Frames per second for rendering. Defaults to 30.
-            resolution (tuple[int, int], optional): Resolution of the simulation in pixels (width, height). Defaults to (400, 300).
-            initial_conditions (dict[str, list] | None, optional): Initial conditions for the simulation. Defaults to None.
-            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom controller function for the simulation. Defaults to None.
-            meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes".
+            resolution (tuple[int, int] | None, optional): Resolution of the simulation
+            in pixels (width, height). If None, defaults to values from the XML or (400, 300).
+            initial_conditions (dict[str, list] | None, optional): Initial conditions for the simulation.
+            Defaults to an empty dictionary.
+            keyframe (int | None, optional): Keyframe index for resetting the simulation. Defaults to None.
+            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom controller function
+            for the simulation. Defaults to None.
+            meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes/".
             **kwargs (Any): Additional keyword arguments for model configuration.
-
         """
         # Load the model
         self._meshdir = meshdir
@@ -95,72 +117,100 @@ class Wrapper:
         self.resolution = resolution or self._extract_resolution()
 
         # Predefined simulation parameters but can be overridden
-        # TODO: Currently Causing Bugs when occluded from XML Code
+        # TODO(#8): @MGross21 Currently Causing Bugs when occluded from XML
         self.ts = kwargs.get("ts", self._model.opt.timestep)
         self.gravity = kwargs.get("gravity", self._model.opt.gravity)
 
         self._data = mujoco.MjData(self._model)
         self._keyframe = keyframe
-        self.init_conditions = initial_conditions or {} #Must be after data is initialized
+        self.init_conditions = initial_conditions or {}  # **after data**
+
+        # Initialize _frames and _captured_data attributes
+        self._frames: list[np.ndarray] | None = None
+        self._captured_data: _SimulationData | None = None
 
         self._initialize_names()
 
     def _initialize_names(self) -> None:
         """Populate body, joint, and actuator names."""
-        self.body_names = [self._model.body(i).name for i in range(self._model.nbody)]
-        self.geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
-        self.joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
-        self.actuator_names = [self._model.actuator(i).name for i in range(self._model.nu)]
+        self.body_names = [
+            self._model.body(i).name for i in range(self._model.nbody)
+        ]
+        self.geom_names = [
+            self._model.geom(i).name for i in range(self._model.ngeom)
+        ]
+        self.joint_names = [
+            self._model.joint(i).name for i in range(self._model.njnt)
+        ]
+        self.actuator_names = [
+            self._model.actuator(i).name for i in range(self._model.nu)
+        ]
 
     def _extract_resolution(self) -> tuple[int, int]:
-        root = ET.fromstring(self.xml)
+        root = ET.fromstring(self.xml)  # TODO: use defusedxml instead
         global_tag = root.find(".//global")
-        return (int(global_tag.get("offwidth", 400)), int(global_tag.get("offheight", 300))) if global_tag else (400, 300)
+        if global_tag:
+            offwidth = int(global_tag.get("offwidth", 400))
+            offheight = int(global_tag.get("offheight", 300))
+            return (offwidth, offheight)
+        return (400, 300)
 
-    def reload(self) -> "Wrapper":
+    def reload(self: "Wrapper") -> "Wrapper":
         """Reload the model and data objects.
-        
+
         Returns:
             Wrapper: Self for method chaining.
+
         """
         # Use the Loader to handle model reloading
         loader = Loader(self.xml, meshdir=self._meshdir)
         self._model = loader.model
         self._data = mujoco.MjData(self._model)
-        
-        # Reinitialize names and apply initial conditions
-        self._initialize_names()
-        
+
+        self._initialize_names()  # Reinitialize names and apply ic's
+
         # Apply initial conditions
-        for key, value in getattr(self, '_initcond', {}).items():
+        for key, value in getattr(self, "_initcond", {}).items():
             if hasattr(self._data, key):
                 setattr(self._data, key, value)
-        
+
         return self
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # noqa: D105
         return self._model.__str__()
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # noqa: D105
+
+        MAX_LINE_ITEMS = 5  # noqa: N806  # pylint: disable=C0103
+        # Limit the number of items displayed in the string representation
+        body_names = self.body_names[:MAX_LINE_ITEMS] + (
+            ["..."] if len(self.body_names) > MAX_LINE_ITEMS else []
+        )
+        joint_names = self.joint_names[:MAX_LINE_ITEMS] + (
+            ["..."] if len(self.joint_names) > MAX_LINE_ITEMS else []
+        )
+        actuator_names = self.actuator_names[:MAX_LINE_ITEMS] + (
+            ["..."] if len(self.actuator_names) > MAX_LINE_ITEMS else []
+        )
+        # Format the string representation
         return (
             f"{self.__class__.__name__}(\n"
-            f"  Duration: {self.duration}s [fps={self.fps}, ts={self.ts:.0e}]\n"
+            f"  Duration: {self.duration}s "
+            f"[fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
-            f"  Resolution: {self._width}W x {self._height}H\n"
-            f"  Bodies ({self.model.nbody}): {', '.join(self.body_names[:5])}"
-            f"{' ...' if len(self.body_names) > 5 else ''}\n"
-            f"  Joints ({self.model.njnt}): {', '.join(self.joint_names[:5])}"
-            f"{' ...' if len(self.joint_names) > 5 else ''}\n"
-            f"  Actuators ({self.model.nu}): {', '.join(self.actuator_names[:5])}"
-            f"{' ...' if len(self.actuator_names) > 5 else ''}\n"
-            f"  Controller: {self.controller.__name__ if self.controller else None}\n"
+            f"  Resolution: {self.resolution[0]}W x {self.resolution[1]}H\n"
+            f"  Bodies ({self.model.nbody}): {', '.join(body_names)}\n"
+            f"  Joints ({self.model.njnt}): {', '.join(joint_names)}\n"
+            f"  Actuators ({self.model.nu}): {', '.join(actuator_names)}\n"
+            f"  Controller: "
+            f"{self.controller.__name__ if self.controller else None}\n"
             f")"
         )
 
-    def __enter__(self):
+    def __enter__(self) -> "Wrapper":  # noqa: D105
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self: "Wrapper", _, __, ___) -> None:  # noqa: ANN001, D105
         mujoco.set_mjcb_control(None)
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
@@ -173,14 +223,17 @@ class Wrapper:
 
     @property
     def data(self) -> mjData:
-        """Read-only property to access the MjData single-step object. Use `captured_data` to access the entire simulation data."""
+        """Read-only property to access the MjData single-step object.
+
+        Use `captured_data` to access the entire simulation data.
+        """
         return self._data
-    
+
     @property
     def keyframe(self) -> int | None:
         """Keyframe index for the simulation."""
         return self._keyframe
-    
+
     @keyframe.setter
     def keyframe(self, value: int | None) -> None:
         if value is not None and not isinstance(value, int):
@@ -204,7 +257,10 @@ class Wrapper:
     def frames(self) -> list[np.ndarray]:
         """Read-only property to access the captured frames."""
         if not hasattr(self, "_frames") or self._frames is None:
-            msg = "No frames captured yet. Run the simulation with render=True to capture frames."
+            msg = (
+                "No frames captured yet. "
+                "Run the simulation with render=True to capture frames."
+            )
             raise AttributeError(msg) from None
         return self._frames
 
@@ -215,6 +271,7 @@ class Wrapper:
             self._frames.clear()
         self._frames = None
         import gc
+
         gc.collect()
 
     @property
@@ -223,7 +280,7 @@ class Wrapper:
         return self._duration
 
     @duration.setter
-    def duration(self, value) -> None:
+    def duration(self, value: float) -> None:
         if value < 0:
             msg = "Duration must be greater than zero."
             raise ValueError(msg)
@@ -235,7 +292,7 @@ class Wrapper:
         return self._fps
 
     @fps.setter
-    def fps(self, value) -> None:
+    def fps(self, value: float) -> None:
         if value < 0:
             msg = "FPS must be greater than zero."
             raise ValueError(msg)
@@ -243,12 +300,14 @@ class Wrapper:
 
     @property
     def resolution(self) -> tuple[int, int]:
-        """Resolution of the simulation in pixels."""
-        return (self._model.vis.Global.offwidth,
-                self._model.vis.Global.offheight)
+        """Resolution of the simulation in pixels (w,h)."""
+        return (
+            self._model.vis.Global.offwidth,
+            self._model.vis.Global.offheight,
+        )
 
     @resolution.setter
-    def resolution(self, values) -> None:
+    def resolution(self, values: tuple[int, int]) -> None:
         if not (isinstance(values, tuple) and len(values) == 2):
             msg = "Resolution must be a tuple of width and height."
             raise ValueError(msg)
@@ -256,10 +315,10 @@ class Wrapper:
             msg = "Resolution must be at least 1x1 pixels."
             raise ValueError(msg)
 
-        self._width, self._height = map(int, values)
         # Update the model's visual settings to match the new resolution
-        self._model.vis.Global.offwidth = self._width
-        self._model.vis.Global.offheight = self._height
+        self._model.vis.Global.offwidth, self._model.vis.Global.offheight = (
+            map(int, values)
+        )
 
     @property
     def initial_conditions(self):
@@ -267,15 +326,22 @@ class Wrapper:
         return self._initcond
 
     @initial_conditions.setter
-    def initial_conditions(self, values) -> None:
+    def initial_conditions(self, values: dict) -> None:
         if not isinstance(values, dict):
             msg = "Initial conditions must be a dictionary."
-            raise ValueError(msg)
+            raise TypeError(msg)
 
-        invalid_keys = [key for key in values if not hasattr(mujoco.MjData(self._model), key)]
+        invalid_keys = [
+            key
+            for key in values
+            if not hasattr(mujoco.MjData(self._model), key)
+        ]
         if invalid_keys:
-            _SimulationData._get_public_keys(self._data)
-            msg = f"Invalid initial condition attributes: {', '.join(invalid_keys)}"
+            _SimulationData.get_public_keys(self._data)
+            msg = (
+                "Invalid initial condition attributes: "
+                f"{', '.join(invalid_keys)}"
+            )
             raise ValueError(msg)
 
         self._initcond = values
@@ -305,7 +371,7 @@ class Wrapper:
         return self._model.opt.timestep
 
     @ts.setter
-    def ts(self, value) -> None:
+    def ts(self, value: int) -> None:
         if value <= 0:
             msg = "Timestep must be greater than 0."
             raise ValueError(msg)
@@ -314,17 +380,15 @@ class Wrapper:
     @property
     def data_rate(self) -> int:
         """Data rate of the simulation in frames per second."""
-        try:
-            return self._dr
-        except AttributeError:
-            _print_warning(f"Use '{self.run.__name__}' first in order to access this value.")
-            return None
+        return self._dr
 
     @data_rate.setter
     def data_rate(self, value: int) -> None:
         if isinstance(value, float) and not isinstance(value, int):
             value = round(value)
-            _print_warning(f"Data rate must be an integer. Rounding to the nearest integer ({value}).")
+            _print_warning(
+                f"Data rate must be an integer. Rounding to the nearest integer ({value})."
+            )
         if value <= 0:
             msg = "Data rate must be greater than 0."
             raise ValueError(msg)
@@ -338,21 +402,26 @@ class Wrapper:
     @property
     def gravity(self):
         """Gravity vector of the simulation."""
-        return self._model.opt.gravity
+        return self._model.opt.gravity # pylint: disable=E1101
 
     @gravity.setter
     def gravity(self, values: list | tuple | np.ndarray) -> None:
-        if not isinstance(values, (list, tuple, np.ndarray)) or len(values) != 3:
+        if (
+            not isinstance(values, (list, tuple, np.ndarray))
+            or len(values) != 3
+        ):
             msg = "Gravity must be a 3D vector."
             raise ValueError(msg)
         self._model.opt.gravity = np.array(values)
 
-    def run(self,
-            render: bool = False,
-            camera: str | None = None,
-            interactive: bool = False,
-            show_menu: bool = True,
-            multi_thread: bool = False) -> "Wrapper":
+    def run(
+        self,
+        render: bool = False,
+        camera: str | None = None,
+        interactive: bool = False,
+        show_menu: bool = True,
+        multi_thread: bool = False,
+    ) -> "Wrapper":
         """Run the simulation with optional rendering and controlled data capture.
 
         Args:
@@ -378,9 +447,12 @@ class Wrapper:
             raise NotImplementedError(msg)
         try:
             mujoco.mj_resetData(self._model, self._data)
-            mujoco.set_mjcb_control(self._controller) if self._controller else None
-            mujoco.mj_resetDataKeyframe(self._model, self._data, self._keyframe) if self._keyframe else None
-
+            mujoco.set_mjcb_control(
+                self._controller
+            ) if self._controller else None
+            mujoco.mj_resetDataKeyframe(
+                self._model, self._data, self._keyframe
+            ) if self._keyframe else None
 
             # self._frames = [None] * (self.duration * self.fps + 1)
             frames = []
@@ -390,7 +462,7 @@ class Wrapper:
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
             m, d = self._model, self._data
-            h, w = self._height, self._width
+            w, h = self.resolution
             dur = self._duration
 
             capture_rate = self.data_rate * self.ts
@@ -412,8 +484,11 @@ class Wrapper:
 
             # Mujoco Renderer
             from . import MAX_GEOM_SCALAR
+
             max_geom = m.ngeom * MAX_GEOM_SCALAR
-            _Renderer = mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
+            _Renderer = (
+                mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
+            )
 
             with _Renderer as renderer:
                 step = 0
@@ -428,7 +503,9 @@ class Wrapper:
                     if render and renderer and step % render_interval == 0:
                         renderer.update_scene(d, camera if camera else -1)
 
-                        frames[frame_count] = renderer.render() # copy not required
+                        frames[frame_count] = (
+                            renderer.render()
+                        )  # copy not required
                         frame_count += 1  # Increment frame count after capturing the frame
 
                     step += 1
@@ -438,25 +515,30 @@ class Wrapper:
         finally:
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
-            self._frames = [f for f in frames[:frame_count-1] if f is not None]
+            self._frames = [
+                f for f in frames[: frame_count - 1] if f is not None
+            ]
             # if interactive:
             #     gui.join()
         return self
 
-    def _window(self, show_menu: bool =True) -> None:
+    def _window(self, show_menu: bool = True) -> None:  # noqa: FBT001, FBT002
         """Open a window to display the simulation in real time."""
         try:
             m = self._model
             d = self._data
 
-            def key_callback(key) -> bool:
+            def key_callback(key: int) -> bool:
                 return key in (27, ord("q"))  # 27 = ESC key, 'q' to quit
 
-            # NOTE: launch_passive may blocking despite docstring saying otherwise
-            _Viewer = mujoco.viewer.launch_passive(m, d,
-                                                    show_left_ui=show_menu,
-                                                    show_right_ui=show_menu,
-                                                    key_callback=key_callback)
+            # NOTE: launch_passive may blocking
+            _Viewer = mujoco.viewer.launch_passive(  # noqa: N806
+                m,
+                d,
+                show_left_ui=show_menu,
+                show_right_ui=show_menu,
+                key_callback=key_callback,
+            )
             with _Viewer as viewer:
                 viewer.sync()
                 start_time = time.time()
@@ -464,13 +546,13 @@ class Wrapper:
                 try:
                     while viewer.is_running():
                         current_time = time.time()
-                        dt = current_time - start_time  # Time difference between frames
+                        dt = current_time - start_time
 
                         mujoco.mj_step(m, d)  # Advance simulation by one step
                         viewer.sync()  # Sync the viewer
 
-                        start_time = current_time  # Reset start_time for the next frame
-                        time.sleep(max(0, 1.0 / self.fps - dt))  # Adjust sleep to match self.fps
+                        start_time = current_time  # Reset reference time
+                        time.sleep(max(0, 1.0 / self.fps - dt))  # self.fps
 
                 except KeyboardInterrupt:
                     viewer.close()
@@ -480,13 +562,16 @@ class Wrapper:
         finally:
             mujoco.set_mjcb_control(None)
 
-    def liveView(self, show_menu: bool = True) -> None:
+    def launch(self, show_menu: bool = True) -> None:  # noqa: FBT001, FBT002
         """Open a window to display the simulation in real time."""
         # Run the window in a separate thread
-        gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
+        gui = threading.Thread(
+            target=self._window,
+            kwargs={"show_menu": show_menu},
+        )
         gui.start()
 
-    def _validate_and_extract_frames(
+    def _get_index(  # noqa: C901
         self,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
@@ -494,8 +579,10 @@ class Wrapper:
         """Validate and extract frames based on frame or time indices.
 
         Args:
-            frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
-            time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
+            frame_idx (int or tuple, optional): Single frame index or
+            (start, stop) frame indices.
+            time_idx (float or tuple, optional): Single time or
+            (start, end) times in seconds.
 
         Returns:
             List of frames
@@ -542,7 +629,9 @@ class Wrapper:
             msg = f"Stop index must not exceed total frames ({max_frames}). Got {stop}."
             raise ValueError(msg)
         if start >= stop:
-            msg = f"Start index ({start}) must be less than stop index ({stop})."
+            msg = (
+                f"Start index ({start}) must be less than stop index ({stop})."
+            )
             raise ValueError(msg)
 
         # Select subset of frames
@@ -557,7 +646,6 @@ class Wrapper:
             _print_warning(str(e))
             self.run(render=True)
 
-
     def show(
         self,
         title: str | None = None,
@@ -570,18 +658,20 @@ class Wrapper:
         Args:
             title (str, optional): Title for the rendered media.
             codec (str, optional): Video codec/format. Defaults to "gif".
-            frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
-            time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
+            frame_idx (int or tuple, optional): Single frame index or
+            (start, stop) frame indices.
+            time_idx (float or tuple, optional): Single time or
+            (start, end) times in seconds.
 
         Raises:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
-        self._skip_rendering() # Enables rendering if not already done
+        self._skip_rendering()  # Enables rendering if not already done
 
         try:
             # Extract frames
-            subset_frames = self._validate_and_extract_frames(
+            subset_frames = self._get_index(
                 frame_idx=frame_idx,
                 time_idx=time_idx,
             )
@@ -591,8 +681,8 @@ class Wrapper:
                 media.show_video(
                     subset_frames,
                     fps=1 if len(subset_frames) == 1 else self._fps,
-                    width=self._width,
-                    height=self._height,
+                    width=self.resolution[0],
+                    height=self.resolution[1],
                     codec=codec,
                     title=title,
                 )
@@ -618,8 +708,10 @@ class Wrapper:
         Args:
             title (str, optional): Filename for the saved media.
             codec (str, optional): Video codec/format. Defaults to "gif".
-            frame_idx (int or tuple, optional): Single frame index or (start, stop) frame indices.
-            time_idx (float or tuple, optional): Single time or (start, end) times in seconds.
+            frame_idx (int or tuple, optional): Single frame index or
+            (start, stop) frame indices.
+            time_idx (float or tuple, optional): Single time or
+            (start, end) times in seconds.
 
         Returns:
             str: Absolute path to the saved file.
@@ -628,11 +720,11 @@ class Wrapper:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
-        self._skip_rendering() # Enables rendering if not already done
+        self._skip_rendering()  # Enables rendering if not already done
 
         try:
             # Extract frames
-            subset_frames = self._validate_and_extract_frames(
+            subset_frames = self._get_index(
                 frame_idx=frame_idx,
                 time_idx=time_idx,
             )
@@ -649,25 +741,26 @@ class Wrapper:
                 codec=codec,
             )
 
-            return os.path.abspath(title)
+            return Path(title).resolve()
 
         except Exception as e:
             msg = "Error while saving video subset."
             raise Exception(msg) from e
 
-    @lru_cache(maxsize=100)
     def t2f(self, t: float) -> int:
         """Convert time to frame index."""
         return min(
-            int(t * self._fps), int(self._duration * self._fps) - 1,
+            int(t * self._fps),
+            int(self._duration * self._fps) - 1,
         )  # Subtract 1 to convert to 0-based index
 
-    @lru_cache(maxsize=100)
     def f2t(self, frame: int) -> float:
         """Convert frame index to time."""
         return frame / self._fps
 
-    def getBodyData(self, body_name: str, data_name: str | None = None) -> np.ndarray:
+    def body_data(
+        self, body_name: str, data_name: str | None = None
+    ) -> np.ndarray:
         """Get the data for a specific body in the simulation.
 
         Args:
@@ -703,16 +796,11 @@ class Wrapper:
         for obj_type in mujoco_object_types:
             try:
                 obj_id = mujoco.mj_name2id(self._model, obj_type, name)
-                if obj_id < 0:
-                    continue
-                return obj_id
-            except mujoco.FatalError:
+                if obj_id >= 0:
+                    return obj_id
+            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: PERF203, S112
                 continue
-            except mujoco.UnexpectedError:
-                continue
-            except Exception:
-                continue
-        return None
+        raise ValueError(f"Object with name '{name}' not found.")
 
     def id2name(self, id: int) -> str:
         """Get the name of a body given its ID.
@@ -733,16 +821,11 @@ class Wrapper:
                 if obj_name is None:
                     continue
                 return obj_name
-            except mujoco.FatalError:
+            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: PERF203, S112
                 continue
-            except mujoco.UnexpectedError:
-                continue
-            except Exception:
-                continue
-        return None
+        raise ValueError(f"ID '{id}' not found.")
 
-
-    def saveYAML(self, name="Model") -> None:
+    def save_yaml(self, name: str = "Model") -> None:
         """Save simulation data to a YAML file.
 
         Args:
@@ -762,7 +845,7 @@ class Wrapper:
                 for k, v in self.captured_data.items()
             }
 
-            with open(name, "w") as f:
+            with Path.open(name, "w", encoding="utf-8") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
 
         except Exception as e:
@@ -776,33 +859,36 @@ class _SimulationData:
     __slots__ = ["_d"]
 
     def __init__(self) -> None:
-        self._d = defaultdict(list)
+        self._d: dict = defaultdict(list)
 
+    # pylint: disable=E1101,C0415
     def capture(self, mj_data: mujoco.MjData) -> None:
-        """Capture data from MjData object, storing specified or all public simulation data."""
-        from . import CAPTURE_PARAMETERS
-        keys = self._get_public_keys(mj_data) if CAPTURE_PARAMETERS == "all" else CAPTURE_PARAMETERS
+        """Capture data from MjData object, storing specified or all public
+        simulation data.
+        """  # noqa: D205
+        from . import CAPTURE_PARAMETERS  # noqa: F401
+
+        keys = (
+            self.get_public_keys(mj_data)
+            if CAPTURE_PARAMETERS == "all"
+            else CAPTURE_PARAMETERS
+        )
 
         for key in keys:
-            try:
-                value = getattr(mj_data, key)
-                # Check if value is a numpy array and copy if needed
-                if isinstance(value, np.ndarray):
-                    self._d[key].append(value.copy())
-                elif np.isscalar(value):
-                    self._d[key].append(value)
-                elif hasattr(value, "copy") and callable(value.copy):
-                    # Copy if it has a copy method (e.g., MuJoCo's MjArray)
-                    self._d[key].append(value.copy())
-                else:
-                    self._d[key].append(value)
-            except AttributeError:
-                pass
-            except Exception:
-                pass
+            value = getattr(mj_data, key, None)
+            if value is None:
+                continue
+            if isinstance(value, np.ndarray):
+                self._d[key].append(value.copy())
+            elif np.isscalar(value):
+                self._d[key].append(value)
+            elif hasattr(value, "copy") and callable(value.copy):
+                self._d[key].append(value.copy())
+            else:
+                self._d[key].append(value)
 
     def unwrap(self) -> dict[str, np.ndarray]:
-        """Unwrap the captured simulation data into a structured format with NumPy arrays."""
+        """Unwrap simulation data into a structured format with NumPy arrays."""
         unwrapped_data = {}
 
         for key, value_list in self._d.items():
@@ -811,7 +897,7 @@ class _SimulationData:
                 continue
 
             try:
-                # Check if all items in the list have the same shape for array data
+                # Check if all items in the list have same shape for array data
                 if isinstance(value_list[0], np.ndarray):
                     # Check if arrays have consistent shapes
                     shapes = [arr.shape for arr in value_list]
@@ -824,9 +910,7 @@ class _SimulationData:
                     # Convert to a NumPy array if it's a list of scalars
                     unwrapped_data[key] = np.array(value_list)
             except ValueError:
-                unwrapped_data[key] = value_list  # Store as a list if conversion fails
-            except Exception:
-                unwrapped_data[key] = value_list
+                unwrapped_data[key] = value_list  # Store as a list if fail
 
         return unwrapped_data
 
@@ -836,7 +920,7 @@ class _SimulationData:
         if not self._d:
             return {}
 
-        shapes = {}
+        shapes: dict[str, tuple[Any, ...]] = {}
         for key, value_list in self._d.items():
             if not value_list:
                 shapes[key] = ()
@@ -854,16 +938,13 @@ class _SimulationData:
 
     def __del__(self) -> None:
         """Safely clean up resources during object deletion."""
-        try:
-            if hasattr(self, "_d") and self._d is not None:
-                self._d.clear()
-        except Exception:
-            pass  # Suppress all exceptions during cleanup
+        if hasattr(self, "_d"):
+            self._d.clear()
 
     def __len__(self) -> int:
         if not self._d:
             return 0
-        # Return the length of one of the data lists (assuming all have same length)
+        # Return the length of one of the data lists
         return len(next(iter(self._d.values())))
 
     def __str__(self) -> str:
@@ -873,7 +954,7 @@ class _SimulationData:
         return self.__str__()
 
     @staticmethod
-    def _get_public_keys(obj):
+    def get_public_keys(obj: object) -> list[str]:
         """Get all public keys of an object."""
         return [
             name

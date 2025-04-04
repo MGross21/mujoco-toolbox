@@ -29,7 +29,7 @@ with mjtb.Wrapper(urdf,
                   meshdir=meshes,
                   initial_conditions=initial,
                   controller=real_time) as ur5:
-    ur5.liveView(show_menu=False) # Open the simulation window
+    ur5.launch(show_menu=False) # Open the simulation window
     ur5.gravity = [0, 0, 0]
 
     for qpos in cycle(qpos_sequence):
