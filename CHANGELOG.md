@@ -1,6 +1,61 @@
 # CHANGELOG
 
 
+## v5.0.1-rc.1 (2025-04-04)
+
+### Bug Fixes
+
+- Continue linting and type hinting
+  ([`432d51f`](https://github.com/MGross21/mujoco-toolbox/commit/432d51ff4c71ceb47cceff57f56b5000f0b9e6c4))
+
+- Frame allocation sizing
+  ([`4a87949`](https://github.com/MGross21/mujoco-toolbox/commit/4a879495aee23b8a1a0e8a87766d2276e22d8317))
+
+- Update __exit__ method signature to accept variable arguments
+  ([`b70d08b`](https://github.com/MGross21/mujoco-toolbox/commit/b70d08be3ee2cfd6e014b65bed6551606590a67f))
+
+### Chores
+
+- Enable prerelease for dev branch in semantic release configuration
+  ([`a2f0833`](https://github.com/MGross21/mujoco-toolbox/commit/a2f0833ce5ba3cdc2b633280b6c28f04076ac4b6))
+
+- Simplify docstring for Builder class in builder.py
+  ([`d894296`](https://github.com/MGross21/mujoco-toolbox/commit/d894296f63dda340bb3ba02569f3777fb714fbbf))
+
+- Update .gitignore to clarify cache exclusions
+  ([`6488e0f`](https://github.com/MGross21/mujoco-toolbox/commit/6488e0fafd1d005d7a0bae7fec1f4f9a1fa0f8e4))
+
+### Code Style
+
+- Improve docstring formatting and readability in __init__.py
+  ([`badb21b`](https://github.com/MGross21/mujoco-toolbox/commit/badb21bc8890c625f9d9bdcaa8ce3d88538fd2bd))
+
+### Documentation
+
+- Rearrange header in README for improved clarity and organization
+  ([`9516aa9`](https://github.com/MGross21/mujoco-toolbox/commit/9516aa9f9a2e8692ec0d0a993b78ac8ef00149a3))
+
+- Remove obsolete assets module documentation
+  ([`a9a60b9`](https://github.com/MGross21/mujoco-toolbox/commit/a9a60b9ba47d65a7e77c831650d8fe8a9212f22d))
+
+- Update documentation structure and enhance module descriptions
+  ([`c94c26f`](https://github.com/MGross21/mujoco-toolbox/commit/c94c26fc409624a46887f67cc27a9dbab385568f))
+
+- Update README example to clarify supported mesh file formats
+  ([`06ebe18`](https://github.com/MGross21/mujoco-toolbox/commit/06ebe1833daf69d28923164c9ad4ac89362407e3))
+
+### Refactoring
+
+- Add return type hints for performance functions
+  ([`f8c518f`](https://github.com/MGross21/mujoco-toolbox/commit/f8c518f84fbe7f584bbf201a025ffd1a46ce2a8b))
+
+- Move SimulationError and SimulationWarning classes to __init__.py for better organization
+  ([`d6e9107`](https://github.com/MGross21/mujoco-toolbox/commit/d6e91078f3ac12de14f47c9553e4d94f29cce17d))
+
+- Rename _initcond to init_conditions for consistency and clarity
+  ([`91a8f78`](https://github.com/MGross21/mujoco-toolbox/commit/91a8f78f2a00485e7d7351c16e8de28986d3242e))
+
+
 ## v0.5.0 (2025-04-03)
 
 ### Bug Fixes
@@ -22,8 +77,41 @@
 
 ### Chores
 
+- Refactor publish workflow for semantic release and streamline process
+  ([`bd45d5d`](https://github.com/MGross21/mujoco-toolbox/commit/bd45d5d1436a5b7d72988fcc553655faafa51988))
+
 - Update pyproject.toml for versioning and dependencies organization
   ([`a4e8f35`](https://github.com/MGross21/mujoco-toolbox/commit/a4e8f356b2ec48270abc2333f2c4ae9a70281481))
+
+- Update version and changelog
+  ([`8a88875`](https://github.com/MGross21/mujoco-toolbox/commit/8a888751fb3d6df95924a5aa9e44a73a2b8a2e2a))
+
+- Update version and changelog
+  ([`162b9f8`](https://github.com/MGross21/mujoco-toolbox/commit/162b9f8fd3b075a753ca66a338dc7ba2cef17380))
+
+- Update version and changelog
+  ([`a9dca24`](https://github.com/MGross21/mujoco-toolbox/commit/a9dca241627468673cb55cf65cae07a1c6b145e3))
+
+- Update version and changelog
+  ([`dc98e01`](https://github.com/MGross21/mujoco-toolbox/commit/dc98e01d07baf696121dd158d8bcfcfc3e61bef1))
+
+- Update version and changelog
+  ([`aa0f375`](https://github.com/MGross21/mujoco-toolbox/commit/aa0f3755ad18982a6ac63f403aea36118a118aff))
+
+- Update version and changelog
+  ([`0814d2a`](https://github.com/MGross21/mujoco-toolbox/commit/0814d2a41fe2f8c40711ed433fca8bdc82efbec9))
+
+- Update version and changelog
+  ([`3859b48`](https://github.com/MGross21/mujoco-toolbox/commit/3859b4874bf28673e0d35344f63775262c54bfe3))
+
+- Update version and changelog
+  ([`5fe9f0a`](https://github.com/MGross21/mujoco-toolbox/commit/5fe9f0adac5bf572462730bf8000f7162fea42f7))
+
+- Update version and changelog
+  ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
+
+- Update version to 0.5.0 and enhance changelog
+  ([`66e53b1`](https://github.com/MGross21/mujoco-toolbox/commit/66e53b1d3cbae2b6f77af04b94b194b42a707882))
 
 ### Documentation
 
@@ -72,6 +160,36 @@
 
 - Add conditional check for tag push in release workflow
   ([`1d39ffc`](https://github.com/MGross21/mujoco-toolbox/commit/1d39ffc1271f7445aca25808bd7f9180d190987a))
+
+- Update version and changelog
+  ([`aedcbeb`](https://github.com/MGross21/mujoco-toolbox/commit/aedcbeb843d321a65725d53738914de381733b87))
+
+- Update version and changelog
+  ([`993108b`](https://github.com/MGross21/mujoco-toolbox/commit/993108bb1ecaa5c1ee90579304e33639ec08c9fe))
+
+- Update version and changelog
+  ([`c2109a1`](https://github.com/MGross21/mujoco-toolbox/commit/c2109a1cb336fee9e9e8462efb57fbf37de5e37c))
+
+- Update version and changelog
+  ([`13478e2`](https://github.com/MGross21/mujoco-toolbox/commit/13478e239201771654fc9b05845115dc3d5a846e))
+
+- Update version and changelog
+  ([`b8baa40`](https://github.com/MGross21/mujoco-toolbox/commit/b8baa40344992ba8884c6f68001346c1a1e84a88))
+
+- Update version and changelog
+  ([`2f7e749`](https://github.com/MGross21/mujoco-toolbox/commit/2f7e749a79a2790420ca8a68067cdb0af97117dc))
+
+- Update version and changelog
+  ([`08517a8`](https://github.com/MGross21/mujoco-toolbox/commit/08517a84a23bb5983a0e75f896f5e2e4ea299fbf))
+
+- Update version and changelog
+  ([`f06826f`](https://github.com/MGross21/mujoco-toolbox/commit/f06826f48bcab145bd0dc1d78f02be432f073033))
+
+- Update version and changelog
+  ([`1497a91`](https://github.com/MGross21/mujoco-toolbox/commit/1497a91b9b9ec76fedb79b945f01b9e1bee696be))
+
+- Update version and changelog
+  ([`73e8b17`](https://github.com/MGross21/mujoco-toolbox/commit/73e8b178f0881ba818c1759d7a2d78eec5ec05ae))
 
 - **version**: Bump release. remove verbosity
   ([`6609c4c`](https://github.com/MGross21/mujoco-toolbox/commit/6609c4c3c61f19860a93141ab72b9bc0c735903c))

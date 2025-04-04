@@ -39,7 +39,7 @@ from .controllers import (
 from .utils import _Platform
 from .wrapper import Wrapper
 
-__version__ = "0.5.0"
+__version__ = "5.0.1-rc.1"
 __author__ = "Michael Gross"
 __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
