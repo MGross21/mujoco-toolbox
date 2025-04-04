@@ -54,18 +54,6 @@ mujoco_object_types = [
 ]
 
 
-class SimulationError(Exception):
-    """Custom exception for simulation-related errors."""
-
-    pass
-
-
-class SimulationWarning(Warning):
-    """Custom warning for simulation-related issues."""
-
-    pass
-
-
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
