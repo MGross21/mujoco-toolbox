@@ -1,8 +1,9 @@
 # IDE Settings
 .vscode/
 
-# Ignore Folder/Extensions:
+# Ignore Caches
 **/__pycache__/
+.*_cache/
 
 # Generated Builds
 dist/
