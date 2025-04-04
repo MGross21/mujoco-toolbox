@@ -1,9 +1,10 @@
-"""
-Mujoco Toolbox
+"""Mujoco Toolbox
 ==============
 
-A toolbox for working with MuJoCo simulations. This package provides various
-utilities and controllers to facilitate a faster simulation process.
+A toolbox for working with MuJoCo simulations.
+
+This package provides various utilities and controllers to facilitate a faster 
+simulation process.
 
 Modules
 --------
@@ -16,16 +17,15 @@ Constants
 ----------
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
 
-License
---------
-This project is licensed under the `MIT License`. See the `LICENSE` file for details.
+This project is licensed under the `MIT License`. See the `LICENSE` file for 
+details.
 
 Notes
 -----
 This package is still under development. Report any issues to:
 https://github.com/MGross21/mujoco-toolbox/issues.
 
-"""
+"""  # noqa: D205, D400, D415, W291
 
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
@@ -74,6 +74,7 @@ CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
 
 if __version__.startswith("0"):
     from .utils import _print_warning
+
     _print_warning(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
