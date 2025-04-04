@@ -461,7 +461,7 @@ class Wrapper:
 
             # Pre-allocate frame length
             max_frames = int(self._duration / self.ts)
-            frames = np.empty((max_frames, *self.resolution, 3), dtype=np.uint8)
+            frames = np.zeros((max_frames, self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
             frame_count = 0
 
             if multi_thread:
