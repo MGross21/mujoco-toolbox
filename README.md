@@ -135,7 +135,7 @@ mjtb.Wrapper("path/to/xml").show()
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()
+mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
 ```
 
 ![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
