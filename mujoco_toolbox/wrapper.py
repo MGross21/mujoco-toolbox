@@ -400,7 +400,7 @@ class Wrapper:
         self._dr = value
 
     @property
-    def gravity(self):
+    def gravity(self) -> np.ndarray:
         """Gravity vector of the simulation."""
         return self._model.opt.gravity # pylint: disable=E1101
 
@@ -416,28 +416,32 @@ class Wrapper:
 
     def run(
         self,
+        *,
         render: bool = False,
         camera: str | None = None,
         interactive: bool = False,
-        show_menu: bool = True,
+        show_menu: bool = True,  # TODO@MGross21: Implement this with launch
         multi_thread: bool = False,
     ) -> "Wrapper":
-        """Run the simulation with optional rendering and controlled data capture.
+        """Run the simulation with optional rendering.
 
         Args:
             render (bool): If True, renders the simulation.
             camera (str): The camera view to render from, defaults to None.
-            data_rate (int): How often to capture data, expressed as frames per second.
+            data_rate (int): How often to capture data, expressed as frames
+            per second.
             interactive (bool): If True, opens an interactive viewer window.
-            show_menu (bool): If True, shows the menu in the interactive viewer. `Interactive` must be True.
-            multi_thread (bool): If True, runs the simulation in multi-threaded mode.
+            show_menu (bool): Shows the menu in the interactive viewer.
+            `Interactive` must be True.
+            multi_thread (bool): If True, runs the simulation in multi-threaded
+            mode.
 
         Returns:
             self: The current Wrapper object for method chaining.
 
         """
         # TODO: Integrate interactive mujoco.viewer into this method
-        # Eventually rename this to run() and point to sub-methods for different modes
+        # Eventually rename this to run() and point to sub-methods
 
         if interactive:
             msg = "Interactive mode (w/ menu option) is not yet implemented."
@@ -447,15 +451,13 @@ class Wrapper:
             raise NotImplementedError(msg)
         try:
             mujoco.mj_resetData(self._model, self._data)
-            mujoco.set_mjcb_control(
-                self._controller
-            ) if self._controller else None
-            mujoco.mj_resetDataKeyframe(
-                self._model, self._data, self._keyframe
-            ) if self._keyframe else None
+            if self._controller is not None:
+                mujoco.set_mjcb_control(self._controller)
+            if self._keyframe is not None:
+                mujoco.mj_resetDataKeyframe(
+                    self._model, self._data, self._keyframe,
+                )
 
-            # self._frames = [None] * (self.duration * self.fps + 1)
-            frames = []
             sim_data = _SimulationData()
             int(self._duration / self.ts)
 
@@ -479,14 +481,14 @@ class Wrapper:
                 # TODO: Implement multi-threading
 
             # if interactive:
-            #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
+            #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})  # noqa: ERA001
             #     gui.start()
 
             # Mujoco Renderer
-            from . import MAX_GEOM_SCALAR
+            from . import MAX_GEOM_SCALAR  # pylint: disable=E0405
 
             max_geom = m.ngeom * MAX_GEOM_SCALAR
-            _Renderer = (
+            _Renderer = (  # noqa: N806, pylint: disable=C0103
                 mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
             )
 
@@ -532,7 +534,7 @@ class Wrapper:
                 return key in (27, ord("q"))  # 27 = ESC key, 'q' to quit
 
             # NOTE: launch_passive may blocking
-            _Viewer = mujoco.viewer.launch_passive(  # noqa: N806
+            _Viewer = mujoco.viewer.launch_passive(  # noqa: N806, pylint: disable=C0103
                 m,
                 d,
                 show_left_ui=show_menu,
@@ -619,6 +621,9 @@ class Wrapper:
             frame_idx = (frame_idx, frame_idx + 1)
 
         # Validate frame indices
+        if frame_idx is None:
+            msg = "frame_idx cannot be None when unpacking."
+            raise ValueError(msg)
         start, stop = frame_idx
         max_frames = len(self._frames)
 
@@ -626,7 +631,10 @@ class Wrapper:
             msg = f"Start index must be non-negative. Got {start}."
             raise ValueError(msg)
         if stop > max_frames:
-            msg = f"Stop index must not exceed total frames ({max_frames}). Got {stop}."
+            msg = (
+                f"Stop index must not exceed total frames ({max_frames}). "
+                f"Got {stop}."
+            )
             raise ValueError(msg)
         if start >= stop:
             msg = (
@@ -640,8 +648,11 @@ class Wrapper:
     def _skip_rendering(self) -> None:
         try:
             if not hasattr(self, "_frames") or self._frames is None:
-                msg = "Simulation has not been rendered yet. Running the simulation now..."
-                raise AttributeError(msg)
+                msg = (
+                    "Simulation has not been rendered yet. "
+                    "Running the simulation now..."
+                )
+                raise AttributeError(msg)  # noqa: TRY301
         except AttributeError as e:
             _print_warning(str(e))
             self.run(render=True)
@@ -694,7 +705,7 @@ class Wrapper:
                 cv2.destroyAllWindows()
         except Exception as e:
             msg = "Error while showing video subset."
-            raise Exception(msg) from e
+            raise Exception(msg) from e  # noqa: TRY002
 
     def save(
         self,
@@ -741,11 +752,11 @@ class Wrapper:
                 codec=codec,
             )
 
-            return Path(title).resolve()
+            return str(Path(title).resolve())
 
         except Exception as e:
             msg = "Error while saving video subset."
-            raise Exception(msg) from e
+            raise Exception(msg) from e  # noqa: TRY002
 
     def t2f(self, t: float) -> int:
         """Convert time to frame index."""
@@ -776,12 +787,22 @@ class Wrapper:
             raise ValueError(msg)
         body_id = self._model.body(body_name).id
 
+        if self._captured_data is None:
+            raise ValueError("No simulation data captured yet.")
+
+        unwrapped_data = self._captured_data.unwrap()
+
         if data_name is None:
-            return self._captured_data.unwrap()[body_id]
-        if data_name not in self._captured_data.unwrap():
+            return unwrapped_data.get(body_id, np.array([]))
+
+        if data_name not in unwrapped_data:
             msg = f"Data '{data_name}' not found for body '{body_name}'."
             raise ValueError(msg)
-        return self._captured_data.unwrap()[body_id][data_name]
+
+        if isinstance(unwrapped_data[body_id], dict):
+            return unwrapped_data[body_id].get(data_name, None)
+        msg = f"Data for body_id '{body_id}' is not a dictionary."
+        raise ValueError(msg)
 
     def name2id(self, name: str) -> int:
         """Get the name of a body given its index.
@@ -845,7 +866,7 @@ class Wrapper:
                 for k, v in self.captured_data.items()
             }
 
-            with Path.open(name, "w", encoding="utf-8") as f:
+            with Path(name).open("w", encoding="utf-8") as f:
                 yaml.dump(serialized_data, f, default_flow_style=False)
 
         except Exception as e:
@@ -866,7 +887,7 @@ class _SimulationData:
         """Capture data from MjData object, storing specified or all public
         simulation data.
         """  # noqa: D205
-        from . import CAPTURE_PARAMETERS  # noqa: F401
+        from . import CAPTURE_PARAMETERS
 
         keys = (
             self.get_public_keys(mj_data)
