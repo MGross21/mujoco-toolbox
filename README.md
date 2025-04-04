@@ -78,9 +78,7 @@ import mujoco_toolbox as mjtb
 
 mjtb.Wrapper("path/to/your/xml").run(render=True).save()
 
-# Shorthand Bypass
-# Will use run(render=True) and warning will be displayed 
-mjtb.Wrapper("path/to/your/xml").save()
+mjtb.Wrapper("path/to/your/xml").save() # Bypass: uses run(render=True)
 ```
 
 ## Controllers
@@ -89,11 +87,11 @@ mjtb.Wrapper("path/to/your/xml").save()
 
 ```python
 from mujoco_toolbox.controllers import (
-    cos,
-    random,
-    real_time,
     sin,
+    cos,
     step,
+    random,
+    real_time
 )
 ```
 
@@ -127,7 +125,7 @@ See `MjData` objects [here](https://mujoco.readthedocs.io/en/stable/APIreference
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/xml")
+mjtb.Wrapper("path/to/xml").show()
 ```
 
 ![Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
@@ -137,7 +135,7 @@ mjtb.Wrapper("path/to/xml")
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files")
+mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()
 ```
 
 ![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
@@ -147,12 +145,12 @@ mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files")
 ```python
 from mujoco_toolbox import Builder, Wrapper
 
-Obj = Builder("path/to/xml_1") + Builder("path/to/xml_2") + ...
+obj = Builder("path/to/xml_1") + Builder("path/to/xml_2") + ...
 # OR
-Obj = Builder("path/to/xml_1","path/to/xml_2", ... )
+obj = Builder("path/to/xml_1","path/to/xml_2", ... )
 
 # Then
-Wrapper(Obj)
+Wrapper(obj).show()
 
 ```
 

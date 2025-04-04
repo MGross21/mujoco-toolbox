@@ -1,4 +1,5 @@
-"""Mujoco Toolbox.
+"""
+Mujoco Toolbox
 ==============
 
 A toolbox for working with MuJoCo simulations. This package provides various
@@ -6,10 +7,9 @@ utilities and controllers to facilitate a faster simulation process.
 
 Modules
 --------
-- `Wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
-- `Controller`: Includes sineController, cosineController, and randomController
-    for controlling simulations.
-- `Builder`: Contains the Builder class for creating and merging MuJoCo models.
+- `wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
+- `controllers`: Includes pre-built functions for controlling simulations.
+- `builder`: Contains the Builder class for creating and merging MuJoCo models.
 - `assets`: Contains pre-defined assets for building MuJoCo models.
 
 Constants
