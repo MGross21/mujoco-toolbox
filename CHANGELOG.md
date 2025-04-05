@@ -1,9 +1,90 @@
 # CHANGELOG
 
 
-## Unreleased
+## v5.0.1-rc.1 (2025-04-04)
+
+### Bug Fixes
+
+- Continue linting and type hinting
+  ([`432d51f`](https://github.com/MGross21/mujoco-toolbox/commit/432d51ff4c71ceb47cceff57f56b5000f0b9e6c4))
+
+- Frame allocation sizing
+  ([`4a87949`](https://github.com/MGross21/mujoco-toolbox/commit/4a879495aee23b8a1a0e8a87766d2276e22d8317))
+
+- Update __exit__ method signature to accept variable arguments
+  ([`b70d08b`](https://github.com/MGross21/mujoco-toolbox/commit/b70d08be3ee2cfd6e014b65bed6551606590a67f))
 
 ### Chores
+
+- Enable prerelease for dev branch in semantic release configuration
+  ([`a2f0833`](https://github.com/MGross21/mujoco-toolbox/commit/a2f0833ce5ba3cdc2b633280b6c28f04076ac4b6))
+
+- Simplify docstring for Builder class in builder.py
+  ([`d894296`](https://github.com/MGross21/mujoco-toolbox/commit/d894296f63dda340bb3ba02569f3777fb714fbbf))
+
+- Update .gitignore to clarify cache exclusions
+  ([`6488e0f`](https://github.com/MGross21/mujoco-toolbox/commit/6488e0fafd1d005d7a0bae7fec1f4f9a1fa0f8e4))
+
+### Code Style
+
+- Improve docstring formatting and readability in __init__.py
+  ([`badb21b`](https://github.com/MGross21/mujoco-toolbox/commit/badb21bc8890c625f9d9bdcaa8ce3d88538fd2bd))
+
+### Documentation
+
+- Rearrange header in README for improved clarity and organization
+  ([`9516aa9`](https://github.com/MGross21/mujoco-toolbox/commit/9516aa9f9a2e8692ec0d0a993b78ac8ef00149a3))
+
+- Remove obsolete assets module documentation
+  ([`a9a60b9`](https://github.com/MGross21/mujoco-toolbox/commit/a9a60b9ba47d65a7e77c831650d8fe8a9212f22d))
+
+- Update documentation structure and enhance module descriptions
+  ([`c94c26f`](https://github.com/MGross21/mujoco-toolbox/commit/c94c26fc409624a46887f67cc27a9dbab385568f))
+
+- Update README example to clarify supported mesh file formats
+  ([`06ebe18`](https://github.com/MGross21/mujoco-toolbox/commit/06ebe1833daf69d28923164c9ad4ac89362407e3))
+
+### Refactoring
+
+- Add return type hints for performance functions
+  ([`f8c518f`](https://github.com/MGross21/mujoco-toolbox/commit/f8c518f84fbe7f584bbf201a025ffd1a46ce2a8b))
+
+- Move SimulationError and SimulationWarning classes to __init__.py for better organization
+  ([`d6e9107`](https://github.com/MGross21/mujoco-toolbox/commit/d6e91078f3ac12de14f47c9553e4d94f29cce17d))
+
+- Rename _initcond to init_conditions for consistency and clarity
+  ([`91a8f78`](https://github.com/MGross21/mujoco-toolbox/commit/91a8f78f2a00485e7d7351c16e8de28986d3242e))
+
+
+## v0.5.0 (2025-04-03)
+
+### Bug Fixes
+
+- Adjust frame count in wrapper to exclude the last frame
+  ([`0d5919f`](https://github.com/MGross21/mujoco-toolbox/commit/0d5919f807474fd2f7b7d66a5d05a5296200ad61))
+
+- Update controller method calls and remove unnecessary copy in rendering
+  ([`e069007`](https://github.com/MGross21/mujoco-toolbox/commit/e069007ebd81ff3fa799e65976815385a33d494a))
+
+- Update mesh directory path in UR5e model XML
+  ([`abd2220`](https://github.com/MGross21/mujoco-toolbox/commit/abd22201e6fac08f22f7a505fe356044675d2bdf))
+
+- Update mujoco_tbx to use keyword arguments for clarity
+  ([`54ee0f6`](https://github.com/MGross21/mujoco-toolbox/commit/54ee0f6ae5772b2a2d5eb472037ba4ffdc30d944))
+
+- Update Wrapper to accept Builder instances and adjust README example
+  ([`f57d7d3`](https://github.com/MGross21/mujoco-toolbox/commit/f57d7d37dc41ba379d12c5d23db210149665dbc7))
+
+### Chores
+
+- Refactor publish workflow for semantic release and streamline process
+  ([`bd45d5d`](https://github.com/MGross21/mujoco-toolbox/commit/bd45d5d1436a5b7d72988fcc553655faafa51988))
+
+- Update pyproject.toml for versioning and dependencies organization
+  ([`a4e8f35`](https://github.com/MGross21/mujoco-toolbox/commit/a4e8f356b2ec48270abc2333f2c4ae9a70281481))
+
+- Update version and changelog
+  ([`8a88875`](https://github.com/MGross21/mujoco-toolbox/commit/8a888751fb3d6df95924a5aa9e44a73a2b8a2e2a))
 
 - Update version and changelog
   ([`162b9f8`](https://github.com/MGross21/mujoco-toolbox/commit/162b9f8fd3b075a753ca66a338dc7ba2cef17380))
@@ -29,7 +110,23 @@
 - Update version and changelog
   ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
 
+- Update version to 0.5.0 and enhance changelog
+  ([`66e53b1`](https://github.com/MGross21/mujoco-toolbox/commit/66e53b1d3cbae2b6f77af04b94b194b42a707882))
+
+### Documentation
+
+- Enhance README with clearer examples and structure for controllers and merging capabilities
+  ([`3b1954c`](https://github.com/MGross21/mujoco-toolbox/commit/3b1954c7d2b553f862cc7e3ee2bea04fa7af5273))
+
+### Features
+
+- Implement Loader class for loading MuJoCo models from XML and URDF files
+  ([`b13403b`](https://github.com/MGross21/mujoco-toolbox/commit/b13403b394074cbbf29f61a7a94d2c889600dcf3))
+
 ### Refactoring
+
+- Change monitors method to static method in _Platform class
+  ([`a0f6e37`](https://github.com/MGross21/mujoco-toolbox/commit/a0f6e37f68dde8eba12ca7b57db6aa27130aa8d3))
 
 - Remove unused scripts
   ([`235aa68`](https://github.com/MGross21/mujoco-toolbox/commit/235aa68ba2a30243b062956691d22ab393d23edb))
@@ -166,6 +263,9 @@
 
 
 ## v0.3.0 (2025-03-25)
+
+
+## v0.2.3 (2025-03-24)
 
 
 ## v0.2.2 (2025-03-23)

@@ -14,7 +14,7 @@ NUM_TESTS = 25
 
 MODEL = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "humanoid.xml"))
 
-def mujoco_standard():
+def mujoco_standard() -> float:
     start_time = time.time()
     model = mujoco.MjModel.from_xml_path(MODEL)
     data = mujoco.MjData(model)
@@ -51,17 +51,17 @@ def mujoco_standard():
     end_time = time.time()
     return end_time - start_time
 
-def mujoco_tbx():
+def mujoco_tbx() -> float:
     start_time = time.time()
-    mjtb.Wrapper(MODEL, DURATION, DATA_RATE).run()
+    mjtb.Wrapper(MODEL, duration=DURATION, data_rate=DATA_RATE).run(multi_thread=False)
     end_time = time.time()
     return end_time - start_time
 
-def performance_comparison():
+def performance_comparison() -> tuple[float, float]:
     mujoco_time = average([mujoco_standard() for _ in range(NUM_TESTS)])
     mjtb_time = average([mujoco_tbx() for _ in range(NUM_TESTS)])
 
-    return mujoco_time, mjtb_time
+    return (mujoco_time, mjtb_time)
 
 def generate_performance_chart() -> None:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
