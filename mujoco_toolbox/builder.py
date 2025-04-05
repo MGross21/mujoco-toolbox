@@ -7,6 +7,7 @@ from xml.etree.ElementTree import (  # Import for type annotations
     Element,
     ElementTree,
 )
+
 import defusedxml.ElementTree as ET  # For secure parsing
 
 
