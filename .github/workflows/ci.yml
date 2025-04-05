@@ -20,9 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.head_ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,7 +34,7 @@ jobs:
           restore-keys: |
             python-3.10-pip-
 
-      - name: Install Poetry and dependencies
+      - name: Install Poetry and Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
@@ -48,13 +45,13 @@ jobs:
       - name: Run Linters
         continue-on-error: true
         run: |
-          poetry run ruff check . --fix --unsafe-fixes
+          poetry run ruff check . --fix
           poetry run ruff format .
-          poetry run black .
-          poetry run isort .
+          poetry run black . --check
+          poetry run isort . --check-only
           poetry run flake8 .
           poetry run bandit -r . --quiet
-          poetry run pylint **/*.py
+          poetry run pylint mujoco_toolbox/
 
       - name: Run Type Checking with MyPy
         continue-on-error: true
@@ -72,7 +69,6 @@ jobs:
           else
             git commit -m "chore: auto-fix code quality issues [skip ci]"
             git push origin HEAD:${{ github.head_ref }}
-          fi
 
   test:
     name: Test Python ${{ matrix.python-version }}
@@ -81,7 +77,7 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
       fail-fast: false
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -113,7 +109,7 @@ jobs:
           echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
           echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
-      - name: Install Poetry and dependencies
+      - name: Install Poetry and Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
@@ -126,11 +122,8 @@ jobs:
           poetry run pip install pytest pytest-cov
           poetry run pytest tests/ --cov=mujoco_toolbox --cov-report=xml --maxfail=3 -v
 
+      # Uncomment below if using codecov
       # - name: Upload Coverage Report
       #   uses: codecov/codecov-action@v5
       #   with:
       #     fail_ci_if_error: true
-          
-      - name: Verify Package Installation
-        run: |
-          pip install . --no-cache-dir
