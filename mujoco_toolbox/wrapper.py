@@ -23,6 +23,7 @@ import numpy as np
 from IPython.display import clear_output
 import os
 import yaml
+from tqdm.auto import tqdm
 
 from .loader import Loader
 from .utils import _print_warning
@@ -53,6 +54,8 @@ mujoco_object_types = [
     mujoco.mjtObj.mjOBJ_KEY,
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
+
+PROGRESS_BAR_ENABLED = True
 
 
 class Wrapper:
@@ -454,27 +457,28 @@ class Wrapper:
                 )
 
             sim_data = _SimulationData()
-            int(self._duration / self.ts)
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
             m, d = self._model, self._data
             w, h = self.resolution
-            dur = self._duration
+            # dur = self._duration
 
-            capture_rate = self.data_rate * self.ts
-            capture_interval = max(1, int(1.0 / capture_rate))
+            # Simulation Timing
+            total_steps = int(self._duration / self.ts)
+            # capture_rate = self.data_rate * self.ts
+            capture_interval = max(1, int(1.0 / self.data_rate * self.ts))
             render_interval = max(1, int(1.0 / (self._fps * self.ts)))
 
             # Pre-allocate frame length
-            max_frames = int(self._duration / self.ts)
-            frames = np.zeros((max_frames, self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+            max_frames = int(self._duration * self._fps)
+            frames = np.zeros((max_frames, h, w, 3), dtype=np.uint8)
             frame_count = 0
 
             if multi_thread:
                 cpu_count()
                 # TODO: Implement multi-threading
-
+                
             # if interactive:
             #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})  # noqa: ERA001
             #     gui.start()
@@ -486,10 +490,14 @@ class Wrapper:
             _Renderer = (  # noqa: N806, pylint: disable=C0103
                 mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
             )
+            _ProgressBar = (
+                tqdm(total=total_steps, desc="Simulation", leave=False)
+                if PROGRESS_BAR_ENABLED
+                else nullcontext()
+            )
 
-            with _Renderer as renderer:
-                step = 0
-                while d.time < dur:
+            with _Renderer as renderer, _ProgressBar as pbar:
+                for step in range(total_steps):
                     if not interactive:
                         mj_step(m, d)
 
@@ -497,24 +505,20 @@ class Wrapper:
                     if step % capture_interval == 0:
                         sim_data.capture(d)
 
-                    if render and renderer and step % render_interval == 0:
+                    if render and renderer and step % render_interval == 0 and frame_count < max_frames:
                         renderer.update_scene(d, camera if camera else -1)
-
-                        frames[frame_count] = (
-                            renderer.render()
-                        )  # copy not required
+                        frames[frame_count] = renderer.render()
                         frame_count += 1  # Increment frame count after capturing the frame
 
-                    step += 1
+                    pbar.update(1) if PROGRESS_BAR_ENABLED else None
+
         except Exception as e:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
         finally:
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
-            self._frames = [
-                f for f in frames[:frame_count] if isinstance(f, np.ndarray)
-            ]
+            self._frames = frames[:frame_count]
             # if interactive:
             #     gui.join()
         return self
@@ -588,7 +592,7 @@ class Wrapper:
             ValueError: For invalid input parameters.
 
         """
-        if not self._frames:
+        if self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render."
             raise ValueError(msg)
 
