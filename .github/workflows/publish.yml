@@ -38,7 +38,7 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry config virtualenvs.in-project true
-          poetry install --no-root --no-interaction
+          poetry install --no-interaction
           pip install python-semantic-release
 
       - name: Configure Git
