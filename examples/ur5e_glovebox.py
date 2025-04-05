@@ -1,5 +1,6 @@
-from mujoco_toolbox import Wrapper, Builder, glovebox, WORLD_ASSETS
 import mujoco
+
+from mujoco_toolbox import WORLD_ASSETS, Builder, Wrapper, glovebox
 
 IN_TO_M = 0.0254
 

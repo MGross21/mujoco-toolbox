@@ -1,5 +1,4 @@
-"""
-Wrapper module for managing MuJoCo simulations.
+"""Wrapper module for managing MuJoCo simulations.
 
 This module provides a `Wrapper` class to handle MuJoCo simulations, including
 loading models, running simulations, capturing data, and rendering frames.
@@ -13,6 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import nullcontext
 from multiprocessing import cpu_count
+from pathlib import Path
 from typing import Any, TypeAlias
 
 import cv2
@@ -20,7 +20,6 @@ import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
-from pathlib import Path
 import yaml
 
 from .loader import Loader
@@ -68,12 +67,11 @@ class Wrapper:
         resolution: tuple[int, int] | None = None,
         initial_conditions: dict[str, list] | None = None,
         keyframe: int | None = None,
-        controller: Callable[[mjModel, mjData, Any], None] | None = None,  # noqa: E501
+        controller: Callable[[mjModel, mjData, Any], None] | None = None,
         meshdir: str = "meshes/",
         **kwargs: Any,
-    ) -> None:  # noqa: ANN401
-        """
-        Initialize the Wrapper class for managing MuJoCo simulations.
+    ) -> None:
+        """Initialize the Wrapper class for managing MuJoCo simulations.
 
         Args:
             xml (str): Path to the XML file or string defining the model.
@@ -89,6 +87,7 @@ class Wrapper:
             for the simulation. Defaults to None.
             meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes/".
             **kwargs (Any): Additional keyword arguments for model configuration.
+
         """
         # Load the model
         self._meshdir = meshdir
@@ -198,7 +197,7 @@ class Wrapper:
     def __enter__(self) -> "Wrapper":  # noqa: D105
         return self
 
-    def __exit__(self: "Wrapper", *args, **kwargs) -> None:  # noqa: ANN001, D105
+    def __exit__(self: "Wrapper", *args, **kwargs) -> None:  # noqa: D105
         mujoco.set_mjcb_control(None)
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
@@ -375,7 +374,7 @@ class Wrapper:
         if isinstance(value, float) and not isinstance(value, int):
             value = round(value)
             _print_warning(
-                f"Data rate must be an integer. Rounding to the nearest integer ({value})."
+                f"Data rate must be an integer. Rounding to the nearest integer ({value}).",
             )
         if value <= 0:
             msg = "Data rate must be greater than 0."
@@ -758,7 +757,7 @@ class Wrapper:
         return frame / self._fps
 
     def body_data(
-        self, body_name: str, data_name: str | None = None
+        self, body_name: str, data_name: str | None = None,
     ) -> dict[str, np.ndarray] | np.ndarray:
         """Get the data for a specific body in the simulation.
 
@@ -776,7 +775,8 @@ class Wrapper:
         body_id = self._model.body(body_name).id
 
         if self._captured_data is None:
-            raise ValueError("No simulation data captured yet.")
+            msg = "No simulation data captured yet."
+            raise ValueError(msg)
 
         unwrapped_data = self._captured_data.unwrap()
 
@@ -809,7 +809,8 @@ class Wrapper:
                     return obj_id
             except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: PERF203, S112
                 continue
-        raise ValueError(f"Object with name '{name}' not found.")
+        msg = f"Object with name '{name}' not found."
+        raise ValueError(msg)
 
     def id2name(self, id: int) -> str:
         """Get the name of a body given its ID.
@@ -830,9 +831,10 @@ class Wrapper:
                 if obj_name is None:
                     continue
                 return obj_name
-            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: PERF203, S112
+            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: S112
                 continue
-        raise ValueError(f"ID '{id}' not found.")
+        msg = f"ID '{id}' not found."
+        raise ValueError(msg)
 
     def save_yaml(self, name: str = "Model") -> None:
         """Save simulation data to a YAML file.
