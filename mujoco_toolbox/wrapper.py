@@ -20,6 +20,8 @@ import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
+from IPython.display import clear_output
+import os
 import yaml
 
 from .loader import Loader
@@ -55,6 +57,12 @@ mujoco_object_types = [
 
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Wrapper":
+        if PROGRESS_BAR_ENABLED:
+            os.system('clear || cls') # Clear the console
+            clear_output(wait=True)
+        return super().__new__(cls)
 
     # pylint: disable=E1101
     def __init__(
