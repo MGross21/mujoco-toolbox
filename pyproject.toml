@@ -25,29 +25,20 @@ dynamic = ["classifiers"]
 dependencies = [] # No dependencies listed here, they are defined in the [tool.poetry.dependencies] section
 
 [tool.poetry.dependencies]
-# Core dependencies
-mujoco = "*"  # MuJoCo physics engine
-numpy = "*"  # Numerical computations
-
-[tool.poetry.group.core.dependencies]
-scipy = "*"  # Scientific computations
-matplotlib = "*"  # Plotting library
-pyyaml = "*"  # YAML parsing and emitting
-
-[tool.poetry.group.media.dependencies]
-mediapy = "*"  # Media handling
-ffmpeg = "*"  # Video processing
-opencv-python = "*"  # Computer vision library
-trimesh = "*"  # 3D geometry processing
-screeninfo = "*"  # Screen resolution detection
-
-[tool.poetry.group.utils.dependencies]
-colorama = "*"  # Cross-platform colored terminal text
-rich = "*"  # Rich text and formatting
-defusedxml = "*"  # Secure XML handling
-
-[tool.poetry.group.ml.dependencies]
-gym = "*"  # OpenAI Gym for reinforcement learning
+mujoco = "*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+pyyaml = "*"
+mediapy = "*"
+ffmpeg = "*"
+opencv-python = "*"
+trimesh = "*"
+screeninfo = "*"
+colorama = "*"
+rich = "*"
+defusedxml = "*"
+gym = "*"
 
 [project.optional-dependencies]
 beautified = ["colorama", "rich"]
