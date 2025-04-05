@@ -29,29 +29,28 @@ dependencies = [] # No dependencies listed here, they are defined in the [tool.p
 mujoco = "*"  # MuJoCo physics engine
 numpy = "*"  # Numerical computations
 
-# Optional dependencies
+[tool.poetry.group.core.dependencies]
 scipy = "*"  # Scientific computations
 matplotlib = "*"  # Plotting library
 pyyaml = "*"  # YAML parsing and emitting
 
-# Media and visualization
+[tool.poetry.group.media.dependencies]
 mediapy = "*"  # Media handling
-rich = "*"  # Rich text and formatting
 ffmpeg = "*"  # Video processing
 opencv-python = "*"  # Computer vision library
 trimesh = "*"  # 3D geometry processing
 screeninfo = "*"  # Screen resolution detection
 
-# Utilities
+[tool.poetry.group.utils.dependencies]
 colorama = "*"  # Cross-platform colored terminal text
+rich = "*"  # Rich text and formatting
 defusedxml = "*"  # Secure XML handling
 
-# ML
+[tool.poetry.group.ml.dependencies]
 gym = "*"  # OpenAI Gym for reinforcement learning
 
-# Optional dependencies
 [project.optional-dependencies]
-# beautified = ["colorama", "rich"]
+beautified = ["colorama", "rich"]
 gym = ["gym"]
 
 [project.urls]
