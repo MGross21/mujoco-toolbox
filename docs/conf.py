@@ -7,7 +7,7 @@ import mujoco_toolbox as mjtb
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.absolute()))
 
 # Project information
 project = mjtb.__name__
