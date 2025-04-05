@@ -11,7 +11,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 packages = [{ include = "mujoco_toolbox" }]
 authors = [
-  { name = "MGross21", email = "MGross21@TODO.com" }
+  { name = "MGross21", email = "MGross21@example.com" }
 ]
 keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
