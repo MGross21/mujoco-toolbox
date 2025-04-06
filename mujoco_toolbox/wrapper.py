@@ -645,15 +645,8 @@ class Wrapper:
         return self._frames[start:stop]
 
     def _skip_rendering(self) -> None:
-        try:
-            if not hasattr(self, "_frames") or self._frames is None:
-                msg = (
-                    "Simulation has not been rendered yet. "
-                    "Running the simulation now..."
-                )
-                raise AttributeError(msg)  # noqa: TRY301
-        except AttributeError as e:
-            _print_warning(str(e))
+        if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
+            _print_warning("Simulation has not been rendered yet. Running the simulation now...")
             self.run(render=True)
 
     def show(
@@ -686,7 +679,14 @@ class Wrapper:
                 time_idx=time_idx,
             )
 
-            if "ipykernel" in sys.modules:  # Check if running in Jupyter
+            def is_jupyter() -> bool:
+                try:
+                    from IPython import get_ipython
+                    return "ipykernel" in sys.modules or "IPKernelApp" in get_ipython().config
+                except Exception:
+                    return False
+
+            if is_jupyter():
                 # Show the video
                 media.show_video(
                     subset_frames,
@@ -701,6 +701,7 @@ class Wrapper:
                     cv2.imshow("Video", frame)
                     if cv2.waitKey(int(1000 / self._fps)) & 0xFF == ord("q"):
                         break
+                cv2.waitKey(1)
                 cv2.destroyAllWindows()
         except Exception as e:
             msg = "Error while showing video subset."
@@ -740,18 +741,19 @@ class Wrapper:
             )
 
             # Ensure the title ends with the correct codec extension
-            if not title.endswith(f".{codec}"):
-                title += f".{codec}"
+            title_path = Path(title)
+            if title_path.suffix != f".{codec}":
+                title_path = title_path.with_suffix(f".{codec}")
 
             # Save the video
             media.write_video(
-                title,
+                str(title_path),
                 subset_frames,
                 fps=1 if len(subset_frames) == 1 else self._fps,
                 codec=codec,
             )
 
-            return str(Path(title).resolve())
+            return str(title_path.resolve())
 
         except Exception as e:
             msg = "Error while saving video subset."
