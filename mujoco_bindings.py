@@ -1,75 +1,109 @@
 import os
-import subprocess
 import sys
+import subprocess
 import shutil
+import zipfile
 from pathlib import Path
-import mujoco as mj
+import urllib.request
 
+# ------------------------- CONFIG -------------------------
+
+MUJOCO_VERSION = "3.3.1"
+MUJOCO_ZIP_URL = f"https://github.com/deepmind/mujoco/releases/download/{MUJOCO_VERSION}/mujoco-{MUJOCO_VERSION}-windows-x86_64.zip"
+MUJOCO_DEST = Path.home() / ".mujoco" / "mujoco330" #f"mujoco{MUJOCO_VERSION.replace('.', '')}"
 MUJOCO_REPO = "https://github.com/deepmind/mujoco.git"
-CLONE_DIR = Path("mujoco")
-PYTHON_DIR = CLONE_DIR / "python"
+REPO_DIR = Path("mujoco")
+PYTHON_BINDINGS = REPO_DIR / "python"
 STUBS_DIR = Path("stubs")
-# MUJOCO_VERSION_FOLDER = "mujoco" + getattr(mj, "__version__", "unknown").replace(".", "")
-MUJOCO_VERSION_FOLDER = "mujoco330"
 
-DEFAULT_MUJOCO_PATH = Path.home() / ".mujoco" / MUJOCO_VERSION_FOLDER
+# ------------------------- UTILITIES -------------------------
 
-def run(cmd, cwd=None):
+def run(cmd, check=True, cwd=None):
     print(f"\n> Running: {' '.join(cmd)}")
-    try:
-        subprocess.run(cmd, check=True, cwd=cwd)
-    except subprocess.CalledProcessError as e:
-        print(f"\n❌ Command failed: {' '.join(cmd)}")
-        print(e)
+    subprocess.run(cmd, check=check, cwd=cwd, shell=True)
+
+def download_and_extract_zip(url, extract_to):
+    zip_path = Path("mujoco.zip")
+    print(f"📥 Downloading MuJoCo {MUJOCO_VERSION}...")
+    urllib.request.urlretrieve(url, zip_path)
+    print("📦 Extracting MuJoCo...")
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to.parent)
+    zip_path.unlink()
+    print(f"✔️ Extracted to: {extract_to}")
+
+def install_tools():
+    # Install CMake and MSVC if not present
+    if not shutil.which("cmake"):
+        print("📦 Installing CMake via winget...")
+        run(["winget", "install", "--id=Kitware.CMake", "--silent", "--accept-package-agreements", "--accept-source-agreements"])
+    else:
+        print("✔️ CMake already installed.")
+
+    if not shutil.which("cl"):
+        print("📦 Installing Visual C++ Build Tools via winget...")
+        run(["winget", "install", "--id=Microsoft.VisualStudio.2022.BuildTools", "--silent", "--accept-package-agreements", "--accept-source-agreements"])
+    else:
+        print("✔️ MSVC already installed.")
+
+    if not shutil.which("stubgen"):
+        print("📦 Installing mypy for stubgen...")
+        run([sys.executable, "-m", "pip", "install", "mypy"])
+
+def check_python_version():
+    major, minor = sys.version_info[:2]
+    if major != 3 or not (10 <= minor <= 13):
+        print(f"❌ Unsupported Python version: {major}.{minor}")
+        print("👉 Please install Python 3.10 to 3.12 from https://www.python.org/downloads/")
         sys.exit(1)
 
-def set_mujoco_path():
-    if not DEFAULT_MUJOCO_PATH.exists():
-        print(f"❌ Expected MuJoCo path not found: {DEFAULT_MUJOCO_PATH}")
-        print("👉 Please download and extract MuJoCo to this path or update the script.")
-        print("🔗 https://github.com/deepmind/mujoco/releases")
-        sys.exit(1)
+# ------------------------- MAIN SETUP -------------------------
 
-    os.environ["MUJOCO_PATH"] = str(DEFAULT_MUJOCO_PATH)
-    print(f"✔️ MUJOCO_PATH set to: {DEFAULT_MUJOCO_PATH}")
-
-    # Also set MUJOCO_PLUGIN_PATH
-    plugin_path = DEFAULT_MUJOCO_PATH / "plugins"
+def setup_env_vars():
+    os.environ["MUJOCO_PATH"] = str(MUJOCO_DEST)
+    plugin_path = MUJOCO_DEST / "plugins"
     plugin_path.mkdir(exist_ok=True)
     os.environ["MUJOCO_PLUGIN_PATH"] = str(plugin_path)
-    print(f"✔️ MUJOCO_PLUGIN_PATH set to: {plugin_path}")
+    print(f"✔️ Set MUJOCO_PATH: {MUJOCO_DEST}")
+    print(f"✔️ Set MUJOCO_PLUGIN_PATH: {plugin_path}")
 
-def check_stubgen_installed():
-    if not shutil.which("stubgen"):
-        print("❌ `stubgen` not found. Please install it with:")
-        print("   pip install mypy")
-        sys.exit(1)
-
-def clone_repo():
-    if not CLONE_DIR.exists():
+def clone_mujoco():
+    if not REPO_DIR.exists():
+        print("📥 Cloning MuJoCo repository...")
         run(["git", "clone", MUJOCO_REPO])
     else:
         print("✔️ MuJoCo repo already cloned.")
 
-def install_editable():
-    run(["pip", "install", "-e", "."], cwd=PYTHON_DIR)
+def install_python_bindings():
+    print("📦 Installing MuJoCo Python bindings in editable mode...")
+    run(["pip", "install", "-e", "."], cwd=PYTHON_BINDINGS)
 
 def generate_stubs():
+    print("🧠 Generating .pyi stub files...")
     STUBS_DIR.mkdir(exist_ok=True)
     run(["stubgen", "-m", "mujoco", "-o", str(STUBS_DIR)])
 
-def print_success():
-    print("\n🎉 All done!")
-    print("✔️ MuJoCo cloned")
-    print("✔️ Python bindings installed in editable mode")
-    print(f"✔️ Stubs generated in `{STUBS_DIR}/mujoco.pyi`\n")
-    print("👉 Add this to your `mypy.ini` or set `MYPYPATH`:\n")
-    print(f"[mypy]\nmypy_path = {STUBS_DIR}\n")
+def print_finish():
+    print("\n🎉 Setup complete!")
+    print(f"✔️ MuJoCo engine in: {MUJOCO_DEST}")
+    print(f"✔️ Python bindings installed from: {PYTHON_BINDINGS}")
+    print(f"✔️ Type stubs saved to: {STUBS_DIR}/mujoco.pyi")
+    print("👉 Add this to your mypy.ini:")
+    print(f"[mypy]\nmypy_path = {STUBS_DIR}")
+
+# ------------------------- EXECUTION -------------------------
 
 if __name__ == "__main__":
-    set_mujoco_path()
-    check_stubgen_installed()
-    clone_repo()
-    install_editable()
+    check_python_version()
+    install_tools()
+
+    if not MUJOCO_DEST.exists():
+        download_and_extract_zip(MUJOCO_ZIP_URL, MUJOCO_DEST)
+    else:
+        print(f"✔️ MuJoCo already extracted at: {MUJOCO_DEST}")
+
+    setup_env_vars()
+    clone_mujoco()
+    install_python_bindings()
     generate_stubs()
-    print_success()
+    print_finish()
