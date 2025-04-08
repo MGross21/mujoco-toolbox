@@ -8,6 +8,9 @@
 
 Streamlines the MuJoCo Physics Simulator
 
+> [!WARNING]  
+> This package is currently in its zero-release stage. Class methods and APIs may change without prior notice. Please review the documentation and changelog after each update to stay informed about any modifications.
+
 ## Installation
 
 *Add `-U` flag to upgrade pre-existing library*
