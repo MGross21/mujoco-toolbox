@@ -28,6 +28,7 @@ https://github.com/MGross21/mujoco-toolbox/issues.
 """  # noqa: D205, D400, D415, W291
 
 from .assets import WORLD_ASSETS, glovebox
+from .builder import Builder
 from .controllers import (
     cos,
     random,
@@ -44,12 +45,12 @@ __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
 __status__ = "Development"
 __all__ = [
-    "CAPTURE_PARAMETERS",
-    "WORLD_ASSETS",
     "Wrapper",
     "Builder",
-    "cos",
+    "CAPTURE_PARAMETERS",
+    "WORLD_ASSETS",
     "glovebox",
+    "cos",
     "random",
     "real_time",
     "sin",
