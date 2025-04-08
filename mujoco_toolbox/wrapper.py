@@ -13,7 +13,7 @@ from collections.abc import Callable
 from contextlib import nullcontext
 from multiprocessing import cpu_count
 from pathlib import Path
-from typing import Any, TypeAlias
+from typing import Any, TypeAlias, Union
 
 import cv2
 import mediapy as media
@@ -27,6 +27,7 @@ from tqdm.auto import tqdm
 
 from .loader import Loader
 from .utils import _print_warning
+from .builder import Builder
 
 mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
 mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
@@ -70,8 +71,7 @@ class Wrapper:
     # pylint: disable=E1101
     def __init__(
         self,
-        xml: str,
-        *,
+        *xml_args: Union[str, Builder],
         duration: int = 10,
         data_rate: int = 100,
         fps: int = 30,
@@ -85,7 +85,7 @@ class Wrapper:
         """Initialize the Wrapper class for managing MuJoCo simulations.
 
         Args:
-            xml (str): Path to the XML file or string defining the model.
+            xml (str): Path to the XML files or string defining the model.
             duration (int, optional): Duration of the simulation in seconds. Defaults to 10.
             data_rate (int, optional): Data capture rate in frames per second. Defaults to 100.
             fps (int, optional): Frames per second for rendering. Defaults to 30.
@@ -100,9 +100,27 @@ class Wrapper:
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         """
+        if not xml_args:
+            msg = "At least one XML file, string, or Builder is required."
+            raise ValueError(msg)
+
+        # Separate Builders and strings
+        builders = [arg for arg in xml_args if isinstance(arg, Builder)]
+        strings = [arg for arg in xml_args if isinstance(arg, str)]
+
+        # Start with the first builder if any
+        if builders:
+            builder = sum(builders[1:], builders[0])  # sum Builders
+            if strings:
+                builder += Builder(*strings)  # merge str as Builder Instances
+        else:
+            builder = Builder(*strings)
+
+        self._builder = builder
+
         # Load the model
         self._meshdir = meshdir
-        loader = Loader(xml=xml, meshdir=meshdir)
+        loader = Loader(builder, meshdir)
         self.xml = loader.xml
         self._model = loader.model
 
