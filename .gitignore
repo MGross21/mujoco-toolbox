@@ -26,5 +26,8 @@ docs/_build/
 *.egg-info
 build/
 
+# Bindings
+mujoco/
+
 # Local Testing
 local_tests/
