@@ -152,9 +152,9 @@ mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.
 ```python
 from mujoco_toolbox import Builder, Wrapper
 
-obj = Builder("path/to/xml_1") + ... + Builder("path/to/xml_2")
+obj = Builder("path/to/xml_1") + ... + Builder("path/to/xml_n")
 # OR
-obj = Builder("path/to/xml_1", ... , "path/to/xml_2")
+obj = Builder("path/to/xml_1", ... , "path/to/xml_n")
 
 # Then
 Wrapper(obj).show()
