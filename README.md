@@ -8,6 +8,9 @@
 
 Streamlines the MuJoCo Physics Simulator
 
+> [!WARNING]  
+> This package is currently in its zero-release stage. Class methods and APIs may change without prior notice. Please review the documentation and changelog after each update to stay informed about any modifications.
+
 ## Installation
 
 *Add `-U` flag to upgrade pre-existing library*
@@ -146,16 +149,19 @@ mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.
 
 ## Merging Capabilities
 
+Supports full `<mujoco>...</mujoco>` and `<robot>...</robot>` structure as well as complete sub-tree structures.
+
 ```python
-from mujoco_toolbox import Builder, Wrapper
+import mujoco_toolbox as mjtb
 
-obj = Builder("path/to/xml_1") + ... + Builder("path/to/xml_2")
-# OR
-obj = Builder("path/to/xml_1", ... , "path/to/xml_2")
-
-# Then
-Wrapper(obj).show()
+# Merges: XML & URDF Files, XML & URDF Strings, Sub Tree Structures
+mjtb.Wrapper("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 
 ```
+
+> [!WARNING]  
+> Duplicate sub-tree items with the same name will cause MuJoCo to throw a `FatalError`.
+
+### External Build
 
 ![Humanoid in Box](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/human_in_box.png)

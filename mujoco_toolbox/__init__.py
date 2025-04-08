@@ -10,12 +10,12 @@ Modules
 --------
 - `wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
 - `controllers`: Includes pre-built functions for controlling simulations.
-- `builder`: Contains the Builder class for creating and merging MuJoCo models.
 - `assets`: Contains pre-defined assets for building MuJoCo models.
 
 Constants
 ----------
 - CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
+- MAX_GEOM_SCALAR: Scalar value for mujoco.Renderer.max_geom.
 
 This project is licensed under the `MIT License`. See the `LICENSE` file for 
 details.
@@ -45,12 +45,12 @@ __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
 __status__ = "Development"
 __all__ = [
+    "Wrapper",
+    "Builder",
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
-    "Builder",
-    "Wrapper",
-    "cos",
     "glovebox",
+    "cos",
     "random",
     "real_time",
     "sin",

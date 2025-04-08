@@ -1,4 +1,4 @@
-from mujoco_toolbox import WORLD_ASSETS, glovebox
+from mujoco_toolbox.assets import WORLD_ASSETS, glovebox
 
 
 def test_world_assets() -> None:

@@ -40,29 +40,25 @@ class Loader:
 
     def _load_model(self, xml: str, **kwargs: Any) -> None:
         """Load a MuJoCo model from an XML file or a string."""
-        try:
-            # Check if it's a file path
-            path = Path(xml)
-            if path.exists():
-                extension = path.suffix.lower()[1:]
-                if extension == "xml":
-                    self._load_xml_file(str(path.absolute()), **kwargs)
-                elif extension == "urdf":
-                    self._load_urdf_file(str(path.absolute()), **kwargs)
-                else:
-                    msg = f"Unsupported file extension: '{extension}'. Provide an XML or URDF file."
-                    raise ValueError(msg)
+        # First, try to treat it as a file path
+        path = Path(xml)
+        if path.exists():
+            extension = path.suffix.lower()[1:]
+            if extension == "xml":
+                self._load_xml_file(str(path.absolute()), **kwargs)
                 return
-        except (TypeError, ValueError):
-            pass  # Not a valid path, try as XML string
+            elif extension == "urdf":
+                self._load_urdf_file(str(path.absolute()), **kwargs)
+                return
+            else:
+                raise ValueError(f"Unsupported file extension: '{extension}'. Provide an XML or URDF file.")
 
-        # Try as XML string
+        # If it's not a file, try parsing it as raw XML
         try:
-            ET.fromstring(xml)  # Validate XML with secure parser
+            ET.fromstring(xml)  # Validate XML structure
             self._load_xml_string(xml, **kwargs)
         except ET.ParseError as e:
-            msg = f"Invalid XML string: {e}"
-            raise ValueError(msg) from e
+            raise ValueError(f"Invalid XML string: {e}") from e
 
     def _load_xml_file(self, xml_path: str, **kwargs) -> None:
         """Load a MuJoCo model from an XML file."""
