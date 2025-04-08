@@ -1,6 +1,85 @@
 # CHANGELOG
 
 
+## v5.0.1-rc.2 (2025-04-08)
+
+### Bug Fixes
+
+- Clean up imports and add TODO comment for future implementation in ur5e_glovebox example
+  ([`48d8db3`](https://github.com/MGross21/mujoco-toolbox/commit/48d8db38b85559d86508da1ec7e6feb0e47ec7d1))
+
+- Clear console output when creating a new Wrapper instance
+  ([`5f8505f`](https://github.com/MGross21/mujoco-toolbox/commit/5f8505f4c5955df188259c1594e77e786ae6eae3))
+
+- Enhance MuJoCo setup script with download and extraction functionality
+  ([`69d40ec`](https://github.com/MGross21/mujoco-toolbox/commit/69d40eca0c39ebbb37b4267f21c07ad84008823b))
+
+- Improve error handling in _skip_rendering and enhance video title management
+  ([`996ecdd`](https://github.com/MGross21/mujoco-toolbox/commit/996ecdd5eac359d4c3869ad7260096b30bf1dcfa))
+
+- Move world assets to separate XML file and update asset loading in assets.py
+  ([`5ae5656`](https://github.com/MGross21/mujoco-toolbox/commit/5ae56561fb7ccaf50ce1bd55fb6b892801d4ae7f))
+
+- Occlude Builder from __all__
+  ([`ede0a6d`](https://github.com/MGross21/mujoco-toolbox/commit/ede0a6dbb577d096422787c9d2b8178e12d230cf))
+
+- Re-add progress bar support in Wrapper class and update dependencies in pyproject.toml
+  ([`ee80f58`](https://github.com/MGross21/mujoco-toolbox/commit/ee80f581f077eec0f98b2925d744abebe33f85f8))
+
+- Refactor _load_model method for improved file extension handling and XML validation
+  ([`187402b`](https://github.com/MGross21/mujoco-toolbox/commit/187402bb9f945d61a0b62bc732722325752972a3))
+
+- Remove unnecessary --no-root option from Poetry install command
+  ([`4fdba6b`](https://github.com/MGross21/mujoco-toolbox/commit/4fdba6bae718ba6b5d6a02233e76164a2f5a4aec))
+
+- Simplify sys.path insertion and reorder import statements in conf.py
+  ([`3afa759`](https://github.com/MGross21/mujoco-toolbox/commit/3afa759d24ddc8c3f8ae14b7a2393991be36e722))
+
+- Update __all__ to include Builder and reorder exports
+  ([`322f250`](https://github.com/MGross21/mujoco-toolbox/commit/322f2509174c47b4f94963b358e14fb0b34f0a2a))
+
+- Update Builder usage examples for clarity and consistency
+  ([`a8d3d4c`](https://github.com/MGross21/mujoco-toolbox/commit/a8d3d4cbe44103f569260ebd3bcf27971bc32ef0))
+
+- Update CI workflow to improve linting and dependency installation steps
+  ([`0f7f6e9`](https://github.com/MGross21/mujoco-toolbox/commit/0f7f6e9e92296b6a9526740dd26101d810a56cbb))
+
+- Update commit message to skip CI for auto-fix actions; add README for UR5e model source
+  ([`9d050ea`](https://github.com/MGross21/mujoco-toolbox/commit/9d050ea92a6e96f0d0938c1428e4eff33ef18995))
+
+- Update dependency installation in GitHub Actions workflow and remove unnecessary import in Builder
+  ([`87b0a77`](https://github.com/MGross21/mujoco-toolbox/commit/87b0a77bb18e2725343997d21fbbc5b7df140d6b))
+
+- Update documentation workflow to ensure proper dependency installation and clean up unnecessary
+  steps
+  ([`3d6b594`](https://github.com/MGross21/mujoco-toolbox/commit/3d6b5942497f5e8242cb5bae8f30e9abb33bde10))
+
+- Update Poetry version and adjust markers for Python compatibility
+  ([`94001cf`](https://github.com/MGross21/mujoco-toolbox/commit/94001cf0b23ef1dbfe12bb804b5b3c31ef130311))
+
+- Update README examples to reflect support for multiple XML files in Builder
+  ([`cd39095`](https://github.com/MGross21/mujoco-toolbox/commit/cd39095a247f1bae7294d3b11f811137e0741a56))
+
+- Update sys.path insertion to use absolute path for better compatibility
+  ([`68cfa5e`](https://github.com/MGross21/mujoco-toolbox/commit/68cfa5e5617bd4ccff49156905c3ea68bf61ed26))
+
+- Update Wrapper class to accept multiple XML files or Builder instances for model initialization
+  ([`173006e`](https://github.com/MGross21/mujoco-toolbox/commit/173006e5d8a9867ec1dad3cd09161fcec256012f))
+
+### Chores
+
+- Auto-fix code quality issues
+  ([`a61bd0c`](https://github.com/MGross21/mujoco-toolbox/commit/a61bd0c0c6f8c1b7038e288ff05e61b89cbe0df8))
+
+- Auto-fix code quality issues [skip ci]
+  ([`712cd4f`](https://github.com/MGross21/mujoco-toolbox/commit/712cd4f1960ab6ad04401ba7d8ed0f43979e3efd))
+
+### Documentation
+
+- Add warning about zero-release stage and potential API changes in README
+  ([`ff7740b`](https://github.com/MGross21/mujoco-toolbox/commit/ff7740bd73627595841a73989cdc94164ab5f9de))
+
+
 ## v5.0.1-rc.1 (2025-04-04)
 
 ### Bug Fixes
