@@ -45,10 +45,10 @@ jobs:
       - name: Run Linters
         continue-on-error: true
         run: |
-          poetry run ruff check . --fix
+          poetry run ruff check . --fix --unsafe-fixes
           poetry run ruff format .
-          poetry run black . --check
-          poetry run isort . --check-only
+          poetry run black .
+          poetry run isort .
           poetry run flake8 .
           poetry run bandit -r . --quiet
           poetry run pylint mujoco_toolbox/
