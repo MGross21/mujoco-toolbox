@@ -1,7 +1,7 @@
 from pathlib import Path
 
 WORLD_ASSETS = Path(__file__).parent.joinpath("templates", "world.xml").read_text()
-"""Pre-made world assets for MuJoCo simulation: 
+"""Pre-made world assets for MuJoCo simulation:
 `skybox`, `grid`, `body`, and `background` textures."""
 
 def glovebox(*,

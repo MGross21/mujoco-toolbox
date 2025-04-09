@@ -45,12 +45,12 @@ __github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
 __status__ = "Development"
 __all__ = [
-    "Wrapper",
-    "Builder",
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
-    "glovebox",
+    "Builder",
+    "Wrapper",
     "cos",
+    "glovebox",
     "random",
     "real_time",
     "sin",

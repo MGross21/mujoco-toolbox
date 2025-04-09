@@ -1,10 +1,10 @@
 import os
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 import mujoco_toolbox as mjtb
-from pathlib import Path
 
 
 # Import External Modules
@@ -67,7 +67,7 @@ def test_xml1() -> None:
 #         "meshdir": str(meshdir),
 #         "duration": 10,
 #         "fps": 30,
-#         "initial_conditions": ic, 
+#         "initial_conditions": ic,
 #     }
 
 #     sim = mjtb.Wrapper(str(model), **params).run(render=mjtb.GUI_ENABLED)
@@ -94,35 +94,35 @@ def test_mujoco_core_array() -> None:
             assert len(m._captured_data) == (m.duration * m.data_rate) + 1, \
                 f"Captured data length does not match simulation parameters for model {model}."
 
-def test_invalid_xml_path():
+def test_invalid_xml_path() -> None:
     """Test 4: Attempt to load a non-existent XML file."""
     invalid_path = os.path.join(os.path.dirname(__file__), "models", "non_existent.xml")
     with pytest.raises(FileNotFoundError):
         mjtb.Wrapper(invalid_path)
 
 
-def test_invalid_urdf_path():
+def test_invalid_urdf_path() -> None:
     """Test 5: Attempt to load a non-existent URDF file."""
     invalid_path = os.path.join(os.getcwd(), "tests", "models", "non_existent.urdf")
     with pytest.raises(FileNotFoundError):
         mjtb.Wrapper(invalid_path)
 
 
-def test_negative_duration():
+def test_negative_duration() -> None:
     """Test 6: Attempt to set a negative simulation duration."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     with pytest.raises(ValueError):
         mjtb.Wrapper(model, duration=-10)
 
 
-def test_invalid_resolution():
+def test_invalid_resolution() -> None:
     """Test 7: Attempt to set an invalid resolution."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     with pytest.raises(ValueError):
         mjtb.Wrapper(model, resolution=(-800, 600))
 
 
-def test_invalid_initial_conditions():
+def test_invalid_initial_conditions() -> None:
     """Test 8: Attempt to set invalid initial conditions."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     invalid_ic = {"invalid_key": [1, 2, 3]}
@@ -130,7 +130,7 @@ def test_invalid_initial_conditions():
         mjtb.Wrapper(model, initial_conditions=invalid_ic)
 
 
-def test_invalid_controller():
+def test_invalid_controller() -> None:
     """Test 9: Attempt to set a non-callable controller."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     with pytest.raises(ValueError):
@@ -138,7 +138,7 @@ def test_invalid_controller():
 
 
 
-def test_large_duration_and_high_fps():
+def test_large_duration_and_high_fps() -> None:
     """Test 10: Run a simulation with a very large duration and high FPS."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     test = mjtb.Wrapper(model, duration=100, fps=100).run(render=False)
@@ -148,14 +148,14 @@ def test_large_duration_and_high_fps():
         "Captured data length does not match the expected simulation parameters for large duration and high FPS."
 
 
-def test_zero_gravity():
+def test_zero_gravity() -> None:
     """Test 11: Run a simulation with zero gravity."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     test = mjtb.Wrapper(model, gravity=[0, 0, 0]).run(render=False)
     assert np.allclose(test.gravity, [0, 0, 0]), "Gravity was not set to zero as expected."
 
 
-def test_extreme_gravity():
+def test_extreme_gravity() -> None:
     """Test 12: Run a simulation with extreme gravity values."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     extreme_gravity = [1e6, -1e6, 1e6]
@@ -163,7 +163,7 @@ def test_extreme_gravity():
     assert np.allclose(test.gravity, extreme_gravity), "Gravity was not set to extreme values as expected."
 
 
-def test_invalid_gravity():
+def test_invalid_gravity() -> None:
     """Test 13: Attempt to set an invalid gravity vector."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     try:
@@ -171,4 +171,5 @@ def test_invalid_gravity():
     except ValueError as e:
         assert "Gravity must be a 3D vector." in str(e) or "Invalid gravity vector" in str(e), "Unexpected error message for invalid gravity vector."
     else:
-        assert False, "Expected ValueError was not raised."
+        msg = "Expected ValueError was not raised."
+        raise AssertionError(msg)

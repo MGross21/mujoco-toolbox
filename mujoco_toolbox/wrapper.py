@@ -4,29 +4,29 @@ This module provides a `Wrapper` class to handle MuJoCo simulations, including
 loading models, running simulations, capturing data, and rendering frames.
 """
 
+import os
 import sys
 import threading
 import time
-import defusedxml.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable
 from contextlib import nullcontext
 from multiprocessing import cpu_count
 from pathlib import Path
-from typing import Any, TypeAlias, Union
+from typing import Any, TypeAlias
 
 import cv2
+import defusedxml.ElementTree as ET
 import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
-from IPython.display import clear_output
-import os
 import yaml
+from IPython.display import clear_output
 from tqdm.auto import tqdm
 
-from .loader import Loader
 from .builder import Builder
+from .loader import Loader
 
 mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
 mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
@@ -63,14 +63,14 @@ class Wrapper:
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "Wrapper":
         if PROGRESS_BAR_ENABLED:
-            os.system('clear || cls') # Clear the console
+            os.system("clear || cls") # Clear the console
             clear_output(wait=True)
         return super().__new__(cls)
 
     # pylint: disable=E1101
     def __init__(
         self,
-        *xml_args: Union[str, Builder],
+        *xml_args: str | Builder,
         duration: int = 10,
         data_rate: int = 100,
         fps: int = 30,
@@ -81,28 +81,28 @@ class Wrapper:
         meshdir: str = "meshes/",
         **kwargs: Any,
     ) -> None:
-        """
-        Initialize the Wrapper class for managing MuJoCo simulations.
+        """Initialize the Wrapper class for managing MuJoCo simulations.
 
         Args:
-            xml_args (str | Builder): One or more XML file paths, XML strings, 
+            xml_args (str | Builder): One or more XML file paths, XML strings,
                 or Builder objects defining the model.
             duration (int, optional): Duration of the simulation in seconds. Defaults to 10.
             data_rate (int, optional): Data capture rate in frames per second. Defaults to 100.
             fps (int, optional): Frames per second for rendering. Defaults to 30.
-            resolution (tuple[int, int] | None, optional): Resolution of the simulation 
-                in pixels (width, height). If None, defaults to values from the XML 
+            resolution (tuple[int, int] | None, optional): Resolution of the simulation
+                in pixels (width, height). If None, defaults to values from the XML
                 or (400, 300).
-            initial_conditions (dict[str, list] | None, optional): Initial conditions 
+            initial_conditions (dict[str, list] | None, optional): Initial conditions
                 for the simulation.
             keyframe (int | None, optional): Keyframe index for resetting the simulation.
-            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom 
+            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom
                 controller function for the simulation.
             meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes/".
             **kwargs: Additional keyword arguments for model configuration.
 
         Raises:
             ValueError: If no XML arguments are provided.
+
         """
         if not xml_args:
             msg = "At least one XML file, string, or Builder is required."
@@ -351,7 +351,8 @@ class Wrapper:
     @initial_conditions.setter
     def initial_conditions(self, values: dict[str, list]) -> None:
         if not isinstance(values, dict):
-            raise TypeError("Initial conditions must be a dictionary.")
+            msg = "Initial conditions must be a dictionary."
+            raise TypeError(msg)
 
         # Cache data object and attribute names
         data = self._data
@@ -360,9 +361,12 @@ class Wrapper:
         # Find any invalid keys
         invalid_keys = [key for key in values if key not in valid_attrs]
         if invalid_keys:
-            raise ValueError(
+            msg = (
                 f"Invalid initial condition attributes: {', '.join(invalid_keys)}.\n"
                 f"Valid attributes include: {', '.join(valid_attrs)}"
+            )
+            raise ValueError(
+                msg,
             )
 
         # Save and apply
@@ -402,12 +406,15 @@ class Wrapper:
     @data_rate.setter
     def data_rate(self, value: int) -> None:
         if not isinstance(value, int):
-            raise ValueError("Data rate must be an integer.")
+            msg = "Data rate must be an integer."
+            raise ValueError(msg)
         if value <= 0:
-            raise ValueError("Data rate must be greater than 0.")
+            msg = "Data rate must be greater than 0."
+            raise ValueError(msg)
         max_rate = int(self._duration / self.ts)
         if value > max_rate:
-            raise ValueError(f"{value} exceeds the maximum data rate of {max_rate}.")
+            msg = f"{value} exceeds the maximum data rate of {max_rate}."
+            raise ValueError(msg)
         self._dr = value
 
     @property
@@ -472,18 +479,17 @@ class Wrapper:
             sim_data = _SimulationData()
 
             # Cache frequently used functions and objects for performance
-            mj_step = mujoco.mj_step
             mj_step1 = mujoco.mj_step1
             mj_step2 = mujoco.mj_step2
             m, d = self._model, self._data
-            
+
             # dur = self._duration
 
             # Simulation Timing
             total_steps = int(self._duration / self.ts)
             # capture_rate = self.data_rate * self.ts
             capture_interval = max(1, int(1.0 / (self._dr * self.ts))) # PEMDAS :)
-            
+
 
             # RENDERING PREPARATIONS
             if render:
@@ -496,7 +502,7 @@ class Wrapper:
             if multi_thread:
                 cpu_count()
                 # TODO: Implement multi-threading
-                
+
             # if interactive:
             #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})  # noqa: ERA001
             #     gui.start()
@@ -526,10 +532,10 @@ class Wrapper:
                         renderer.update_scene(d, camera if camera else -1)
                         frames[frame_count] = renderer.render()
                         frame_count += 1  # Increment frame count after capturing the frame
-                    
+
                     mj_step2(m, d)
                     pbar.update(1) if PROGRESS_BAR_ENABLED else None
-                    
+
         except Exception as e:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
@@ -683,7 +689,6 @@ class Wrapper:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
-
         if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
@@ -905,9 +910,7 @@ class _SimulationData:
         self._d: dict[str, list] = defaultdict(list)
 
     def capture(self, mj_data) -> None:
-        """
-        Capture data from MjData, storing specified or all public attributes.
-        """
+        """Capture data from MjData, storing specified or all public attributes."""
         from . import CAPTURE_PARAMETERS
 
         keys = (
@@ -930,10 +933,11 @@ class _SimulationData:
                 self._d[key].append(value)
 
     def unwrap(self) -> dict[str, np.ndarray]:
-        """
-        Unwrap simulation data into a structured format with NumPy arrays.
+        """Unwrap simulation data into a structured format with NumPy arrays.
+
         Returns:
             dict[str, np.ndarray]: Unwrapped data for each key.
+
         """
         unwrapped_data = {}
 
