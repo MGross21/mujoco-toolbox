@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write      # Needed for changelog commit and tag creation (if used)
+  contents: write      # Needed for changelog commit and tag creation
   id-token: write      # Needed for trusted publishing to PyPI
   packages: write
   pull-requests: write
@@ -34,6 +34,11 @@ jobs:
           git status
           git tag
           echo "Current ref: ${{ github.ref }}"
+          
+      - name: Create branch from tag
+        run: |
+          git branch main-release
+          git checkout main-release
 
       - name: Set up Python
         uses: actions/setup-python@v5
