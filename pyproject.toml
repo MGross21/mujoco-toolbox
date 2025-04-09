@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
-dynamic = ["classifiers"]
+dynamic = ["classifiers","dependencies"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -42,7 +42,7 @@ rich = "*"
 defusedxml = "^0.7.1"
 gym = { version = "*", optional = true }
 
-[tool.poetry.extras]
+[project.optional-dependencies]
 # beautified = ["colorama", "rich"]
 gym = ["gym"]
 
