@@ -475,20 +475,25 @@ class Wrapper:
 
             # Cache frequently used functions and objects for performance
             mj_step = mujoco.mj_step
+            mj_step1 = mujoco.mj_step1
+            mj_step2 = mujoco.mj_step2
             m, d = self._model, self._data
-            w, h = self.resolution
+            
             # dur = self._duration
 
             # Simulation Timing
             total_steps = int(self._duration / self.ts)
             # capture_rate = self.data_rate * self.ts
-            capture_interval = max(1, int(1.0 / self.data_rate * self.ts))
-            render_interval = max(1, int(1.0 / (self._fps * self.ts)))
+            capture_interval = max(1, int(1.0 / (self._dr * self.ts))) # PEMDAS :)
+            
 
-            # Pre-allocate frame length
-            max_frames = int(self._duration * self._fps)
-            frames = np.zeros((max_frames, h, w, 3), dtype=np.uint8)
-            frame_count = 0
+            # RENDERING PREPARATIONS
+            if render:
+                w, h = self.resolution
+                render_interval = max(1, int(1.0 / (self._fps * self.ts)))
+                max_frames = int(self._duration * self._fps)
+                frames = np.zeros((max_frames, h, w, 3), dtype=np.uint8)
+                frame_count = 0
 
             if multi_thread:
                 cpu_count()
@@ -513,8 +518,7 @@ class Wrapper:
 
             with _Renderer as renderer, _ProgressBar as pbar:
                 for step in range(total_steps):
-                    if not interactive:
-                        mj_step(m, d)
+                    mj_step1(m, d)
 
                     # Capture data at the specified rate
                     if step % capture_interval == 0:
@@ -524,9 +528,10 @@ class Wrapper:
                         renderer.update_scene(d, camera if camera else -1)
                         frames[frame_count] = renderer.render()
                         frame_count += 1  # Increment frame count after capturing the frame
-
+                    
+                    mj_step2(m, d)
                     pbar.update(1) if PROGRESS_BAR_ENABLED else None
-
+                    
         except Exception as e:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
