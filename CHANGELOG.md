@@ -1,6 +1,86 @@
 # CHANGELOG
 
 
+## v5.0.1-rc.3 (2025-04-09)
+
+### Bug Fixes
+
+- Add typing stubs for defusedxml, colorama, PyYAML, and tqdm to pyproject.toml
+  ([`536bd4c`](https://github.com/MGross21/mujoco-toolbox/commit/536bd4cb7ea34edd17c87012379bb19004dc3772))
+
+- Correct attribute name for initial conditions in Wrapper class
+  ([`ec03d88`](https://github.com/MGross21/mujoco-toolbox/commit/ec03d88c583a4fe7d529bbeae4a8f1d04e92b617))
+
+- Enhance initial_conditions setter validation and streamline attribute assignment
+  ([`d452acf`](https://github.com/MGross21/mujoco-toolbox/commit/d452acfdd69b387acb2de2f75bab119b3c9f4576))
+
+- Enhance XML loading and error handling in Loader class
+  ([`8842d8c`](https://github.com/MGross21/mujoco-toolbox/commit/8842d8c53c5641eb2eb3d2e0792c392b89c9f1b5))
+
+- Ensure proper closure of conditional statement in CI workflow
+  ([`799f234`](https://github.com/MGross21/mujoco-toolbox/commit/799f234e4d2b713ead71ac8d4dc1849d1c0e7a28))
+
+- Iinstallation script and mypy configuration for MuJoCo stubs
+  ([`ef2055b`](https://github.com/MGross21/mujoco-toolbox/commit/ef2055b0c88248c77ab57643eba40aabd479c678))
+
+- Improve data_rate setter validation in Wrapper class
+  ([`8c183d5`](https://github.com/MGross21/mujoco-toolbox/commit/8c183d5cecb7dfa586cd4115f49172e9963d4774))
+
+- Improve docstring formatting for clarity in Wrapper class methods
+  ([`0a2124f`](https://github.com/MGross21/mujoco-toolbox/commit/0a2124f26fcce0ee6b2833f53de81920e8c15534))
+
+- Optimize simulation step handling in Wrapper class (Ghosted #20)
+  ([`3a95ac5`](https://github.com/MGross21/mujoco-toolbox/commit/3a95ac572615e426550c06604479c6045969c33e))
+
+- Replace xml.etree with defusedxml for safer XML parsing and update resolution extraction logic
+  ([`baf0aff`](https://github.com/MGross21/mujoco-toolbox/commit/baf0aff14eed90775914236d3519cc0a6a9d9cdb))
+
+- Update .gitignore to include CMake and _deps directories
+  ([`59b3e47`](https://github.com/MGross21/mujoco-toolbox/commit/59b3e475245eb2d4d89ee60d24497325682916ce))
+
+- Update data structure for CAPTURE_PARAMETERS and improve key validation in Wrapper class
+  ([`a5aaeee`](https://github.com/MGross21/mujoco-toolbox/commit/a5aaeeec5f47c19720f7cdc64ce0302353ff287a))
+
+- Update dependencies in pyproject.toml and add coverage tools; remove commented-out mypy and
+  id2name tests
+  ([`ccaa9b3`](https://github.com/MGross21/mujoco-toolbox/commit/ccaa9b319c56360168ff16936fb8659be6a782ab))
+
+- Update development requirements and Python version constraints
+  ([`44982be`](https://github.com/MGross21/mujoco-toolbox/commit/44982bec6d62a7e9b00c7a55a31befbd9a79d984))
+
+- Update linter commands to include unsafe fixes and remove checks for black and isort
+  ([`969b0ad`](https://github.com/MGross21/mujoco-toolbox/commit/969b0ad16503157af6fada39b47417c4089f5745))
+
+- Update MuJoCo bindings and installation process; add mypy to dev requirements
+  ([`880bdfc`](https://github.com/MGross21/mujoco-toolbox/commit/880bdfc8a5f1e3e02c883c27a942e41fe5075297))
+
+- Update mypy and typing stubs to use wildcard versions for better compatibility
+  ([`765025e`](https://github.com/MGross21/mujoco-toolbox/commit/765025edf9909f4eeac235ea3b6eed82db2c4312))
+
+- Update name2id tests to assert ValueError for nonexistent IDs
+  ([`a3fd992`](https://github.com/MGross21/mujoco-toolbox/commit/a3fd99203979a509bc0b0e70a8f936953317c835))
+
+- Update pytest version to ^8.3.5 in pyproject.toml
+  ([`5a0fed1`](https://github.com/MGross21/mujoco-toolbox/commit/5a0fed1ceae3a02fafd020f200b0bb14da246bce))
+
+- Update test_wrapper.py to improve model path handling and add validation tests
+  ([`946133c`](https://github.com/MGross21/mujoco-toolbox/commit/946133ce72f05e871937a7d92d867d7e6a879fee))
+
+- Update Wrapper class initialization docstring for clarity and add error handling
+  ([`0831331`](https://github.com/MGross21/mujoco-toolbox/commit/0831331e46200d00f99dc0e4ef5bc59cdd7c6db8))
+
+### Refactoring
+
+- Comment out deprecated URDF test function and improve parameter naming
+  ([`59110ef`](https://github.com/MGross21/mujoco-toolbox/commit/59110ef706f1c5a0bedc2dd71379a7278d5641da))
+
+- Remove deprecated ur5e_glovebox example script
+  ([`a64cd38`](https://github.com/MGross21/mujoco-toolbox/commit/a64cd38ae1fb740c697e24ebf4aa3bf50cc10371))
+
+- Remove render bypass method
+  ([`d618b84`](https://github.com/MGross21/mujoco-toolbox/commit/d618b8426086925b3ade87e77e7d0ccc5b927bb2))
+
+
 ## v5.0.1-rc.2 (2025-04-08)
 
 ### Bug Fixes
