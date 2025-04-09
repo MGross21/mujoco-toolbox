@@ -358,7 +358,7 @@ class Wrapper:
         valid_attrs = _SimulationData.get_public_keys(data)
 
         # Find any invalid keys
-        invalid_keys = [key for key in values.keys() if key not in valid_attrs]
+        invalid_keys = [key for key in values if key not in valid_attrs]
         if invalid_keys:
             raise ValueError(
                 f"Invalid initial condition attributes: {', '.join(invalid_keys)}.\n"
@@ -902,13 +902,12 @@ class _SimulationData:
     __slots__ = ["_d"]
 
     def __init__(self) -> None:
-        self._d: dict = defaultdict(list)
+        self._d: dict[str, list] = defaultdict(list)
 
-    # pylint: disable=E1101,C0415
-    def capture(self, mj_data: mujoco.MjData) -> None:
-        """Capture data from MjData object, storing specified or all public
-        simulation data.
-        """  # noqa: D205
+    def capture(self, mj_data) -> None:
+        """
+        Capture data from MjData, storing specified or all public attributes.
+        """
         from . import CAPTURE_PARAMETERS
 
         keys = (
@@ -931,35 +930,37 @@ class _SimulationData:
                 self._d[key].append(value)
 
     def unwrap(self) -> dict[str, np.ndarray]:
-        """Unwrap simulation data into a structured format with NumPy arrays."""
+        """
+        Unwrap simulation data into a structured format with NumPy arrays.
+        Returns:
+            dict[str, np.ndarray]: Unwrapped data for each key.
+        """
         unwrapped_data = {}
 
         for key, value_list in self._d.items():
-            if not value_list:  # Skip empty lists
+            if not value_list:
                 unwrapped_data[key] = np.array([])
                 continue
 
+            first = value_list[0]
+
             try:
-                # Check if all items in the list have same shape for array data
-                if isinstance(value_list[0], np.ndarray):
-                    # Check if arrays have consistent shapes
-                    shapes = [arr.shape for arr in value_list]
-                    if all(shape == shapes[0] for shape in shapes):
+                if isinstance(first, np.ndarray):
+                    shape = first.shape
+                    if all(v.shape == shape for v in value_list):
                         unwrapped_data[key] = np.stack(value_list)
                     else:
-                        # For arrays with different shapes, keep as a list
-                        unwrapped_data[key] = value_list
+                        unwrapped_data[key] = value_list  # Inconsistent shapes
                 else:
-                    # Convert to a NumPy array if it's a list of scalars
                     unwrapped_data[key] = np.array(value_list)
-            except ValueError:
-                unwrapped_data[key] = value_list  # Store as a list if fail
+            except (ValueError, TypeError):
+                unwrapped_data[key] = value_list  # Fallback
 
         return unwrapped_data
 
     @property
     def shape(self) -> dict[str, tuple]:
-        """Return the shape of the captured data."""
+        """Return the shape of the captured data per key."""
         if not self._d:
             return {}
 
@@ -972,23 +973,31 @@ class _SimulationData:
             first_value = value_list[0]
             if isinstance(first_value, np.ndarray):
                 shapes[key] = (len(value_list), *first_value.shape)
-            elif isinstance(first_value, list):
+            elif isinstance(first_value, list) and all(isinstance(v, list) for v in value_list):
                 shapes[key] = (len(value_list), len(first_value))
             else:
                 shapes[key] = (len(value_list),)
 
         return shapes
 
-    def __del__(self) -> None:
-        """Safely clean up resources during object deletion."""
-        if hasattr(self, "_d"):
-            self._d.clear()
+    def clear(self) -> None:
+        """Clear all captured data."""
+        self._d.clear()
+
+    def keys(self) -> set[str]:
+        """Return a set of all captured data keys."""
+        return set(self._d.keys())
+
+    def items(self) -> dict[str, list]:
+        """Return raw captured data as a dict of lists."""
+        return dict(self._d)
 
     def __len__(self) -> int:
+        """Return the number of captured steps (based on first key)."""
         if not self._d:
             return 0
-        # Return the length of one of the data lists
-        return len(next(iter(self._d.values())))
+        first_key = next(iter(self._d))
+        return len(self._d[first_key])
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}({len(self)} Step(s) Captured)"
@@ -996,11 +1005,16 @@ class _SimulationData:
     def __repr__(self) -> str:
         return self.__str__()
 
+    def __del__(self) -> None:
+        """Safely clean up resources during object deletion."""
+        if hasattr(self, "_d"):
+            self._d.clear()
+
     @staticmethod
-    def get_public_keys(obj: object) -> list[str]:
-        """Get all public keys of an object."""
-        return [
+    def get_public_keys(obj: object) -> set[str]:
+        """Get all public (non-callable) attributes of an object."""
+        return {
             name
             for name in dir(obj)
             if not name.startswith("_") and not callable(getattr(obj, name))
-        ]
+        }

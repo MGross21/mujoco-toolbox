@@ -59,7 +59,7 @@ __all__ = [
 
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
 GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
-CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
+CAPTURE_PARAMETERS = {  # MjData default fields to capture during simulation
     "time",
     "qpos",
     "qvel",
@@ -70,7 +70,7 @@ CAPTURE_PARAMETERS = [  # MjData default fields to capture during simulation
     "xmat",
     "ctrl",
     "sensordata",
-]
+}
 
 class SimulationError(Exception):
     """Custom exception for simulation-related errors."""
