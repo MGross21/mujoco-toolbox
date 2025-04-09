@@ -68,7 +68,7 @@ jobs:
               echo "No changes to commit."
             else
               git commit -m "chore: auto-fix code quality issues [skip ci]"
-              git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+              git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.event.pull_request.head.ref }}
             fi
 
   test:
