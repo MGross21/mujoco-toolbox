@@ -4,3 +4,4 @@ pre-commit
 pytest
 ipykernel
 virtualenv
+mypy
