@@ -47,26 +47,8 @@ def test_name2id_lights() -> None:
     with pytest.raises(ValueError):
         test.name2id("nonexistent_light")
 
-# def test_id2name() -> None:
-#     for i in range(test.model.njnt):
-#         assert test.id2name(i) == test.model.joint(i).name
-#     for i in range(test.model.nbody):
-#         assert test.id2name(i) == test.model.body(i).name
-#     for i in range(test.model.ngeom):
-#         assert test.id2name(i) == test.model.geom(i).name
-#     for i in range(test.model.nactuator):
-#         assert test.id2name(i) == test.model.actuator(i).name
-#     for i in range(test.model.nsensor):
-#         assert test.id2name(i) == test.model.sensor(i).name
-#     for i in range(test.model.nlights):
-#         assert test.id2name(i) == test.model.light(i).name
-#     # Test for nonexistent IDs
-#     assert test.id2name(test.model.njnt) is None
-#     assert test.id2name(test.model.nbody) is None
-#     assert test.id2name(test.model.ngeom) is None
-#     assert test.id2name(test.model.nactuator) is None
-#     assert test.id2name(test.model.nsensor) is None
-#     assert test.id2name(test.model.nlights) is None
+# Test id2name for joints
+# TODO: Implement this test
 
 
 # Run all tests
