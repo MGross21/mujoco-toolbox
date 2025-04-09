@@ -22,7 +22,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries"
 ]
 dynamic = ["classifiers"]
-dependencies = [] # No dependencies listed here, they are defined in the [tool.poetry.dependencies] section
+dependencies = ["defusedxml (>=0.7.1,<0.8.0)"] # No dependencies listed here, they are defined in the [tool.poetry.dependencies] section
 
 [tool.poetry.dependencies]
 python = "^3.10"
