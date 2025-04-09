@@ -143,7 +143,7 @@ class Wrapper:
 
         self._data = mujoco.MjData(self._model)
         self._keyframe = keyframe
-        self.init_conditions = initial_conditions or {}  # **after data**
+        self.initial_conditions = initial_conditions or {}  # **after data**
 
         # Initialize _frames and _captured_data attributes
         self._frames: list[np.ndarray] | None = None
