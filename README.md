@@ -118,7 +118,7 @@ from mujoco_toolbox.controllers import real_time
 with mjtb.Wrapper("path/to/xml", controller=real_time) as digitaltwin:
     digitaltwin.launch(show_menu=False) # Open the simulation window
     while True:
-        digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"Mujoco MjData Object": value})
+        digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"mjdata_kwargs": value})
 ```
 
 See `MjData` objects [here](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata)
