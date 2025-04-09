@@ -347,30 +347,24 @@ class Wrapper:
     @initial_conditions.setter
     def initial_conditions(self, values: dict[str, list]) -> None:
         if not isinstance(values, dict):
-            msg = "Initial conditions must be a dictionary."
-            raise TypeError(msg)
+            raise TypeError("Initial conditions must be a dictionary.")
 
-        invalid_keys = [
-            key
-            for key in values
-            if not hasattr(mujoco.MjData(self._model), key)
-        ]
+        # Cache data object and attribute names
+        data = self._data
+        valid_attrs = _SimulationData.get_public_keys(data)
+
+        # Find any invalid keys
+        invalid_keys = [key for key in values.keys() if key not in valid_attrs]
         if invalid_keys:
-            _SimulationData.get_public_keys(self._data)
-            msg = (
-                "Invalid initial condition attributes: "
-                f"{', '.join(invalid_keys)}"
+            raise ValueError(
+                f"Invalid initial condition attributes: {', '.join(invalid_keys)}.\n"
+                f"Valid attributes include: {', '.join(valid_attrs)}"
             )
-            raise ValueError(msg)
 
+        # Save and apply
         self.init_conditions = values
-
-        # Apply initial conditions directly when set
-        for key, value in values.items():
-            if hasattr(self._data, key):
-                setattr(self._data, key, value)
-            else:
-                _print_warning(f"'{key}' is not a valid attribute of MjData.")
+        for k, v in values.items():
+            setattr(data, k, v)
 
     @property
     def controller(self) -> Callable[[mjModel, mjData, Any], None] | None:
@@ -538,7 +532,7 @@ class Wrapper:
         finally:
             mujoco.set_mjcb_control(None)
             self._captured_data = sim_data
-            self._frames = frames[:frame_count]
+            self._frames = frames[:frame_count] if render else None
             # if interactive:
             #     gui.join()
         return self
