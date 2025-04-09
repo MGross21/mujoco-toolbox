@@ -61,16 +61,26 @@ jobs:
       - name: Commit Fixes if Needed
         if: github.event_name == 'pull_request'
         run: |
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git add .
-            if git diff --staged --quiet; then
-              echo "No changes to commit."
-            else
-              git commit -m "chore: auto-fix code quality issues [skip ci]"
-              git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.event.pull_request.head.ref }}
-            fi
-
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git fetch origin
+          git checkout "${{ github.head_ref }}"
+          
+          git add .
+      
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: auto-fix code quality issues [skip ci]"
+      
+            # Rebase to avoid merge conflicts
+            git pull --rebase origin "${{ github.head_ref }}"
+            
+            # Push with token
+            git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" HEAD:"${{ github.head_ref }}"
+          fi
+    
   test:
     name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
