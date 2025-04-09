@@ -84,8 +84,6 @@ ffmpeg -version
 import mujoco_toolbox as mjtb
 
 mjtb.Wrapper("path/to/your/xml").run(render=True).save()
-
-mjtb.Wrapper("path/to/your/xml").save() # Bypass: uses run(render=True)
 ```
 
 ## Controllers
