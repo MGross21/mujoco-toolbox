@@ -27,6 +27,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Ensure all history and tags are available
+          ref: ${{ github.ref }}  # Use the tag ref for the checkout
+        
+      - name: Debug Git State
+        run: |
+          git status
+          git tag
+          echo "Current ref: ${{ github.ref }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
