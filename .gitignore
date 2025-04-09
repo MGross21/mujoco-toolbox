@@ -28,6 +28,8 @@ build/
 
 # Bindings
 mujoco/
+CMake*
+_deps/
 
 # Local Testing
 local_tests/
