@@ -7,7 +7,7 @@ loading models, running simulations, capturing data, and rendering frames.
 import sys
 import threading
 import time
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable
 from contextlib import nullcontext
@@ -163,12 +163,16 @@ class Wrapper:
         ]
 
     def _extract_resolution(self) -> tuple[int, int]:
-        root = ET.fromstring(self.xml)  # TODO: use defusedxml instead
-        global_tag = root.find(".//global")
-        if global_tag:
-            offwidth = int(global_tag.get("offwidth", 400))
-            offheight = int(global_tag.get("offheight", 300))
-            return (offwidth, offheight)
+        """Extract resolution from the XML or return default values."""
+        try:
+            root = ET.fromstring(self.xml)
+            global_tag = root.find("visual/global")
+            if global_tag is not None:
+                offwidth = int(global_tag.get("offwidth", 400))
+                offheight = int(global_tag.get("offheight", 300))
+                return (offwidth, offheight)
+        except (ET.ParseError, ValueError, TypeError):
+            pass
         return (400, 300)
 
     def reload(self: "Wrapper") -> "Wrapper":
@@ -318,8 +322,8 @@ class Wrapper:
     def resolution(self) -> tuple[int, int]:
         """Resolution of the simulation in pixels (w,h)."""
         return (
-            self._model.vis.Global.offwidth,
-            self._model.vis.Global.offheight,
+            self._model.vis.global_.offwidth,
+            self._model.vis.global_.offheight,
         )
 
     @resolution.setter
@@ -331,10 +335,9 @@ class Wrapper:
             msg = "Resolution must be at least 1x1 pixels."
             raise ValueError(msg)
 
-        # Update the model's visual settings to match the new resolution
-        self._model.vis.Global.offwidth, self._model.vis.Global.offheight = (
-            map(int, values)
-        )
+        # Update the resolution using the correct mujoco attributes
+        self._model.vis.global_.offwidth = int(values[0])
+        self._model.vis.global_.offheight = int(values[1])
 
     @property
     def initial_conditions(self) -> dict[str, list]:
