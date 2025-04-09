@@ -114,7 +114,8 @@ class _Platform:
             return "jupyter"
         return "terminal" if hasattr(sys, "ps1") else "script"
 
-    def monitors(self) -> list:
+    @staticmethod
+    def monitors() -> list:
         """Returns a list of active monitors."""
         try:
             return screeninfo.get_monitors()

@@ -1,21 +1,8 @@
-WORLD_ASSETS = """
-  <asset>
-    <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0"
-             width="32" height="512"/>
-    <texture name="body" type="cube" builtin="flat" mark="cross" width="128"
-             height="128" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1"/>
-    <material name="body" texture="body" texuniform="true"
-              rgba="0.8 0.6 .4 1"/>
-    <texture name="grid" type="2d" builtin="checker" width="512" height="512"
-             rgb1=".1 .2 .3" rgb2=".2 .3 .4"/>
-    <material name="grid" texture="grid" texrepeat="1 1" texuniform="true"
-              reflectance=".2"/>
-    <texture name="background" type="2d" builtin="flat" width="256"
-             height="256" rgb1="1 1 1"/>
-    <material name="background" texture="background" texuniform="true"
-              rgba="1 1 1 1"/>
-  </asset>
-"""
+from pathlib import Path
+
+WORLD_ASSETS = Path(__file__).parent.joinpath("templates", "world.xml").read_text()
+"""Pre-made world assets for MuJoCo simulation:
+`skybox`, `grid`, `body`, and `background` textures."""
 
 def glovebox(*,
              width: float=1.25,
@@ -32,7 +19,7 @@ def glovebox(*,
     </asset>
     <worldbody>
         <light name="glovebox_light" pos="0 0 {height + 5 * glass_thickness}"
-               dir="0 0 -1" diffuse="1 1 1" specular="0.5 0.5 0.5" directional="false"/>
+               dir="0 0 -1" diffuse="5 5 5" specular="2 2 2" directional="true" cutoff="180"/>
         <body name="camera_target" pos="0 0 0">
             <geom type="sphere" size="0.001" rgba="0 0 0 0" density="0"/>
         </body>

@@ -1,18 +1,18 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0",  "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
-
-[tool.poetry]
-version = "0.0.0"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "mujoco-toolbox"
-dynamic = ["version"]
+version = "5.0.1-rc.3"
+requires-python = ">=3.10,<4.0"
 description = "A modern package to handle MuJoCo environments"
 readme = "README.md"
 license = { file = "LICENSE" }
 packages = [{ include = "mujoco_toolbox" }]
-authors = [{ name = "MGross21", email = "MGross21@TODO.com" }]
+authors = [
+  { name = "MGross21", email = "MGross21@example.com" }
+]
 keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -21,30 +21,30 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
-requires-python = ">=3.10,<4.0"
-dependencies = [
-    "mujoco",   # MuJoCo Python bindings
-    "numpy",    # For numerical operations and array handling
-    "scipy",    # For scientific computing and numerical operations
-    "matplotlib",   # For plotting and visualization
-    "pyyaml",   # For YAML file handling
-    "mediapy",  # For video and image processing
-    "rich",     # For pretty printing and progress bars
-    "ffmpeg",   # Video processing
-    "opencv-python", # Video showing
-    "trimesh",  # 3D geometry processing library
-    "screeninfo", # Screen resolution handling
-    "colorama", # Colored terminal output
-    "defusedxml"  # Safe XML parsing
-    
-]
+dynamic = ["classifiers","dependencies"]
 
-# [project.extras]
+[tool.poetry.dependencies]
+python = "^3.10"
+mujoco = "*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+pyyaml = "*"
+mediapy = "*"
+ffmpeg = "*"
+opencv-python = "*"
+trimesh = "*"
+tqdm = "*"
+ipywidgets = "*"
+screeninfo = "*"
+colorama = "*"
+rich = "*"
+defusedxml = "^0.7.1"
+gym = { version = "*", optional = true }
+
+[project.optional-dependencies]
 # beautified = ["colorama", "rich"]
-# gym = ["gym"]
-
-[tool.poetry-dynamic-versioning]
-enable = true
+gym = ["gym"]
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
@@ -54,9 +54,9 @@ changelog = "https://github.com/MGross21/mujoco-toolbox/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "*"
+pytest = "^8.3.5"
 ruff = "^0.11.2"
-mypy = "^1.15.0"
+mypy = "*"
 pytypes = "^1.0b10"
 black = "^25.1.0"
 isort = "^6.0.1"
@@ -65,14 +65,23 @@ bandit = "^1.8.3"
 pylint = "^3.3.4"
 python-semantic-release = "^9.21.0"
 python-dotenv = "^1.1.0"
-poetry-dynamic-versioning = "^1.0.0"
+pytest-cov = "^3.0.0"
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+
+[tool.semantic_release.branches.dev]
+match = "dev"
+prerelease = true
 
 [tool.semantic_release]
 version_variables = [
+    "pyproject.toml:version",
     "mujoco_toolbox/__init__.py:__version__",
-    "CITATION.cff:version"
+    "CITATION.cff:version",
+
 ]
-branch = "main"
 changelog_file = "CHANGELOG.md"
 build_command = "poetry build"
 dist_path = "dist/"
@@ -129,7 +138,10 @@ select = ["ALL"]    # Enable all rules
 ignore = ["T20","INP001"]    # Rules to Ignore
 fixable = ["ALL"]   # Enable auto-fixing for all fixable issues
 extend-select = ["I", "B", "Q", "S"]
-exclude = ["*venv/", "*__pycache__", "build/", "dist/", ".tox/", ".eggs/", ".git/", ".idea/", ".mypy_cache/"]  # Exclude these directories from linting
+exclude = [
+    "*venv/", "*__pycache__", "build/", "dist/",
+    ".tox/", ".eggs/", ".git/", ".idea/", ".mypy_cache/"
+]  # Exclude these directories from linting
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -139,7 +151,10 @@ strict_optional = true
 
 [tool.isort]
 profile = "black"  # Use black's code style
-known_third_party = ["mujoco", "numpy", "scipy", "matplotlib", "pyyaml", "mediapy", "ffmpeg", "trimesh", "screeninfo", "colorama"]
+known_third_party = [
+    "mujoco", "numpy", "scipy", "matplotlib", "pyyaml",
+    "mediapy", "ffmpeg", "trimesh", "screeninfo", "colorama"
+]
 known_first_party = ["mujoco_toolbox"]
 line_length = 79  # PEP8 line length
 

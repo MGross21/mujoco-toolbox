@@ -12,26 +12,7 @@ import defusedxml.ElementTree as ET  # For secure parsing
 
 
 class Builder:
-    """Builder class for loading, merging, and saving MuJoCo
-    models from XML strings or file paths.
-
-    Attributes:
-        xml (str): XML string of the model.
-
-    Examples:
-        ```python
-        # Load a model
-        builder1 = Builder("path/to/model1.xml")
-        # Merge two models from two object instances
-        builder2 = Builder("path/to/model2.xml")
-        merged_builder = builder1 + builder2
-        merged_builder.save("path/to/merged_model.xml")
-        # Merge two models from two file paths
-        builder = Builder("path/to/model1.xml", "path/to/model2.xml")
-        builder.save("path/to/merged_model.xml")
-        ```
-
-    """
+    """Builder class for loading, merging, and saving MuJoCo models from XML strings or file paths."""
 
     def __init__(self, *args: str) -> None:
         """Initialize with XML strings or file paths.
@@ -354,13 +335,3 @@ class Builder:
 
         """
         return len(self.root) if self.root is not None else 0
-
-    @property
-    def xml(self) -> str:
-        """XML string of the model.
-
-        Returns:
-            str: XML string representation.
-
-        """
-        return str(self)

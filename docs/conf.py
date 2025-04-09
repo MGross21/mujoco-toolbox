@@ -2,12 +2,13 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import mujoco_toolbox as mjtb
-
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
+# Add the parent directory (repo root) to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import mujoco_toolbox as mjtb
 
 # Project information
 project = mjtb.__name__
