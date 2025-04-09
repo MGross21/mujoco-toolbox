@@ -403,19 +403,13 @@ class Wrapper:
 
     @data_rate.setter
     def data_rate(self, value: int) -> None:
-        if isinstance(value, float) and not isinstance(value, int):
-            value = round(value)
-            _print_warning(
-                f"Data rate must be an integer. Rounding to the nearest integer ({value}).",
-            )
+        if not isinstance(value, int):
+            raise ValueError("Data rate must be an integer.")
         if value <= 0:
-            msg = "Data rate must be greater than 0."
-            raise ValueError(msg)
-        # TODO: Check the math on this validation
-        # max_ = int(self._duration / self.ts)
-        # if value > max_:
-        #     print_warning(f"Data rate exceeds the simulation steps. Setting to the maximum possible value ({max_}).")
-        #     value = max_
+            raise ValueError("Data rate must be greater than 0.")
+        max_rate = int(self._duration / self.ts)
+        if value > max_rate:
+            raise ValueError(f"{value} exceeds the maximum data rate of {max_rate}.")
         self._dr = value
 
     @property
