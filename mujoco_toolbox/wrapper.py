@@ -675,9 +675,9 @@ class Wrapper:
             title (str, optional): Title for the rendered media.
             codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
-            (start, stop) frame indices.
+                (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
-            (start, end) times in seconds.
+                (start, end) times in seconds.
 
         Raises:
             ValueError: If no frames are captured or invalid input parameters.
@@ -736,9 +736,9 @@ class Wrapper:
             title (str, optional): Filename for the saved media.
             codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
-            (start, stop) frame indices.
+                (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
-            (start, end) times in seconds.
+                (start, end) times in seconds.
 
         Returns:
             str: Absolute path to the saved file.
