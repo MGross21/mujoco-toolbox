@@ -2657,6 +2657,72 @@ test = ["pyinstrument", "pytest", "pytest-cov", "ruff"]
 test-more = ["coveralls", "ezdxf", "ipython", "marimo", "matplotlib", "pymeshlab", "pyright", "pytest-beartype ; python_version >= \"3.10\"", "triangle"]
 
 [[package]]
+name = "types-colorama"
+version = "0.4.15.20240311"
+description = "Typing stubs for colorama"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "types-colorama-0.4.15.20240311.tar.gz", hash = "sha256:a28e7f98d17d2b14fb9565d32388e419f4108f557a7d939a66319969b2b99c7a"},
+    {file = "types_colorama-0.4.15.20240311-py3-none-any.whl", hash = "sha256:6391de60ddc0db3f147e31ecb230006a6823e81e380862ffca1e4695c13a0b8e"},
+]
+
+[[package]]
+name = "types-defusedxml"
+version = "0.7.0.20240218"
+description = "Typing stubs for defusedxml"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "types-defusedxml-0.7.0.20240218.tar.gz", hash = "sha256:05688a7724dc66ea74c4af5ca0efc554a150c329cb28c13a64902cab878d06ed"},
+    {file = "types_defusedxml-0.7.0.20240218-py3-none-any.whl", hash = "sha256:2b7f3c5ca14fdbe728fab0b846f5f7eb98c4bd4fd2b83d25f79e923caa790ced"},
+]
+
+[[package]]
+name = "types-pyyaml"
+version = "5.4.12"
+description = "Typing stubs for PyYAML"
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "types-PyYAML-5.4.12.tar.gz", hash = "sha256:3f4daa754357491625ae8c3a39c9e1b0d7cd5632bc4e1c35e7a7f75a64aa124b"},
+    {file = "types_PyYAML-5.4.12-py3-none-any.whl", hash = "sha256:e06083f85375a5678e4c19452ed6467ce2167b71db222313e1792cb8fc76859a"},
+]
+
+[[package]]
+name = "types-requests"
+version = "2.32.0.20250328"
+description = "Typing stubs for requests"
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+files = [
+    {file = "types_requests-2.32.0.20250328-py3-none-any.whl", hash = "sha256:72ff80f84b15eb3aa7a8e2625fffb6a93f2ad5a0c20215fc1dcfa61117bcb2a2"},
+    {file = "types_requests-2.32.0.20250328.tar.gz", hash = "sha256:c9e67228ea103bd811c96984fac36ed2ae8da87a36a633964a21f199d60baf32"},
+]
+
+[package.dependencies]
+urllib3 = ">=2"
+
+[[package]]
+name = "types-tqdm"
+version = "4.67.0.20250404"
+description = "Typing stubs for tqdm"
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+files = [
+    {file = "types_tqdm-4.67.0.20250404-py3-none-any.whl", hash = "sha256:4a9b897eb4036f757240f4cb4a794f296265c04de46fdd058e453891f0186eed"},
+    {file = "types_tqdm-4.67.0.20250404.tar.gz", hash = "sha256:e9997c655ffbba3ab78f4418b5511c05a54e76824d073d212166dc73aa56c768"},
+]
+
+[package.dependencies]
+types-requests = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.13.1"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -2840,4 +2906,4 @@ gym = ["gym"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "f978949ef05c790d52eb583be47b1d7ad9c127da8689f4abde9b84cbe3065824"
+content-hash = "ea4ab91e6e9767c64d98ef17eb24e1eadfbef3717264017f9608cf5d458eb57e"
