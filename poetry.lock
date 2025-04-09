@@ -1527,5 +1527,5 @@ gym = ["gym"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.10,<4.0"
-content-hash = "0eba048fead9779ad502ff77dad5ef77af2d5ad6e1b23816afb399c6da47103d"
+python-versions = "^3.10"
+content-hash = "aa76bbf25aee0ec5cfc64df4dba34fc1b7b4de46495fe3b98ea0f62944caa3e4"

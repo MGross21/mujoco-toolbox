@@ -25,6 +25,7 @@ dynamic = ["classifiers"]
 dependencies = [] # No dependencies listed here, they are defined in the [tool.poetry.dependencies] section
 
 [tool.poetry.dependencies]
+python = "^3.10"
 mujoco = "*"
 numpy = "*"
 scipy = "*"
@@ -39,7 +40,7 @@ ipywidgets = "*"
 screeninfo = "*"
 colorama = "*"
 rich = "*"
-defusedxml = "*"
+defusedxml = "^0.7.1"
 gym = "*"
 
 [project.optional-dependencies]
