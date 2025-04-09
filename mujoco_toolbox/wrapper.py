@@ -26,7 +26,6 @@ import yaml
 from tqdm.auto import tqdm
 
 from .loader import Loader
-from .utils import _print_warning
 from .builder import Builder
 
 mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
@@ -82,23 +81,28 @@ class Wrapper:
         meshdir: str = "meshes/",
         **kwargs: Any,
     ) -> None:
-        """Initialize the Wrapper class for managing MuJoCo simulations.
+        """
+        Initialize the Wrapper class for managing MuJoCo simulations.
 
         Args:
-            xml (str): Path to the XML files or string defining the model.
+            xml_args (str | Builder): One or more XML file paths, XML strings, 
+                or Builder objects defining the model.
             duration (int, optional): Duration of the simulation in seconds. Defaults to 10.
             data_rate (int, optional): Data capture rate in frames per second. Defaults to 100.
             fps (int, optional): Frames per second for rendering. Defaults to 30.
-            resolution (tuple[int, int] | None, optional): Resolution of the simulation
-            in pixels (width, height). If None, defaults to values from the XML or (400, 300).
-            initial_conditions (dict[str, list] | None, optional): Initial conditions for the simulation.
-            Defaults to an empty dictionary.
-            keyframe (int | None, optional): Keyframe index for resetting the simulation. Defaults to None.
-            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom controller function
-            for the simulation. Defaults to None.
+            resolution (tuple[int, int] | None, optional): Resolution of the simulation 
+                in pixels (width, height). If None, defaults to values from the XML 
+                or (400, 300).
+            initial_conditions (dict[str, list] | None, optional): Initial conditions 
+                for the simulation.
+            keyframe (int | None, optional): Keyframe index for resetting the simulation.
+            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom 
+                controller function for the simulation.
             meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes/".
-            **kwargs (Any): Additional keyword arguments for model configuration.
+            **kwargs: Additional keyword arguments for model configuration.
 
+        Raises:
+            ValueError: If no XML arguments are provided.
         """
         if not xml_args:
             msg = "At least one XML file, string, or Builder is required."
