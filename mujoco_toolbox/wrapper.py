@@ -924,11 +924,16 @@ class _SimulationData:
         """Capture data from MjData, storing specified or all public attributes."""
         from . import CAPTURE_PARAMETERS
 
-        keys = (
-            self.get_public_keys(mj_data)
-            if CAPTURE_PARAMETERS == "all"
-            else CAPTURE_PARAMETERS
-        )
+        if (
+            CAPTURE_PARAMETERS == "all"
+            or CAPTURE_PARAMETERS == "ALL"
+            or CAPTURE_PARAMETERS == {"all"}
+            or CAPTURE_PARAMETERS == {"ALL"}
+            or CAPTURE_PARAMETERS is all
+        ):
+            keys = self.get_public_keys(mj_data)
+        else:
+            keys = CAPTURE_PARAMETERS
 
         for key in keys:
             value = getattr(mj_data, key, None)
