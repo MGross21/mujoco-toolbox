@@ -4,7 +4,7 @@ authors:
   - family-names: "Gross"
     given-names: "Michael"
 title: "Mujoco Toolbox"
-version: "0.5.27"
+version: "0.6.0-rc.1"
 url: "https://github.com/MGross21/mujoco-toolbox"
 date-released: "2024-10-15"
 license: "MIT"

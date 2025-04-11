@@ -1,31 +1,33 @@
 # CHANGELOG
 
-## v0.5.0 (2025-04-03)
+
+## v0.6.0-rc.1 (2025-04-10)
 
 ### Bug Fixes
 
-- Adjust frame count in wrapper to exclude the last frame
-  ([`0d5919f`](https://github.com/MGross21/mujoco-toolbox/commit/0d5919f807474fd2f7b7d66a5d05a5296200ad61))
+- Update documentation formatting and improve warning message clarity
+  ([`93fbd4e`](https://github.com/MGross21/mujoco-toolbox/commit/93fbd4ebcdb7ba29963bd359c026fde86880fbfa))
 
-- Update controller method calls and remove unnecessary copy in rendering
-  ([`e069007`](https://github.com/MGross21/mujoco-toolbox/commit/e069007ebd81ff3fa799e65976815385a33d494a))
+### Features
 
-- Update mesh directory path in UR5e model XML
-  ([`abd2220`](https://github.com/MGross21/mujoco-toolbox/commit/abd22201e6fac08f22f7a505fe356044675d2bdf))
+- Add installation check for ffmpeg with auto-install option
+  ([`803eb8f`](https://github.com/MGross21/mujoco-toolbox/commit/803eb8f60f47fea9bdbadb9707a239e4e1b57146))
 
-- Update mujoco_tbx to use keyword arguments for clarity
-  ([`54ee0f6`](https://github.com/MGross21/mujoco-toolbox/commit/54ee0f6ae5772b2a2d5eb472037ba4ffdc30d944))
+### Refactoring
 
-- Update Wrapper to accept Builder instances and adjust README example
-  ([`f57d7d3`](https://github.com/MGross21/mujoco-toolbox/commit/f57d7d37dc41ba379d12c5d23db210149665dbc7))
+- Change glovebox creation logic and add corresponding XML template
+  ([`4a9a04b`](https://github.com/MGross21/mujoco-toolbox/commit/4a9a04b18dadb643b748c951945d2f1d702c5612))
+
+
+## v0.5.27 (2025-04-09)
 
 ### Chores
 
-- Refactor publish workflow for semantic release and streamline process
-  ([`bd45d5d`](https://github.com/MGross21/mujoco-toolbox/commit/bd45d5d1436a5b7d72988fcc553655faafa51988))
+- Add debug steps to Git workflow for better visibility
+  ([`610f86b`](https://github.com/MGross21/mujoco-toolbox/commit/610f86bc6ad1202c7a62596e9c7df0aea6d852c8))
 
-- Update pyproject.toml for versioning and dependencies organization
-  ([`a4e8f35`](https://github.com/MGross21/mujoco-toolbox/commit/a4e8f356b2ec48270abc2333f2c4ae9a70281481))
+- Refine permissions comment and add branch creation step in publish workflow
+  ([`14115aa`](https://github.com/MGross21/mujoco-toolbox/commit/14115aa36553dcf1b05b19d2192dfd95cad10e90))
 
 - Update version and changelog
   ([`8a88875`](https://github.com/MGross21/mujoco-toolbox/commit/8a888751fb3d6df95924a5aa9e44a73a2b8a2e2a))
@@ -54,23 +56,10 @@
 - Update version and changelog
   ([`76bbd72`](https://github.com/MGross21/mujoco-toolbox/commit/76bbd72bcd894c571827e2d33b11c68e78f9e761))
 
-- Update version to 0.5.0 and enhance changelog
-  ([`66e53b1`](https://github.com/MGross21/mujoco-toolbox/commit/66e53b1d3cbae2b6f77af04b94b194b42a707882))
-
-### Documentation
-
-- Enhance README with clearer examples and structure for controllers and merging capabilities
-  ([`3b1954c`](https://github.com/MGross21/mujoco-toolbox/commit/3b1954c7d2b553f862cc7e3ee2bea04fa7af5273))
-
-### Features
-
-- Implement Loader class for loading MuJoCo models from XML and URDF files
-  ([`b13403b`](https://github.com/MGross21/mujoco-toolbox/commit/b13403b394074cbbf29f61a7a94d2c889600dcf3))
+- Update version to 0.5.27
+  ([`dd4cc5a`](https://github.com/MGross21/mujoco-toolbox/commit/dd4cc5a5584dd09abe057fd54ae924d0930f7958))
 
 ### Refactoring
-
-- Change monitors method to static method in _Platform class
-  ([`a0f6e37`](https://github.com/MGross21/mujoco-toolbox/commit/a0f6e37f68dde8eba12ca7b57db6aa27130aa8d3))
 
 - Remove unused scripts
   ([`235aa68`](https://github.com/MGross21/mujoco-toolbox/commit/235aa68ba2a30243b062956691d22ab393d23edb))
