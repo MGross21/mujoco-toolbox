@@ -83,11 +83,17 @@ class SimulationWarning(Warning):
 
     __doc__ = None  # Exclude from Sphinx documentation
 
+# Check if ffmpeg is installed
+from .installation import check_installed as _pkg_check
+from .utils import _print_warning as _warn
 
+for tool in ["ffmpeg"]:
+    _pkg_check(tool, auto_install=not GUI_ENABLED)
+
+
+# Check if the package is still under development
 if __version__.startswith("0"):
-    from .utils import _print_warning
-
-    _print_warning(
+    _warn(
         f"{__package__} (v{__version__}) is still under development.",
         f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
     )
