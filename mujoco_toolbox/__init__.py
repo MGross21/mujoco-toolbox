@@ -94,6 +94,6 @@ for tool in ["ffmpeg"]:
 # Check if the package is still under development
 if __version__.startswith("0"):
     _warn(
-        f"{__package__} (v{__version__}) is still under development. Report any issues to ",
+        f"{__package__} (v{__version__}) is still under development. Report any issues to "
         f"https://github.com/MGross21/mujoco-toolbox/issues",
     )

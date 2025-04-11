@@ -263,6 +263,12 @@ class Wrapper:
         if value is not None and not isinstance(value, int):
             msg = "Keyframe must be an integer."
             raise ValueError(msg)
+        if value < 0 or value > self._model.nkey:
+            msg = (
+                f"Keyframe must be between 0 and {self._model.nkey}."
+                f" Got {value}."
+            )
+            raise ValueError(msg)
         self._keyframe = value
 
     @property
@@ -515,7 +521,12 @@ class Wrapper:
                 mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
             )
             _ProgressBar = (
-                tqdm(total=total_steps, desc="Simulation", leave=False)
+                tqdm(
+                    total=total_steps, 
+                    desc="Simulation", 
+                    unit=" steps", 
+                    leave=False
+                )
                 if PROGRESS_BAR_ENABLED
                 else nullcontext()
             )
@@ -530,7 +541,7 @@ class Wrapper:
 
                     if render and renderer and step % render_interval == 0 and frame_count < max_frames:
                         renderer.update_scene(d, camera if camera else -1)
-                        frames[frame_count] = renderer.render()
+                        frames[frame_count] = renderer.render()  # no copy
                         frame_count += 1  # Increment frame count after capturing the frame
 
                     mj_step2(m, d)
