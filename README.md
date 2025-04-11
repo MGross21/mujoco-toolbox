@@ -31,9 +31,11 @@ pip install mujoco-toolbox
 pip install git+https://github.com/MGross21/mujoco-toolbox.git@main
 ```
 
-**Adding to Project Dependencies:**
+Adding to Project Dependencies:
 
-`git+https://github.com/MGross21/mujoco-toolbox.git@dev#egg=mujoco-toolbox`
+```
+git+https://github.com/MGross21/mujoco-toolbox.git@main#egg=mujoco-toolbox
+```
 
 ## Extra Packages
 
