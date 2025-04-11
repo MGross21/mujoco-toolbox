@@ -77,21 +77,31 @@ CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulatio
     "sensordata",
 }
 """
-MjData default fields to capture during simulation.
+MjData default fields to capture during simulation. 
+For possible types, see
+[MuJoCo API](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
 
-Defaults
+Capture All:
+------
+To capture all fields:
+>>> from mujoco_toolbox import mjtb
+>>> mjtb.CAPTURE_PARAMETERS = {"all"}
+
+Default:
 --------
-- `time`
-- `qpos`
-- `qvel`
-- `act`
-- `qacc`
-- `xpos`
-- `xquat`
-- `xmat`
-- `ctrl`
-- `sensordata`
-"""  # noqa: D205, D400, D415, W291    
+>>> mjtb.CAPTURE_PARAMETERS = {
+...     "time",
+...     "qpos",
+...     "qvel",
+...     "act",
+...     "qacc",
+...     "xpos",
+...     "xquat",
+...     "xmat",
+...     "ctrl",
+...     "sensordata",
+... }
+"""  # noqa: D205, D400, D415
 
 # Check if ffmpeg is installed
 from .installation import check_installed as _pkg_check
