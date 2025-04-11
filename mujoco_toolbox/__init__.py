@@ -93,7 +93,8 @@ for tool in ["ffmpeg"]:
 
 # Check if the package is still under development
 if __version__.startswith("0"):
+    from pathlib import Path
     _warn(
         f"{__package__} (v{__version__}) is still under development. Report any issues to ",
-        f"https://github.com/MGross21/{__github_repo__}/issues",
+        f"https://github.com/MGross21/{Path(__file__).parent.parent.name}/issues",
     )
