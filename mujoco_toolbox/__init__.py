@@ -14,8 +14,9 @@ Modules
 
 Constants
 ----------
-- CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
-- MAX_GEOM_SCALAR: Scalar value for mujoco.Renderer.max_geom.
+- `CAPTURE_PARAMETERS`: List of MjData fields to capture during simulation.
+- `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
+- `PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
 
 This project is licensed under the `MIT License`. See the `LICENSE` file for 
 details.
@@ -37,11 +38,10 @@ from .controllers import (
     step,
 )
 from .utils import _Platform
-from .wrapper import Wrapper
+from .wrapper import Wrapper, PROGRESS_BAR_ENABLED
 
 __version__ = "0.5.27"
 __author__ = "Michael Gross"
-__github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
 __status__ = "Development"
 __all__ = [
@@ -94,6 +94,6 @@ for tool in ["ffmpeg"]:
 # Check if the package is still under development
 if __version__.startswith("0"):
     _warn(
-        f"{__package__} (v{__version__}) is still under development.",
-        f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
+        f"{__package__} (v{__version__}) is still under development. Report any issues to ",
+        f"https://github.com/MGross21/{__github_repo__}/issues",
     )
