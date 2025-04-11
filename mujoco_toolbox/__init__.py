@@ -16,15 +16,21 @@ Constants
 ----------
 - `CAPTURE_PARAMETERS`: List of MjData fields to capture during simulation.
 - `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
-- `PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
+- `wrapper.PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
 
 This project is licensed under the `MIT License`. See the `LICENSE` file for 
 details.
 
+Documentation
+-------------
+**[See Here](https://MGross21.github.io/mujoco-toolbox/)**
+
 Notes
 -----
-This package is still under development. Report any issues to:
-https://github.com/MGross21/mujoco-toolbox/issues.
+This package is still under development. 
+Some features may not be fully implemented or may change in future releases. 
+Please refer to the documentation for the most up-to-date information. 
+**[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)**.
 
 """  # noqa: D205, D400, D415, W291
 
@@ -43,7 +49,6 @@ from .wrapper import Wrapper
 __version__ = "0.6.0-rc.1"
 __author__ = "Michael Gross"
 __license__ = "MIT"
-__status__ = "Development"
 __all__ = [
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
@@ -59,7 +64,7 @@ __all__ = [
 
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
 GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
-CAPTURE_PARAMETERS = {  # MjData default fields to capture during simulation
+CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulation
     "time",
     "qpos",
     "qvel",
@@ -71,17 +76,22 @@ CAPTURE_PARAMETERS = {  # MjData default fields to capture during simulation
     "ctrl",
     "sensordata",
 }
+"""
+MjData default fields to capture during simulation.
 
-class SimulationError(Exception):
-    """Custom exception for simulation-related errors."""
-
-    __doc__ = None  # Exclude from Sphinx documentation
-
-
-class SimulationWarning(Warning):
-    """Custom warning for simulation-related issues."""
-
-    __doc__ = None  # Exclude from Sphinx documentation
+Defaults
+--------
+- `time`
+- `qpos`
+- `qvel`
+- `act`
+- `qacc`
+- `xpos`
+- `xquat`
+- `xmat`
+- `ctrl`
+- `sensordata`
+"""  # noqa: D205, D400, D415, W291    
 
 # Check if ffmpeg is installed
 from .installation import check_installed as _pkg_check
