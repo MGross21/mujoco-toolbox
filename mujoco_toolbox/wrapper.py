@@ -920,18 +920,21 @@ class _SimulationData:
     def __init__(self) -> None:
         self._d: dict[str, list] = defaultdict(list)
 
+    def _is_capture_all(self, params) -> bool:
+        """Check if all data is captured."""
+        if params is all:
+            return True
+        elif isinstance(params, set):
+            return ("all" in map(str.lower, params))
+        elif isinstance(params, str):
+            return params.lower() == "all"
+
     def capture(self, mj_data) -> None:
         """Capture data from MjData, storing specified or all public attributes."""
         from . import CAPTURE_PARAMETERS
 
-        if (
-            CAPTURE_PARAMETERS == "all"
-            or CAPTURE_PARAMETERS == "ALL"
-            or CAPTURE_PARAMETERS == {"all"}
-            or CAPTURE_PARAMETERS == {"ALL"}
-            or CAPTURE_PARAMETERS is all
-        ):
-            keys = self.get_public_keys(mj_data)
+        if (self._is_capture_all(CAPTURE_PARAMETERS)):
+            keys = self.get_public_keys(mj_data) # TODO: Fix this to be more efficient. Is cycling on every sim step.
         else:
             keys = CAPTURE_PARAMETERS
 
