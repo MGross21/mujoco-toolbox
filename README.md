@@ -1,4 +1,6 @@
-# Mujoco Toolbox
+<h1 align="center">
+<img src="assets/images/mjtb_logo_transparent.png" width="400">
+</h1><br>
 
 ![Build](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
@@ -55,8 +57,17 @@ ffmpeg -version
 
 **Linux**
 
+*Debian/Ubuntu*
+
 ```bash
 sudo apt update && sudo apt install ffmpeg
+ffmpeg -version
+```
+
+*Arch Linux*
+
+```bash
+sudo pacman -Syu ffmpeg
 ffmpeg -version
 ```
 
@@ -135,7 +146,7 @@ import mujoco_toolbox as mjtb
 mjtb.Wrapper("path/to/xml").show()
 ```
 
-![Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
+![Glovebox](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/glovebox_sample.png)
 
 ### URDF
 
@@ -145,7 +156,7 @@ import mujoco_toolbox as mjtb
 mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
 ```
 
-![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
+![UR5](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png)
 
 ## Merging Capabilities
 
@@ -164,4 +175,4 @@ mjtb.Wrapper("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 
 ### External Build
 
-![Humanoid in Box](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/human_in_box.png)
+![Humanoid in Box](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/human_in_box.png)
