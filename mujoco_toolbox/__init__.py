@@ -103,16 +103,16 @@ Default:
 ... }
 """  # noqa: D205, D400, D415
 
-# Check if ffmpeg is installed
-from .installation import check_installed as _pkg_check
-from .utils import _print_warning as _warn
-
-for tool in ["ffmpeg"]:
-    _pkg_check(tool, auto_install=not GUI_ENABLED)
+try:
+    import subprocess
+    subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+except subprocess.CalledProcessError:
+    raise RuntimeError("ffmpeg is not installed or not functioning correctly.")
 
 
 # Check if the package is still under development
 if __version__.startswith("0"):
+    from .utils import _print_warning as _warn
     _warn(
         f"{__package__} (v{__version__}) is still under development. Report any issues to "
         f"https://github.com/MGross21/mujoco-toolbox/issues",
