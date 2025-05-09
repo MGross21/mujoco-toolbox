@@ -10,7 +10,7 @@
 
 Streamlines the MuJoCo Physics Simulator
 
-> [!WARNING]  
+> **⚠️ WARNING**  
 > This package is currently in its zero-release stage. Class methods and APIs may change without prior notice. Please review the documentation and changelog after each update to stay informed about any modifications.
 
 ## Installation
@@ -170,7 +170,7 @@ mjtb.Wrapper("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 
 ```
 
-> [!WARNING]  
+> **⚠️ WARNING**  
 > Duplicate sub-tree items with the same name will cause MuJoCo to throw a `FatalError`.
 
 ### External Build
