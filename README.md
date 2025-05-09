@@ -3,7 +3,7 @@
 </h1><br>
 
 ![Build](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
+![Python](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue)
 ![License](https://img.shields.io/github/license/MGross21/mujoco-toolbox)
 [![PyPI](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml)
 [![Docs](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml)
@@ -146,7 +146,7 @@ import mujoco_toolbox as mjtb
 mjtb.Wrapper("path/to/xml").show()
 ```
 
-![Glovebox](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/glovebox_sample.png)
+![UR5/Vention](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png)
 
 ### URDF
 
