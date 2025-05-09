@@ -1,5 +1,5 @@
 <h1 align="center">
-<img src="assets/images/mjtb_logo_transparent.png" width="400">
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/mjtb_logo_transparent.png" width="400">
 </h1><br>
 
 ![Build](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg)
