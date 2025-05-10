@@ -1,6 +1,8 @@
 # How to Load Mesh Files in MuJoCo
 
-This tutorial will first overview how to load mesh files in MJCF, then in URDF
+This tutorial will first overview how to load mesh files in MJCF, then in URDF.
+
+**Note:** For detailed XML formatting guidelines, refer to the official [MuJoCo XML Reference](https://mujoco.readthedocs.io/en/stable/XMLreference.html).
 
 ## MJCF
 
@@ -49,14 +51,17 @@ This tutorial will first overview how to load mesh files in MJCF, then in URDF
 
     This ensures all mesh file paths are resolved relative to the specified directory.
 
+**Note:** MuJoCo supports only `.obj` and `.stl` file formats. If your visual mesh files are in an unsupported format (e.g., `.dae`) or are located in a different directory than the collision mesh files, set `discardvisual="true"` in the `<compiler>` tag.
+
 See MuJoCo [URDF extensions](https://mujoco.readthedocs.io/en/stable/modeling.html#urdf-extensions) and [compiler](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjscompiler) tags section for more information.
 
 ```xml
 <robot>
     <mujoco>
-        <compiler meshdir="path/to/mesh/files/"/>
+        <compiler meshdir="path/to/mesh/files/" balanceinertia="true" discardvisual="false"/>
     </mujoco>
     ...
+    <!-- Rest of your URDF-->
     <link name="link_name">
         <collision>
             <geometry>
