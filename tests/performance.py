@@ -40,7 +40,7 @@ def mujoco_standard() -> float:
             xyz.append(data.xpos.copy())
             qpos.append(data.qpos.copy())
             qvel.append(data.qvel.copy())
-            act.append(data.ctrl.copy())
+            act.append(data.act.copy())
             qacc.append(data.qacc.copy())
             xpos.append(data.xpos.copy())
             xquat.append(data.xquat.copy())
