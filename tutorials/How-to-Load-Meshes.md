@@ -65,7 +65,7 @@ See MuJoCo [URDF extensions](https://mujoco.readthedocs.io/en/stable/modeling.ht
     <link name="link_name">
         <collision>
             <geometry>
-                <mesh filename="your_mesh_file.stl"/> <!--MuJoCo Supports .obj and .stl mesh files ONLY-->
+                <mesh filename="your_mesh_file.stl"/> <!--relative to compiler meshdir-->
             </geometry>
         </collision>
     </link>
