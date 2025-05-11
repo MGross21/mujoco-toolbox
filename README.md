@@ -33,11 +33,32 @@ pip install mujoco-toolbox
 pip install git+https://github.com/MGross21/mujoco-toolbox.git@main
 ```
 
-Adding to Project Dependencies:
+
+### Adding to Project Dependencies
+<details>
+
+<summary><b>Click to Expand</b></summary><br>
+
+
+Place the following in your `requirements.txt` or `pyproject.toml` file.
+
+### PyPI
+
+Expect less frequent, stable releases.
+
+```
+mujoco-toolbox
+```
+
+### Github
+
+Expect frequent rolling releases.
 
 ```
 git+https://github.com/MGross21/mujoco-toolbox.git@main#egg=mujoco-toolbox
 ```
+
+</details>
 
 ## Extra Packages
 
