@@ -58,11 +58,29 @@ mujoco_object_types = [
 PROGRESS_BAR_ENABLED = True
 
 
+# Rename Wrapper to Simulation in the future
+class Simulation:
+    """Simulation class for building, configuring, and running MuJoCo models."""
+    def __init__(self) -> None:
+        raise NotImplementedError(
+            "The Simulation class is not implemented yet. "
+            "Please use the Wrapper class instead."
+        )
+
+# class Wrapper(Simulator):
+#     def __init__(self, *args, **kwargs):
+#         warnings.warn(
+#             "Wrapper is deprecated and will be removed in a future release. Use Simulator instead.",
+#             DeprecationWarning
+#         )
+#         super().__init__(*args, **kwargs)
+
+
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "Wrapper":
-        if PROGRESS_BAR_ENABLED:
+        if PROGRESS_BAR_ENABLED and kwargs.get("clear_screen", True):
             os.system("clear || cls") # Clear the console
             clear_output(wait=True)
         return super().__new__(cls)
