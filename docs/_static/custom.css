@@ -1,32 +1,42 @@
-:root {
-  --color-background-primary: #1e1e1e;
-  --color-background-secondary: #2d2d2d;
-  --color-background-hover: #3e3e3e;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #c0c0c0;
-  --color-link: #4e9a06;
-  --color-link-visited: #bb4b4b;
-}
-
-body,
-.wy-body-for-nav,
-.rst-content,
-.wy-nav-content {
-  background-color: var(--color-background-primary) !important;
+/* Code blocks */
+.highlight,
+.literal-block,
+.rst-content code,
+.rst-content pre,
+.rst-content .viewcode-block {
+  background-color: var(--color-background-hover) !important;
   color: var(--color-text-primary) !important;
 }
 
-.wy-side-nav-search,
-.wy-nav-side {
+/* Function signatures & parameters (autodoc/autosummary) */
+.sig,
+.sig-name,
+.sig-param,
+.sig-return,
+.sig-prename,
+.sig-paren {
+  color: var(--color-text-primary) !important;
+}
+
+/* Inline code */
+.rst-content tt,
+.rst-content code {
+  background: var(--color-background-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Tables */
+.rst-content table.docutils,
+.rst-content table.field-list {
   background: var(--color-background-secondary) !important;
+  color: var(--color-text-primary) !important;
 }
 
-a,
-.rst-content a {
-  color: var(--color-link) !important;
-}
-
-a:visited,
-.rst-content a:visited {
-  color: var(--color-link-visited) !important;
+/* Headings */
+.rst-content h1,
+.rst-content h2,
+.rst-content h3,
+.rst-content h4,
+.rst-content h5 {
+  color: var(--color-text-primary) !important;
 }
