@@ -1,4 +1,4 @@
-name: Publish
+name: publish
 description: |
   This workflow is triggered on version tag pushes and handles the release process.
   It uses Semantic Release to automatically determine the next version based on commit messages.

@@ -8,15 +8,25 @@
   --color-link-visited: #bb4b4b;
 }
 
-body {
-  background-color: var(--color-background-primary);
-  color: var(--color-text-primary);
+body,
+.wy-body-for-nav,
+.rst-content,
+.wy-nav-content {
+  background-color: var(--color-background-primary) !important;
+  color: var(--color-text-primary) !important;
 }
 
-a {
-  color: var(--color-link);
+.wy-side-nav-search,
+.wy-nav-side {
+  background: var(--color-background-secondary) !important;
 }
 
-a:visited {
-  color: var(--color-link-visited);
+a,
+.rst-content a {
+  color: var(--color-link) !important;
+}
+
+a:visited,
+.rst-content a:visited {
+  color: var(--color-link-visited) !important;
 }

@@ -59,7 +59,7 @@ def install_tools() -> None:
 def check_python_version() -> None:
     major, minor = sys.version_info[:2]
     if major != 3 or not (10 <= minor <= 12):
-        print(f"❌ Python {major}.{minor} is not supported. Please use 3.10–3.12.")
+        print(f"❌ Python {major}.{minor} is not supported. Please use 3.10-3.12.")
         sys.exit(1)
     print(f"✔️ Python version {major}.{minor} is compatible.")
 

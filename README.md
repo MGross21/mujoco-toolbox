@@ -1,14 +1,16 @@
-# Mujoco Toolbox
+<h1 align="center">
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/mjtb_logo_transparent.png" width="400">
+</h1><br>
 
 ![Build](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
+![Python](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue)
 ![License](https://img.shields.io/github/license/MGross21/mujoco-toolbox)
 [![PyPI](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml)
 [![Docs](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml)
 
 Streamlines the MuJoCo Physics Simulator
 
-> [!WARNING]  
+> **⚠️ WARNING**  
 > This package is currently in its zero-release stage. Class methods and APIs may change without prior notice. Please review the documentation and changelog after each update to stay informed about any modifications.
 
 ## Installation
@@ -31,9 +33,32 @@ pip install mujoco-toolbox
 pip install git+https://github.com/MGross21/mujoco-toolbox.git@main
 ```
 
-**Adding to Project Dependencies:**
 
-`git+https://github.com/MGross21/mujoco-toolbox.git@dev#egg=mujoco-toolbox`
+### Adding to Project Dependencies
+<details>
+
+<summary><b>Click to Expand</b></summary><br>
+
+
+Place the following in your `requirements.txt` or `pyproject.toml` file.
+
+### PyPI
+
+Expect less frequent, stable releases.
+
+```
+mujoco-toolbox
+```
+
+### Github
+
+Expect frequent rolling releases.
+
+```
+git+https://github.com/MGross21/mujoco-toolbox.git@main#egg=mujoco-toolbox
+```
+
+</details>
 
 ## Extra Packages
 
@@ -53,8 +78,17 @@ ffmpeg -version
 
 **Linux**
 
+*Debian/Ubuntu*
+
 ```bash
 sudo apt update && sudo apt install ffmpeg
+ffmpeg -version
+```
+
+*Arch Linux*
+
+```bash
+sudo pacman -Syu ffmpeg
 ffmpeg -version
 ```
 
@@ -133,7 +167,7 @@ import mujoco_toolbox as mjtb
 mjtb.Wrapper("path/to/xml").show()
 ```
 
-![Glovebox](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/glovebox_sample.png)
+![UR5/Vention](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png)
 
 ### URDF
 
@@ -143,7 +177,7 @@ import mujoco_toolbox as mjtb
 mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
 ```
 
-![UR5](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/ur5_render_no_gui.png)
+![UR5](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png)
 
 ## Merging Capabilities
 
@@ -157,9 +191,9 @@ mjtb.Wrapper("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 
 ```
 
-> [!WARNING]  
+> **⚠️ WARNING**  
 > Duplicate sub-tree items with the same name will cause MuJoCo to throw a `FatalError`.
 
 ### External Build
 
-![Humanoid in Box](https://github.com/MGross21/mujoco-toolbox/blob/main/assets/images/human_in_box.png)
+![Humanoid in Box](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/human_in_box.png)

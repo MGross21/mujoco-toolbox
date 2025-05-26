@@ -53,35 +53,35 @@ def test_xml1() -> None:
         "Captured data length does not match simulation parameters."
 
 
-# def test_urdf1() -> None:
-#     """Test 2: Run UR5 URDF simulation."""
-#     ur = Path.cwd() / "tests" / "models" / "UR5"
-#     model = ur / "UR5.urdf"
-#     meshdir = ur / "meshes" / "collision"
+def test_urdf1() -> None:
+    """Test 2: Run UR5 URDF simulation."""
+    ur = Path.cwd() / "tests" / "models" / "ur5"
+    model = ur / "ur5.urdf"
+    meshdir = ur / "meshes" / "collision"
 
-#     ic = {
-#         "qpos": np.array([np.pi / 2, np.pi, 0, 0, -np.pi / 2, 0]),
-#     }
+    ic = {
+        "qpos": np.array([np.pi / 2, np.pi, 0, 0, -np.pi / 2, 0]),
+    }
 
-#     params = {
-#         "meshdir": str(meshdir),
-#         "duration": 10,
-#         "fps": 30,
-#         "initial_conditions": ic,
-#     }
+    params = {
+        "meshdir": str(meshdir),
+        "duration": 10,
+        "fps": 30,
+        "initial_conditions": ic,
+    }
 
-#     sim = mjtb.Wrapper(str(model), **params).run(render=mjtb.GUI_ENABLED)
+    sim = mjtb.Wrapper(str(model), **params).run(render=mjtb.GUI_ENABLED)
 
-#     if mjtb.GUI_ENABLED:
-#         sim.show(frame_idx=0)
+    if mjtb.GUI_ENABLED:
+        sim.show(frame_idx=0)
 
-#     # Optional: Debug joint names
-#     # print([sim._model.joint(i).name for i in range(sim._model.njnt)])
+    # Optional: Debug joint names
+    # print([sim._model.joint(i).name for i in range(sim._model.njnt)])
 
-#     assert len(sim.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
-#         f"Expected {len(mjtb.CAPTURE_PARAMETERS)} data fields, "
-#         f"but got {len(sim.captured_data)}"
-#     )
+    assert len(sim.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
+        f"Expected {len(mjtb.CAPTURE_PARAMETERS)} data fields, "
+        f"but got {len(sim.captured_data)}"
+    )
 
 
 def test_mujoco_core_array() -> None:

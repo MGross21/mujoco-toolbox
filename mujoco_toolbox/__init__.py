@@ -14,16 +14,23 @@ Modules
 
 Constants
 ----------
-- CAPTURE_PARAMETERS: List of MjData fields to capture during simulation.
-- MAX_GEOM_SCALAR: Scalar value for mujoco.Renderer.max_geom.
+- `CAPTURE_PARAMETERS`: List of MjData fields to capture during simulation.
+- `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
+- `wrapper.PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
 
 This project is licensed under the `MIT License`. See the `LICENSE` file for 
 details.
 
+Documentation
+-------------
+**[See Here](https://MGross21.github.io/mujoco-toolbox/)**
+
 Notes
 -----
-This package is still under development. Report any issues to:
-https://github.com/MGross21/mujoco-toolbox/issues.
+This package is still under development. 
+Some features may not be fully implemented or may change in future releases. 
+Please refer to the documentation for the most up-to-date information. 
+**[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)**.
 
 """  # noqa: D205, D400, D415, W291
 
@@ -39,11 +46,9 @@ from .controllers import (
 from .utils import _Platform
 from .wrapper import Wrapper
 
-__version__ = "0.5.27"
+__version__ = "0.6.0-rc.1"
 __author__ = "Michael Gross"
-__github_repo__ = "mujoco-toolbox"
 __license__ = "MIT"
-__status__ = "Development"
 __all__ = [
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
@@ -59,7 +64,7 @@ __all__ = [
 
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
 GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
-CAPTURE_PARAMETERS = {  # MjData default fields to capture during simulation
+CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulation
     "time",
     "qpos",
     "qvel",
@@ -71,23 +76,46 @@ CAPTURE_PARAMETERS = {  # MjData default fields to capture during simulation
     "ctrl",
     "sensordata",
 }
+"""
+MjData default fields to capture during simulation.
+For possible types, see
+[MuJoCo API](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
 
-class SimulationError(Exception):
-    """Custom exception for simulation-related errors."""
+Capture All:
+------
+To capture all fields:
+>>> from mujoco_toolbox import mjtb
+>>> mjtb.CAPTURE_PARAMETERS = {"all"}
 
-    __doc__ = None  # Exclude from Sphinx documentation
+Default:
+--------
+>>> mjtb.CAPTURE_PARAMETERS = {
+...     "time",
+...     "qpos",
+...     "qvel",
+...     "act",
+...     "qacc",
+...     "xpos",
+...     "xquat",
+...     "xmat",
+...     "ctrl",
+...     "sensordata",
+... }
+"""
+
+if GUI_ENABLED:
+    try:
+        import subprocess
+        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    except subprocess.CalledProcessError:
+        msg = "ffmpeg is not installed or not functioning correctly."
+        raise RuntimeError(msg)
 
 
-class SimulationWarning(Warning):
-    """Custom warning for simulation-related issues."""
-
-    __doc__ = None  # Exclude from Sphinx documentation
-
-
+# Check if the package is still under development
 if __version__.startswith("0"):
-    from .utils import _print_warning
-
-    _print_warning(
-        f"{__package__} (v{__version__}) is still under development.",
-        f"Report any issues to https://github.com/MGross21/{__github_repo__}/issues",
+    from .utils import _print_warning as _warn
+    _warn(
+        f"{__package__} (v{__version__}) is still under development. Report any issues to "
+        f"https://github.com/MGross21/mujoco-toolbox/issues",
     )

@@ -58,11 +58,33 @@ mujoco_object_types = [
 PROGRESS_BAR_ENABLED = True
 
 
+# Rename Wrapper to Simulation in the future
+class Simulation:
+    """Simulation class for building, configuring, and running MuJoCo models."""
+
+    def __init__(self) -> None:
+        msg = (
+            "The Simulation class is not implemented yet. "
+            "Please use the Wrapper class instead."
+        )
+        raise NotImplementedError(
+            msg,
+        )
+
+# class Wrapper(Simulator):
+#     def __init__(self, *args, **kwargs):
+#         warnings.warn(
+#             "Wrapper is deprecated and will be removed in a future release. Use Simulator instead.",
+#             DeprecationWarning
+#         )
+#         super().__init__(*args, **kwargs)
+
+
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "Wrapper":
-        if PROGRESS_BAR_ENABLED:
+        if PROGRESS_BAR_ENABLED and kwargs.get("clear_screen", True):
             os.system("clear || cls") # Clear the console
             clear_output(wait=True)
         return super().__new__(cls)
@@ -108,25 +130,15 @@ class Wrapper:
             msg = "At least one XML file, string, or Builder is required."
             raise ValueError(msg)
 
-        # Separate Builders and strings
-        builders = [arg for arg in xml_args if isinstance(arg, Builder)]
-        strings = [arg for arg in xml_args if isinstance(arg, str)]
-
-        # Start with the first builder if any
-        if builders:
-            builder = sum(builders[1:], builders[0])  # sum Builders
-            if strings:
-                builder += Builder(*strings)  # merge str as Builder Instances
-        else:
-            builder = Builder(*strings)
-
-        self._builder = builder
-
-        # Load the model
+        self._builder = Builder.merge(xml_args, meshdir=meshdir)
         self._meshdir = meshdir
-        loader = Loader(builder, meshdir)
-        self.xml = loader.xml
-        self._model = loader.model
+        self._loader = Loader(self._builder)
+
+        # Validate meshes after loading
+        self._loader.validate_meshes()
+
+        self.xml = self._loader.xml
+        self._model = self._loader.model
 
         # Simulation Parameters
         self.duration = duration
@@ -262,6 +274,12 @@ class Wrapper:
     def keyframe(self, value: int | None) -> None:
         if value is not None and not isinstance(value, int):
             msg = "Keyframe must be an integer."
+            raise ValueError(msg)
+        if value is not None and (value < 0 or value > self._model.nkey):
+            msg = (
+                f"Keyframe must be between 0 and {self._model.nkey}."
+                f" Got {value}."
+            )
             raise ValueError(msg)
         self._keyframe = value
 
@@ -515,7 +533,12 @@ class Wrapper:
                 mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
             )
             _ProgressBar = (
-                tqdm(total=total_steps, desc="Simulation", leave=False)
+                tqdm(
+                    total=total_steps,
+                    desc="Simulation",
+                    unit=" steps",
+                    leave=False,
+                )
                 if PROGRESS_BAR_ENABLED
                 else nullcontext()
             )
@@ -530,7 +553,7 @@ class Wrapper:
 
                     if render and renderer and step % render_interval == 0 and frame_count < max_frames:
                         renderer.update_scene(d, camera if camera else -1)
-                        frames[frame_count] = renderer.render()
+                        frames[frame_count] = renderer.render()  # no copy
                         frame_count += 1  # Increment frame count after capturing the frame
 
                     mj_step2(m, d)
@@ -909,15 +932,24 @@ class _SimulationData:
     def __init__(self) -> None:
         self._d: dict[str, list] = defaultdict(list)
 
+    def _is_capture_all(self, params) -> bool:
+        """Check if all data is captured."""
+        if params is all:
+            return True
+        if isinstance(params, set):
+            return ("all" in map(str.lower, params))
+        if isinstance(params, str):
+            return params.lower() == "all"
+        return None
+
     def capture(self, mj_data) -> None:
         """Capture data from MjData, storing specified or all public attributes."""
         from . import CAPTURE_PARAMETERS
 
-        keys = (
-            self.get_public_keys(mj_data)
-            if CAPTURE_PARAMETERS == "all"
-            else CAPTURE_PARAMETERS
-        )
+        if (self._is_capture_all(CAPTURE_PARAMETERS)):
+            keys = self.get_public_keys(mj_data) # TODO: Fix this to be more efficient. Is cycling on every sim step.
+        else:
+            keys = CAPTURE_PARAMETERS
 
         for key in keys:
             value = getattr(mj_data, key, None)

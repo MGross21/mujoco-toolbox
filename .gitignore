@@ -25,6 +25,7 @@ docs/_build/
 *env/
 *.egg-info
 build/
+.coverage
 
 # Bindings
 mujoco/
