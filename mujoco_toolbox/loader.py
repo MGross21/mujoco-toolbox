@@ -1,11 +1,11 @@
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import Any, Union
 
 import defusedxml.ElementTree as ET
 import mujoco
 
-from .builder import Builder # type checking
+from .builder import Builder  # type checking
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,14 +19,17 @@ class Loader:
         try:
             self._model = mujoco.MjModel.from_xml_string(self.xml)
         except (mujoco.FatalError, ValueError, TypeError) as e:
-            raise ValueError(f"Failed to load model due to Mujoco error: {e}") from e
+            msg = f"Failed to load model due to Mujoco error: {e}"
+            raise ValueError(msg) from e
         except Exception as e:
-            raise ValueError(f"Failed to load model: {e}") from e
+            msg = f"Failed to load model: {e}"
+            raise ValueError(msg) from e
 
     @property
     def model(self) -> mujoco.MjModel:
-        if not hasattr(self, '_model'):
-            raise RuntimeError("Model has not been initialized properly.")
+        if not hasattr(self, "_model"):
+            msg = "Model has not been initialized properly."
+            raise RuntimeError(msg)
         return self._model
 
     def validate_meshes(self) -> None:
@@ -36,7 +39,8 @@ class Loader:
         for asset in root.findall(".//mesh"):
             file_path = Path(meshdir) / asset.get("file", "")
             if not file_path.exists():
-                raise FileNotFoundError(f"Mesh file not found: {file_path}")
+                msg = f"Mesh file not found: {file_path}"
+                raise FileNotFoundError(msg)
 
     def __str__(self) -> str:
         return self.xml

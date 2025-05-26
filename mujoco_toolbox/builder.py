@@ -1,8 +1,9 @@
 import os
 import xml.etree.ElementTree as StdET
+from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Sequence
+from typing import Union
 from xml.etree.ElementTree import Element, ElementTree
 
 import defusedxml.ElementTree as ET
@@ -10,11 +11,14 @@ import defusedxml.ElementTree as ET
 
 class Builder:
     """A class to build and manipulate MuJoCo XML models."""
+
     def __init__(self, *inputs: str, meshdir: str = "meshes/") -> None:
         if not inputs:
-            raise ValueError("Input is required to initialize the Builder")
+            msg = "Input is required to initialize the Builder"
+            raise ValueError(msg)
         if not all(isinstance(i, str) for i in inputs):
-            raise TypeError("Input must be an XML string or a file path")
+            msg = "Input must be an XML string or a file path"
+            raise TypeError(msg)
         self.meshdir = meshdir
         self.tree, self.root = self._parse_input(inputs[0])
         for other in inputs[1:]:
@@ -23,7 +27,8 @@ class Builder:
     @staticmethod
     def merge(inputs: Sequence[Union[str, "Builder"]], meshdir: str = "meshes/") -> "Builder":
         if not inputs:
-            raise ValueError("No inputs provided for merging.")
+            msg = "No inputs provided for merging."
+            raise ValueError(msg)
         builders = [i for i in inputs if isinstance(i, Builder)]
         strings = [i for i in inputs if isinstance(i, str)]
         if builders:
@@ -41,7 +46,8 @@ class Builder:
         else:
             path = Path(xml_input)
             if not path.exists():
-                raise FileNotFoundError(f"File not found: {xml_input}")
+                msg = f"File not found: {xml_input}"
+                raise FileNotFoundError(msg)
             root = ET.parse(path).getroot()
 
         # If root is <robot>, ensure <mujoco> child exists (not as wrapper)
@@ -70,7 +76,7 @@ class Builder:
             return self._to_safe_tree(root), root
 
         # If root is <mujoco>, ensure <compiler> exists
-        elif root.tag == "mujoco":
+        if root.tag == "mujoco":
             compiler_tag = root.find("compiler")
             if compiler_tag is None:
                 compiler_tag = StdET.Element("compiler", {
@@ -83,19 +89,18 @@ class Builder:
             return self._to_safe_tree(root), root
 
         # If root is neither <robot> nor <mujoco>, wrap in <mujoco> and inject <compiler>
-        else:
-            mujoco_tag = StdET.Element("mujoco")
-            mujoco_tag.append(root)
-            compiler_tag = mujoco_tag.find("compiler")
-            if compiler_tag is None:
-                compiler_tag = StdET.Element("compiler", {
-                    "angle": "radian",
-                    "meshdir": self.meshdir,
-                    "balanceinertia": "true",
-                    "discardvisual": "true",
-                })
-                mujoco_tag.insert(0, compiler_tag)
-            return self._to_safe_tree(mujoco_tag), mujoco_tag
+        mujoco_tag = StdET.Element("mujoco")
+        mujoco_tag.append(root)
+        compiler_tag = mujoco_tag.find("compiler")
+        if compiler_tag is None:
+            compiler_tag = StdET.Element("compiler", {
+                "angle": "radian",
+                "meshdir": self.meshdir,
+                "balanceinertia": "true",
+                "discardvisual": "true",
+            })
+            mujoco_tag.insert(0, compiler_tag)
+        return self._to_safe_tree(mujoco_tag), mujoco_tag
 
     def _to_safe_tree(self, root: Element) -> ElementTree:
         xml_string = StdET.tostring(root)
@@ -107,7 +112,8 @@ class Builder:
         elif isinstance(other, Builder):
             other_root = other.root
         else:
-            raise TypeError("Can only merge with str or Builder")
+            msg = "Can only merge with str or Builder"
+            raise TypeError(msg)
 
         # Determine merge context: MJCF or URDF
         if self.root.tag == "robot":
@@ -130,7 +136,7 @@ class Builder:
         # Merge all relevant tags under <mujoco>
         for tag in [
             "asset", "worldbody", "camera", "light", "contact", "equality",
-            "sensor", "actuator", "default", "tendon", "include"
+            "sensor", "actuator", "default", "tendon", "include",
         ]:
             self._merge_tag(tag, mujoco_self, mujoco_other)
 
@@ -147,7 +153,8 @@ class Builder:
             self._indent_xml(self.root)
             self.tree.write(file_path, encoding="utf-8", xml_declaration=True)
         else:
-            raise ValueError("No model loaded. Cannot save.")
+            msg = "No model loaded. Cannot save."
+            raise ValueError(msg)
         return os.path.abspath(file_path)
 
     def _indent_xml(self, elem: Element, level: int = 0) -> None:
@@ -172,6 +179,6 @@ class Builder:
 
     def __len__(self) -> int:
         return len(self.root) if self.root is not None else 0
-    
+
     def __radd__(self, other: Union[str, "Builder"]) -> "Builder":
         return self.__add__(other)
