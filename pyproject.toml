@@ -5,8 +5,8 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "mujoco-toolbox"
 version = "0.6.1"
-requires-python = ">=3.10,<4.0"
-description = "A modern package to handle MuJoCo environments"
+requires-python = ">=3.9,<4.0"
+description = "A Modern Simulation Wrapper for Google DeepMind’s MuJoCo"
 readme = "README.md"
 license = { file = "LICENSE" }
 packages = [{ include = "mujoco_toolbox" }]

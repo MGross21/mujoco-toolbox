@@ -3,17 +3,17 @@
 This module provides a `Wrapper` class to handle MuJoCo simulations, including
 loading models, running simulations, capturing data, and rendering frames.
 """
+from __future__ import annotations
 
 import os
 import sys
 import threading
 import time
 from collections import defaultdict
-from collections.abc import Callable
 from contextlib import nullcontext
 from multiprocessing import cpu_count
 from pathlib import Path
-from typing import Any, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import cv2
 import defusedxml.ElementTree as ET
@@ -24,9 +24,13 @@ import numpy as np
 import yaml
 from IPython.display import clear_output
 from tqdm.auto import tqdm
+from typing_extensions import Self
 
 from .builder import Builder
 from .loader import Loader
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
 mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
@@ -83,7 +87,7 @@ class Simulation:
 class Wrapper:
     """Wrapper class for managing MuJoCo simulations."""
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> "Wrapper":
+    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         if PROGRESS_BAR_ENABLED and kwargs.get("clear_screen", True):
             os.system("clear || cls") # Clear the console
             clear_output(wait=True)
@@ -191,7 +195,7 @@ class Wrapper:
             pass
         return (400, 300)
 
-    def reload(self: "Wrapper") -> "Wrapper":
+    def reload(self: Wrapper) -> Wrapper:
         """Reload the model and data objects.
 
         Returns:
@@ -243,10 +247,10 @@ class Wrapper:
             f")"
         )
 
-    def __enter__(self) -> "Wrapper":  # noqa: D105
+    def __enter__(self) -> Self:  # noqa: D105
         return self
 
-    def __exit__(self: "Wrapper", *args, **kwargs) -> None:  # noqa: D105
+    def __exit__(self: Wrapper, *args, **kwargs) -> None:  # noqa: D105
         mujoco.set_mjcb_control(None)
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
@@ -458,7 +462,7 @@ class Wrapper:
         interactive: bool = False,
         show_menu: bool = True,  # TODO@MGross21: Implement this with launch
         multi_thread: bool = False,
-    ) -> "Wrapper":
+    ) -> Wrapper:
         """Run the simulation with optional rendering.
 
         Args:

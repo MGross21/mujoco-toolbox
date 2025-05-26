@@ -8,7 +8,7 @@
 [![PyPI](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml)
 [![Docs](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml)
 
-Streamlines the MuJoCo Physics Simulator
+A Modern Simulation Wrapper for Google DeepMind’s MuJoCo
 
 > **⚠️ WARNING**  
 > This package is currently in its zero-release stage. Class methods and APIs may change without prior notice. Please review the documentation and changelog after each update to stay informed about any modifications.
