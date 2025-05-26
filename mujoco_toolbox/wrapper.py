@@ -126,25 +126,15 @@ class Wrapper:
             msg = "At least one XML file, string, or Builder is required."
             raise ValueError(msg)
 
-        # Separate Builders and strings
-        builders = [arg for arg in xml_args if isinstance(arg, Builder)]
-        strings = [arg for arg in xml_args if isinstance(arg, str)]
-
-        # Start with the first builder if any
-        if builders:
-            builder = sum(builders[1:], builders[0])  # sum Builders
-            if strings:
-                builder += Builder(*strings)  # merge str as Builder Instances
-        else:
-            builder = Builder(*strings)
-
-        self._builder = builder
-
-        # Load the model
+        self._builder = Builder.merge(xml_args, meshdir=meshdir)
         self._meshdir = meshdir
-        loader = Loader(builder, meshdir)
-        self.xml = loader.xml
-        self._model = loader.model
+        self._loader = Loader(self._builder)
+
+        # Validate meshes after loading
+        self._loader.validate_meshes()
+
+        self.xml = self._loader.xml
+        self._model = self._loader.model
 
         # Simulation Parameters
         self.duration = duration
