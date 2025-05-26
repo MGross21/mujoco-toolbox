@@ -1,22 +1,25 @@
 :root {
   --color-background-primary: #1e1e1e;
-  --color-background-secondary: #2d2d2d;
-  --color-background-hover: #3e3e3e;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #c0c0c0;
-  --color-link: #4e9a06;
-  --color-link-visited: #bb4b4b;
+  --color-background-secondary: #2a2a2a;
+  --color-background-hover: #3a3a3a;
+  --color-code-block: #2d2d2d;
+  --color-code-inline: #3a3f4b;
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #bbbbbb;
+  --color-link: #64d99d;
+  --color-link-visited: #b368c8;
+  --color-border: #444;
 }
 
 body,
 .wy-body-for-nav,
-.rst-content,
-.wy-nav-content {
+.wy-nav-content,
+.rst-content {
   background-color: var(--color-background-primary) !important;
   color: var(--color-text-primary) !important;
 }
 
-/* Sidebar and search */
+/* Sidebar */
 .wy-side-nav-search,
 .wy-nav-side {
   background: var(--color-background-secondary) !important;
@@ -38,18 +41,23 @@ a:visited,
 .literal-block,
 .rst-content pre,
 .rst-content .viewcode-block {
-  background-color: var(--color-background-hover) !important;
+  background-color: var(--color-code-block) !important;
   color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.75em;
 }
 
 /* Inline code */
 .rst-content tt,
 .rst-content code {
-  background: var(--color-background-hover) !important;
+  background: var(--color-code-inline) !important;
   color: var(--color-text-primary) !important;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
-/* Autodoc/autosummary function signatures */
+/* Signatures */
 .sig,
 .sig-name,
 .sig-param,
@@ -64,12 +72,12 @@ a:visited,
 .rst-content table.field-list {
   background: var(--color-background-secondary) !important;
   color: var(--color-text-primary) !important;
-  border-color: var(--color-background-hover) !important;
+  border: 1px solid var(--color-border) !important;
 }
 
 .rst-content th,
 .rst-content td {
-  border-color: var(--color-background-hover) !important;
+  border-color: var(--color-border) !important;
 }
 
 /* Headings */
@@ -81,9 +89,10 @@ a:visited,
   color: var(--color-text-primary) !important;
 }
 
-/* Admonitions (notes, warnings, etc.) */
+/* Admonitions */
 .rst-content .admonition {
-  background-color: var(--color-background-secondary) !important;
+  background-color: var(--color-background-hover) !important;
   color: var(--color-text-primary) !important;
   border-left: 4px solid var(--color-link) !important;
+  padding: 0.75em;
 }
