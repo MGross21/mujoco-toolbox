@@ -52,6 +52,12 @@ Please review the [Code of Conduct](https://github.com/MGross21/mujoco-toolbox/b
     poetry shell
     ```
 
+    or
+
+    ```bash
+    poetry env activate
+    ```
+
 ---
 
 ## 🚀 How to Contribute
@@ -113,7 +119,7 @@ Use [GitHub Issues](https://github.com/MGross21/mujoco-toolbox/issues) to:
 Please include:
 
 - A clear and descriptive title
-- Environment information (OS, Python version, MuJoCo version, etc.)
+- Environment information (OS, Python version, MuJoCo Toolbox version, etc.)
 - Reproduction steps (if applicable)
 - Screenshots or logs (when helpful)
 
