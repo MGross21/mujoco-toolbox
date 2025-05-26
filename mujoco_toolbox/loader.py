@@ -47,6 +47,3 @@ class Loader:
 
     def __repr__(self) -> str:
         return f"Loader(Initialized={hasattr(self, '_model')})"
-
-    def __len__(self) -> int:
-        return len(ET.fromstring(self.xml))
