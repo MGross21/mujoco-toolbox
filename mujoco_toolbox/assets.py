@@ -1,4 +1,5 @@
 from pathlib import Path
+from jinja2 import Template
 
 WORLD_ASSETS = Path(__file__).parent.joinpath("templates", "world.xml").read_text()
 """Pre-made world assets for MuJoCo simulation:
@@ -14,7 +15,9 @@ def glovebox(
     pos_y: float = 0,
 ) -> str:
     """Create a glovebox with the given dimensions (in meters)."""
-    return Path(__file__).parent.joinpath("templates", "glovebox.xml").read_text().format(
+    return Template(
+        Path(__file__).parent.joinpath("templates", "glovebox.xml").read_text()
+    ).render(
         width=width,
         depth=depth,
         height=height,
