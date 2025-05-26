@@ -83,7 +83,6 @@ For possible types, see
 
 Capture All:
 ------
-To capture all fields:
 >>> from mujoco_toolbox import mjtb
 >>> mjtb.CAPTURE_PARAMETERS = {"all"}
 
