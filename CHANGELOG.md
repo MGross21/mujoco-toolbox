@@ -1,24 +1,6 @@
 # CHANGELOG
 
 
-## v0.6.0-rc.1 (2025-04-10)
-
-### Bug Fixes
-
-- Update documentation formatting and improve warning message clarity
-  ([`93fbd4e`](https://github.com/MGross21/mujoco-toolbox/commit/93fbd4ebcdb7ba29963bd359c026fde86880fbfa))
-
-### Features
-
-- Add installation check for ffmpeg with auto-install option
-  ([`803eb8f`](https://github.com/MGross21/mujoco-toolbox/commit/803eb8f60f47fea9bdbadb9707a239e4e1b57146))
-
-### Refactoring
-
-- Change glovebox creation logic and add corresponding XML template
-  ([`4a9a04b`](https://github.com/MGross21/mujoco-toolbox/commit/4a9a04b18dadb643b748c951945d2f1d702c5612))
-
-
 ## v0.5.27 (2025-04-09)
 
 ### Chores
