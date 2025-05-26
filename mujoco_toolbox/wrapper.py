@@ -275,7 +275,7 @@ class Wrapper:
         if value is not None and not isinstance(value, int):
             msg = "Keyframe must be an integer."
             raise ValueError(msg)
-        if value < 0 or value > self._model.nkey:
+        if value is not None and (value < 0 or value > self._model.nkey):
             msg = (
                 f"Keyframe must be between 0 and {self._model.nkey}."
                 f" Got {value}."
