@@ -61,10 +61,14 @@ PROGRESS_BAR_ENABLED = True
 # Rename Wrapper to Simulation in the future
 class Simulation:
     """Simulation class for building, configuring, and running MuJoCo models."""
+
     def __init__(self) -> None:
-        raise NotImplementedError(
+        msg = (
             "The Simulation class is not implemented yet. "
             "Please use the Wrapper class instead."
+        )
+        raise NotImplementedError(
+            msg,
         )
 
 # class Wrapper(Simulator):
@@ -530,10 +534,10 @@ class Wrapper:
             )
             _ProgressBar = (
                 tqdm(
-                    total=total_steps, 
-                    desc="Simulation", 
-                    unit=" steps", 
-                    leave=False
+                    total=total_steps,
+                    desc="Simulation",
+                    unit=" steps",
+                    leave=False,
                 )
                 if PROGRESS_BAR_ENABLED
                 else nullcontext()
@@ -932,10 +936,11 @@ class _SimulationData:
         """Check if all data is captured."""
         if params is all:
             return True
-        elif isinstance(params, set):
+        if isinstance(params, set):
             return ("all" in map(str.lower, params))
-        elif isinstance(params, str):
+        if isinstance(params, str):
             return params.lower() == "all"
+        return None
 
     def capture(self, mj_data) -> None:
         """Capture data from MjData, storing specified or all public attributes."""

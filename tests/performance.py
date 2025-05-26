@@ -82,7 +82,7 @@ def generate_performance_chart() -> None:
     # Generate CSV
     mujoco_version = mujoco.__version__.split(".")
     mjtb_version = mjtb.__version__.split("-")[0].split(".")
-    
+
     csv_file = os.path.join(data_dir, "performance_data.csv")
     file_exists = os.path.isfile(csv_file)
 

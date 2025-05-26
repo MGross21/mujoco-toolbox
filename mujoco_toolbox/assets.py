@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from jinja2 import Template
 
 WORLD_ASSETS = Path(__file__).parent.joinpath("templates", "world.xml").read_text()
@@ -16,7 +17,7 @@ def glovebox(
 ) -> str:
     """Create a glovebox with the given dimensions (in meters)."""
     return Template(
-        Path(__file__).parent.joinpath("templates", "glovebox.xml").read_text()
+        Path(__file__).parent.joinpath("templates", "glovebox.xml").read_text(),
     ).render(
         width=width,
         depth=depth,

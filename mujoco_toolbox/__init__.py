@@ -77,7 +77,7 @@ CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulatio
     "sensordata",
 }
 """
-MjData default fields to capture during simulation. 
+MjData default fields to capture during simulation.
 For possible types, see
 [MuJoCo API](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
 
@@ -101,13 +101,14 @@ Default:
 ...     "ctrl",
 ...     "sensordata",
 ... }
-"""  # noqa: D205, D400, D415
+"""
 
 try:
     import subprocess
     subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 except subprocess.CalledProcessError:
-    raise RuntimeError("ffmpeg is not installed or not functioning correctly.")
+    msg = "ffmpeg is not installed or not functioning correctly."
+    raise RuntimeError(msg)
 
 
 # Check if the package is still under development
