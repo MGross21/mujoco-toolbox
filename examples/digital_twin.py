@@ -8,10 +8,10 @@ import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 
 # Load the model
-model_dir = str(Path(__file__).resolve().parent.parent / "tests" / "models" / "UR5")
-urdf = str(Path(model_dir) / "ur5.urdf")
-meshes = str(Path(model_dir) / "meshes" / "collision")
-
+script_dir = Path(__file__).resolve().parent
+model_dir = script_dir.parent / "tests" / "models" / "ur5"
+urdf = str(model_dir / "ur5.urdf")
+meshes = str(model_dir / "meshes" / "collision")
 
 initial = {
     "qpos": [-.707, -1.57, 1.57, -1.57, -1.57, 1.57],
