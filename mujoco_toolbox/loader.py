@@ -18,7 +18,7 @@ class Loader:
 
         try:
             self._model = mujoco.MjModel.from_xml_string(self.xml)
-        except mujoco.Error as e:
+        except (mujoco.FatalError, ValueError, TypeError) as e:
             raise ValueError(f"Failed to load model due to Mujoco error: {e}") from e
         except Exception as e:
             raise ValueError(f"Failed to load model: {e}") from e
@@ -31,7 +31,8 @@ class Loader:
 
     def validate_meshes(self) -> None:
         root = ET.fromstring(self.xml)
-        meshdir = root.find("compiler").get("meshdir", "meshes/")
+        compiler = root.find(".//compiler")
+        meshdir = compiler.get("meshdir", "meshes/") if compiler is not None else "meshes/"
         for asset in root.findall(".//mesh"):
             file_path = Path(meshdir) / asset.get("file", "")
             if not file_path.exists():
