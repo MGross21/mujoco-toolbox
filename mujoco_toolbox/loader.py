@@ -6,6 +6,7 @@ import mujoco
 
 from .builder import Builder  # type checking
 
+
 class Loader:
     """Handles loading of MuJoCo models from XML or URDF files."""
 
