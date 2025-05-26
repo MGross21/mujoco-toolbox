@@ -55,7 +55,7 @@ def test_xml1() -> None:
 
 def test_urdf1() -> None:
     """Test 2: Run UR5 URDF simulation."""
-    ur = Path.cwd() / "tests" / "models" / "UR5"
+    ur = Path.cwd() / "tests" / "models" / "ur5"
     model = ur / "ur5.urdf"
     meshdir = ur / "meshes" / "collision"
 
