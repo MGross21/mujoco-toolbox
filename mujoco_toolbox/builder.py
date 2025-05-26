@@ -26,6 +26,17 @@ class Builder:
 
     @staticmethod
     def merge(inputs: Sequence[Union[str, "Builder"]], meshdir: str = "meshes/") -> "Builder":
+        """
+        Merge multiple Builder objects and/or XML strings into one Builder.
+
+        Args:
+            inputs: Sequence of Builder objects and/or XML strings or file paths.
+            meshdir: Mesh directory (default: "meshes/").
+        Returns:
+            Merged Builder instance.
+        Raises:
+            ValueError: If no inputs are provided.
+        """
         if not inputs:
             msg = "No inputs provided for merging."
             raise ValueError(msg)
