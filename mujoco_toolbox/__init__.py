@@ -46,7 +46,7 @@ from .controllers import (
 from .utils import _Platform
 from .wrapper import Wrapper
 
-__version__ = "0.6.0-rc.1"
+__version__ = "0.6.1"
 __author__ = "Michael Gross"
 __license__ = "MIT"
 __all__ = [
