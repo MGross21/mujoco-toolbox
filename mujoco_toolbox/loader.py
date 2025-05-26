@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from typing import Any, Union
 
@@ -6,8 +5,6 @@ import defusedxml.ElementTree as ET
 import mujoco
 
 from .builder import Builder  # type checking
-
-logging.basicConfig(level=logging.DEBUG)
 
 class Loader:
     """Handles loading of MuJoCo models from XML or URDF files."""
