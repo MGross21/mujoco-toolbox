@@ -103,12 +103,13 @@ Default:
 ... }
 """
 
-try:
-    import subprocess
-    subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-except subprocess.CalledProcessError:
-    msg = "ffmpeg is not installed or not functioning correctly."
-    raise RuntimeError(msg)
+if GUI_ENABLED:
+    try:
+        import subprocess
+        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    except subprocess.CalledProcessError:
+        msg = "ffmpeg is not installed or not functioning correctly."
+        raise RuntimeError(msg)
 
 
 # Check if the package is still under development
