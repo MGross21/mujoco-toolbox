@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "mujoco-toolbox"
 version = "0.6.1"
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.11,<4.0"
 description = "A Modern Simulation Wrapper for Google DeepMind’s MuJoCo"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -24,7 +24,7 @@ classifiers = [
 dynamic = ["classifiers","dependencies"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 mujoco = "*"
 numpy = "*"
 scipy = "*"
@@ -67,6 +67,7 @@ pylint = "^3.3.4"
 python-semantic-release = "^9.21.0"
 python-dotenv = "^1.1.0"
 pytest-cov = "^3.0.0"
+sphinx = "^8.2.3"
 
 [tool.semantic_release.branches.main]
 match = "main"
