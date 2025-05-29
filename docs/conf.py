@@ -25,6 +25,9 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 
+# Disable built-in Pygments styles to fully override via CSS
+pygments_style = "none"
+
 # Options for HTML output
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]

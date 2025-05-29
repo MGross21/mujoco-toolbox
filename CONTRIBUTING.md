@@ -12,6 +12,7 @@ This guide outlines how to set up your development environment, follow project c
   - [🚀 How to Contribute](#-how-to-contribute)
   - [🧑‍💻 Development Guidelines](#-development-guidelines)
   - [🔍 Linting and Automation](#-linting-and-automation)
+  - [📖 Building the Documentation Locally](#-building-the-documentation-locally)
   - [🐞 Reporting Issues](#-reporting-issues)
   - [📄 License](#-license)
 
@@ -106,6 +107,22 @@ poetry run ruff check mujoco_toolbox
 poetry run mypy mujoco_toolbox
 poetry run pytest tests/
 ```
+
+## 📖 Building the Documentation Locally
+
+To build the documentation locally, run:
+
+```bash
+poetry run sphinx-build docs docs/_build/html
+```
+
+To automatically open the generated documentation in your default web browser after building, use:
+
+```bash
+poetry run sphinx-build docs docs/_build/html && start docs/_build/html/index.html
+```
+
+This will generate the HTML documentation and open the `index.html` page for easy viewing.
 
 ## 🐞 Reporting Issues
 

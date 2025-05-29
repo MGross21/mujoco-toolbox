@@ -68,6 +68,7 @@ python-semantic-release = "^9.21.0"
 python-dotenv = "^1.1.0"
 pytest-cov = "^3.0.0"
 sphinx = "^8.2.3"
+sphinx-rtd-theme = "^3.0.2"
 
 [tool.semantic_release.branches.main]
 match = "main"

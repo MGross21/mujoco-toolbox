@@ -6,11 +6,14 @@
   --color-code-inline: #3a3f4b;
   --color-text-primary: #f5f5f5;
   --color-text-secondary: #bbbbbb;
-  --color-link: #64d99d;
-  --color-link-visited: #b368c8;
+  --color-link: #66A1FF;
+  --color-link-visited: #a4c6fc;
   --color-border: #444;
 }
 
+/* -------------------------------
+   Layout & Page Background
+-------------------------------- */
 body,
 .wy-body-for-nav,
 .wy-nav-content,
@@ -19,68 +22,33 @@ body,
   color: var(--color-text-primary) !important;
 }
 
-/* Sidebar */
+/* -------------------------------
+   Sidebar
+-------------------------------- */
 .wy-side-nav-search,
-.wy-nav-side {
+.wy-nav-side,
+.wy-side-nav-search input,
+.wy-side-nav-search .version,
+.wy-menu-vertical a {
   background: var(--color-background-secondary) !important;
+  color: var(--color-text-primary) !important;
 }
 
-/* Links */
+/* -------------------------------
+   Links
+-------------------------------- */
 a,
 .rst-content a {
   color: var(--color-link) !important;
 }
-
 a:visited,
 .rst-content a:visited {
   color: var(--color-link-visited) !important;
 }
 
-/* Code blocks */
-.highlight,
-.literal-block,
-.rst-content pre,
-.rst-content .viewcode-block {
-  background-color: var(--color-code-block) !important;
-  color: var(--color-text-primary) !important;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.75em;
-}
-
-/* Inline code */
-.rst-content tt,
-.rst-content code {
-  background: var(--color-code-inline) !important;
-  color: var(--color-text-primary) !important;
-  padding: 2px 4px;
-  border-radius: 3px;
-}
-
-/* Signatures */
-.sig,
-.sig-name,
-.sig-param,
-.sig-return,
-.sig-prename,
-.sig-paren {
-  color: var(--color-text-primary) !important;
-}
-
-/* Tables */
-.rst-content table.docutils,
-.rst-content table.field-list {
-  background: var(--color-background-secondary) !important;
-  color: var(--color-text-primary) !important;
-  border: 1px solid var(--color-border) !important;
-}
-
-.rst-content th,
-.rst-content td {
-  border-color: var(--color-border) !important;
-}
-
-/* Headings */
+/* -------------------------------
+   Headings
+-------------------------------- */
 .rst-content h1,
 .rst-content h2,
 .rst-content h3,
@@ -89,10 +57,165 @@ a:visited,
   color: var(--color-text-primary) !important;
 }
 
-/* Admonitions */
+/* -------------------------------
+   Tables
+-------------------------------- */
+.rst-content table.docutils,
+.rst-content table.field-list {
+  background: var(--color-background-secondary) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+}
+.rst-content th,
+.rst-content td {
+  border-color: var(--color-border) !important;
+}
+
+/* -------------------------------
+   Admonitions
+-------------------------------- */
 .rst-content .admonition {
   background-color: var(--color-background-hover) !important;
   color: var(--color-text-primary) !important;
   border-left: 4px solid var(--color-link) !important;
   padding: 0.75em;
+}
+
+/* -------------------------------
+   Inline Code & Code Blocks
+-------------------------------- */
+.rst-content tt,
+.rst-content code {
+  background: var(--color-code-inline) !important;
+  color: var(--color-text-primary) !important;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.highlight,
+.literal-block,
+.rst-content pre,
+.rst-content .viewcode-block,
+.rst-content .highlight-default,
+.rst-content .highlight-python,
+.rst-content .highlight-pycon {
+  background-color: var(--color-code-block) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.75em;
+  overflow-x: auto;
+}
+
+/* -------------------------------
+   Syntax Highlighting (Pygments)
+-------------------------------- */
+.highlight .n  { color: #f5f5f5 !important; }        /* Names */
+.highlight .k  { color: #c586c0 !important; }        /* Keywords */
+.highlight .o,
+.highlight .p  { color: #d4d4d4 !important; }        /* Operators, Punctuation */
+.highlight .s,
+.highlight .s1,
+.highlight .s2 { color: #ce9178 !important; }        /* Strings */
+.highlight .mi,
+.highlight .mf { color: #b5cea8 !important; }        /* Numbers */
+.highlight .nn { color: #9cdcfe !important; }        /* Class names */
+.highlight .nb,
+.highlight .bp { color: #dcdcaa !important; }        /* Built-ins */
+.highlight .c  { color: #6a9955 !important; font-style: italic !important; }  /* Comments */
+.highlight .fm { color: #dcdcaa !important; }        /* Function names */
+.highlight .err { background-color: #f00; color: #fff !important; }
+
+/* -------------------------------
+   Function/Class Signatures
+-------------------------------- */
+dl.class,
+dl.function,
+dl.method,
+dl.attribute,
+dl.exception {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 0 1em 0 !important;
+  box-shadow: none !important;
+}
+
+.sig,
+.sig-object,
+.sig-name,
+.sig-param,
+.sig-return,
+.sig-prename,
+.sig-paren {
+  color: var(--color-text-primary) !important;
+  background-color: var(--color-code-block) !important;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.4em 0.6em;
+  display: inline-block;
+  margin: 0.5em 0;
+}
+
+.sig-param,
+.sig-return,
+.sig-prename {
+  background-color: var(--color-code-inline) !important;
+  padding: 2px 4px;
+  margin: 0 2px;
+}
+
+.sig .n,
+.sig .k,
+.sig .o,
+.sig .p,
+.sig .bp,
+.sig .nf,
+.sig .nb,
+.sig .nn,
+.sig .fm,
+.sig .pre,
+.sig .sig-name,
+.sig .sig-param,
+.sig .sig-prename,
+.sig .sig-paren,
+.sig .sig-return {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: inline !important;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+
+/* -------------------------------
+   Footer Navigation Buttons
+-------------------------------- */
+.rst-footer-buttons a.btn {
+  background-color: var(--color-background-hover) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 4px;
+  padding: 0.5em 1em;
+  text-decoration: none;
+}
+.rst-footer-buttons a.btn:hover {
+  background-color: var(--color-link) !important;
+  color: #fff !important;
+  border-color: var(--color-link) !important;
+}
+
+/* -------------------------------
+   Misc
+-------------------------------- */
+.viewcode-link,
+.headerlink {
+  color: var(--color-text-secondary) !important;
+}
+
+.field-name,
+.rst-content .field-name {
+  color: var(--color-link) !important;
 }
