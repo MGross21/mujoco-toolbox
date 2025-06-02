@@ -5,8 +5,8 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "mujoco-toolbox"
 version = "0.6.1"
-requires-python = ">=3.11,<4.0"
-description = "A Modern Simulation Wrapper for Google DeepMind’s MuJoCo"
+requires-python = ">=3.9,<4.0"
+description = "A Modern Simulation Wrapper for Google DeepMind's MuJoCo"
 readme = "README.md"
 license = { file = "LICENSE" }
 packages = [{ include = "mujoco_toolbox" }]
@@ -17,9 +17,13 @@ keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.10",
-    "Topic :: Software Development :: Libraries"
+    "License :: MIT License",
+    "Programming Language :: Python 3.9",
+    "Programming Language :: Python 3.10",
+    "Programming Language :: Python 3.11",
+    "Programming Language :: Python 3.12",
+    "Programming Language :: Python 3.13",
+    "Operating System :: OS Independent"
 ]
 dynamic = ["classifiers","dependencies"]
 
