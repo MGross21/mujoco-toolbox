@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.6.2 (2025-06-02)
+
+### Bug Fixes
+
+- Update Python version to 3.11 in CI workflow
+  ([`bc4ec2c`](https://github.com/MGross21/mujoco-toolbox/commit/bc4ec2c7f2e3f68cdecbfcd8b6fae722618cbe86))
+
+### Refactoring
+
+- Reorganize digital twin code for clarity
+  ([`f015e7d`](https://github.com/MGross21/mujoco-toolbox/commit/f015e7dabdf38394d379bc6b88f80f7477843dd8))
+
+
 ## v0.6.1 (2025-05-25)
 
 

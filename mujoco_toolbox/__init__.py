@@ -46,7 +46,7 @@ from .controllers import (
 from .sim import Simulation
 from .utils import _Platform
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 __author__ = "Michael Gross"
 __license__ = "MIT"
 __all__ = [
