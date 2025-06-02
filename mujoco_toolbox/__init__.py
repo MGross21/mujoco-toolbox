@@ -8,7 +8,7 @@ simulation process.
 
 Modules
 --------
-- `wrapper`: Contains the Wrapper class for interfacing with MuJoCo.
+- `sim`: Contains the Simulation class for interfacing with MuJoCo.
 - `controllers`: Includes pre-built functions for controlling simulations.
 - `assets`: Contains pre-defined assets for building MuJoCo models.
 
@@ -16,7 +16,7 @@ Constants
 ----------
 - `CAPTURE_PARAMETERS`: List of MjData fields to capture during simulation.
 - `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
-- `wrapper.PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
+- `PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
 
 This project is licensed under the `MIT License`. See the `LICENSE` file for 
 details.
@@ -44,7 +44,7 @@ from .controllers import (
     step,
 )
 from .utils import _Platform
-from .wrapper import Wrapper
+from .sim import Simulation
 
 __version__ = "0.6.1"
 __author__ = "Michael Gross"
@@ -53,7 +53,7 @@ __all__ = [
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
     "Builder",
-    "Wrapper",
+    "Simulation",
     "cos",
     "glovebox",
     "random",
@@ -64,6 +64,7 @@ __all__ = [
 
 MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
 GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
+PROGRESS_BAR_ENABLED = GUI_ENABLED
 CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulation
     "time",
     "qpos",

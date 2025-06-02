@@ -1,6 +1,6 @@
-"""Wrapper module for managing MuJoCo simulations.
+"""Sim module for managing MuJoCo simulations.
 
-This module provides a `Wrapper` class to handle MuJoCo simulations, including
+This module provides a `Simulation` class to handle MuJoCo simulations, including
 loading models, running simulations, capturing data, and rendering frames.
 """
 from __future__ import annotations
@@ -21,6 +21,7 @@ import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
+import warnings
 import yaml
 from IPython.display import clear_output
 from tqdm.auto import tqdm
@@ -58,35 +59,11 @@ mujoco_object_types = [
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
 
-PROGRESS_BAR_ENABLED = True
-
-
-# Rename Wrapper to Simulation in the future
 class Simulation:
-    """Simulation class for building, configuring, and running MuJoCo models."""
-
-    def __init__(self) -> None:
-        msg = (
-            "The Simulation class is not implemented yet. "
-            "Please use the Wrapper class instead."
-        )
-        raise NotImplementedError(
-            msg,
-        )
-
-# class Wrapper(Simulator):
-#     def __init__(self, *args, **kwargs):
-#         warnings.warn(
-#             "Wrapper is deprecated and will be removed in a future release. Use Simulator instead.",
-#             DeprecationWarning
-#         )
-#         super().__init__(*args, **kwargs)
-
-
-class Wrapper:
-    """Wrapper class for managing MuJoCo simulations."""
+    """Simulation class for managing MuJoCo simulations."""
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
+        from . import PROGRESS_BAR_ENABLED  # pylint: disable=E0401
         if PROGRESS_BAR_ENABLED and kwargs.get("clear_screen", True):
             os.system("clear || cls") # Clear the console
             clear_output(wait=True)
@@ -106,7 +83,7 @@ class Wrapper:
         meshdir: str = "meshes/",
         **kwargs: Any,
     ) -> None:
-        """Initialize the Wrapper class for managing MuJoCo simulations.
+        """Initialize the Simulation class for managing MuJoCo simulations.
 
         Args:
             xml_args (str | Builder): One or more XML file paths, XML strings,
@@ -194,11 +171,11 @@ class Wrapper:
             pass
         return (400, 300)
 
-    def reload(self: Wrapper) -> Wrapper:
+    def reload(self: Simulation) -> Simulation:
         """Reload the model and data objects.
 
         Returns:
-            Wrapper: Self for method chaining.
+            Simulation: Self for method chaining.
 
         """
         # Use the Loader to handle model reloading
@@ -249,7 +226,7 @@ class Wrapper:
     def __enter__(self) -> Self:  # noqa: D105
         return self
 
-    def __exit__(self: Wrapper, *args, **kwargs) -> None:  # noqa: D105
+    def __exit__(self: Simulation, *args, **kwargs) -> None:  # noqa: D105
         mujoco.set_mjcb_control(None)
         for thread in threading.enumerate():
             if thread is not threading.main_thread():
@@ -461,7 +438,7 @@ class Wrapper:
         interactive: bool = False,
         show_menu: bool = True,  # TODO@MGross21: Implement this with launch
         multi_thread: bool = False,
-    ) -> Wrapper:
+    ) -> Simulation:
         """Run the simulation with optional rendering.
 
         Args:
@@ -476,7 +453,7 @@ class Wrapper:
             mode.
 
         Returns:
-            self: The current Wrapper object for method chaining.
+            self: The current Simulation object for method chaining.
 
         """
         # TODO: Integrate interactive mujoco.viewer into this method
@@ -529,7 +506,7 @@ class Wrapper:
             #     gui.start()
 
             # Mujoco Renderer
-            from . import MAX_GEOM_SCALAR  # pylint: disable=E0405
+            from . import MAX_GEOM_SCALAR, PROGRESS_BAR_ENABLED  # pylint: disable=E0405
 
             max_geom = m.ngeom * MAX_GEOM_SCALAR
             _Renderer = (  # noqa: N806, pylint: disable=C0103
@@ -1057,3 +1034,17 @@ class _SimulationData:
             for name in dir(obj)
             if not name.startswith("_") and not callable(getattr(obj, name))
         }
+
+class Wrapper(Simulation):
+    def __init__(self, *args, **kwargs):
+        from . import __version__
+        if __version__ >= "1.0.0":
+            raise RuntimeError(
+                "Wrapper is deprecated and will be removed in v1.0.0. Use Simulation instead."
+            )
+        warnings.warn(
+            f"Wrapper is deprecated and will be removed in v1.0.0 (Current: {__version__}). Use Simulation instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, **kwargs)

@@ -20,7 +20,7 @@ viewer.launch(model, data)
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/urdf").launch()
+mjtb.Simulation("path/to/urdf").launch()
 ```
 
 ## Running Sim and Capturing Data
@@ -75,12 +75,12 @@ while data.time < DURATION:
 ```python
 import mujoco_toolbox as mjtb
 
-sim = mjtb.Wrapper("path/to/urdf", DURATION, DATA_RATE).run()
+sim = mjtb.Simulation("path/to/urdf", DURATION, DATA_RATE).run()
 sim.captured_data # Dictionary holding data, ie. ["qpos"] = [data]
 ```
 
 Under the hood, certain class variable have the following defaults:
 
 ```python
-mjtb.wrapper.CAPTURE_PARAMETERS = {"xpos","qpos","qvel","act","ctrl","qacc","xpos","xquat","xmat","ctrl","sensordata"}
+mjtb.CAPTURE_PARAMETERS = {"xpos","qpos","qvel","act","ctrl","qacc","xpos","xquat","xmat","ctrl","sensordata"}
 ```

@@ -20,7 +20,7 @@ qpos_trajectory = np.linspace(QPOS_INIT, QPOS_FINAL, NUM_STEPS)
 
 def main():
     # Create and launch the digital twin
-    with mjtb.Wrapper(
+    with mjtb.Simulation(
         str(URDF_PATH),
         meshdir=str(MESH_DIR),
         initial_conditions={"qpos": QPOS_INIT},

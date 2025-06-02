@@ -117,7 +117,7 @@ ffmpeg -version
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/your/xml").run(render=True).save()
+mjtb.Simulation("path/to/your/xml").run(render=True).save()
 ```
 
 ## Controllers
@@ -149,7 +149,7 @@ def foo(model: MjModel, data: MjData,**kwargs):
 import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 
-with mjtb.Wrapper("path/to/xml", controller=real_time) as digitaltwin:
+with mjtb.Simulation("path/to/xml", controller=real_time) as digitaltwin:
     digitaltwin.launch(show_menu=False) # Open the simulation window
     while True:
         digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"mjdata_kwargs": value})
@@ -164,7 +164,7 @@ See `MjData` objects [here](https://mujoco.readthedocs.io/en/stable/APIreference
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/xml").show()
+mjtb.Simulation("path/to/xml").show()
 ```
 
 ![UR5/Vention](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png)
@@ -174,7 +174,7 @@ mjtb.Wrapper("path/to/xml").show()
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
+mjtb.Simulation("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
 ```
 
 ![UR5](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png)
@@ -187,7 +187,7 @@ Supports full `<mujoco>...</mujoco>` and `<robot>...</robot>` structure as well 
 import mujoco_toolbox as mjtb
 
 # Merges: XML & URDF Files, XML & URDF Strings, Sub Tree Structures
-mjtb.Wrapper("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
+mjtb.Simulation("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 
 ```
 
