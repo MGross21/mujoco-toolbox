@@ -122,16 +122,20 @@ mjtb.Simulation("path/to/your/xml").run(render=True).save()
 
 ## Controllers
 
-### Pre-Made
+### Pre-Made Controllers
+
+The following controllers are available out-of-the-box:
+
+- `sin`
+- `cos`
+- `step`
+- `random`
+- `real_time`
+
+You can import them as follows:
 
 ```python
-from mujoco_toolbox.controllers import (
-    sin,
-    cos,
-    step,
-    random,
-    real_time
-)
+import mujoco_toolbox.controllers as ctrl
 ```
 
 ### Custom
