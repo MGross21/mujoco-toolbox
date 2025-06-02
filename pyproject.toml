@@ -17,12 +17,12 @@ keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: MIT License",
-    "Programming Language :: Python 3.9",
-    "Programming Language :: Python 3.10",
-    "Programming Language :: Python 3.11",
-    "Programming Language :: Python 3.12",
-    "Programming Language :: Python 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent"
 ]
 dynamic = ["classifiers","dependencies"]
