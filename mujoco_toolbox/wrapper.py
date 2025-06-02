@@ -13,7 +13,7 @@ from collections import defaultdict
 from contextlib import nullcontext
 from multiprocessing import cpu_count
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any, Self, TypeAlias
 
 import cv2
 import defusedxml.ElementTree as ET
@@ -24,7 +24,6 @@ import numpy as np
 import yaml
 from IPython.display import clear_output
 from tqdm.auto import tqdm
-from typing_extensions import Self
 
 from .builder import Builder
 from .loader import Loader
@@ -871,7 +870,7 @@ class Wrapper:
                 obj_id = mujoco.mj_name2id(self._model, obj_type, name)
                 if obj_id >= 0:
                     return obj_id
-            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: PERF203, S112
+            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: S112
                 continue
         msg = f"Object with name '{name}' not found."
         raise ValueError(msg)
