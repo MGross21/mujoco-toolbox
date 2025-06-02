@@ -16,12 +16,8 @@ class Loader:
 
         try:
             self._model = mujoco.MjModel.from_xml_string(self.xml)
-        except (mujoco.FatalError, ValueError, TypeError) as e:
-            msg = f"Failed to load model due to Mujoco error: {e}"
-            raise ValueError(msg) from e
-        except Exception as e:
-            msg = f"Failed to load model: {e}"
-            raise ValueError(msg) from e
+        except Exception:
+            raise
 
     @property
     def model(self) -> mujoco.MjModel:
