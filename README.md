@@ -130,7 +130,7 @@ The following controllers are available out-of-the-box:
 - `cos`
 - `step`
 - `random`
-- `real_time`
+- `real_time` <sub>(recommended controller for digital twins)</sub>
 
 You can import them as follows:
 
