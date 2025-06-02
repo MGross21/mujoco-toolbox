@@ -27,7 +27,7 @@ TESTING_MODELS = [
 # Verify that all model paths exist
 TESTING_MODELS = [model for model in TESTING_MODELS if os.path.exists(model)]
 
-mjtb.wrapper.PROGRESS_BAR_ENABLED = False
+mjtb.PROGRESS_BAR_ENABLED = False
 
 
 def test_xml1() -> None:
