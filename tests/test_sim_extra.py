@@ -1,12 +1,14 @@
-"""
-Additional tests for mujoco_toolbox to maximize pytest coverage.
-"""
-import pytest
-import mujoco_toolbox as mjtb
+"""Additional tests for mujoco_toolbox to maximize pytest coverage."""
+from typing import Never
+
 import numpy as np
+import pytest
+
+import mujoco_toolbox as mjtb
+
 
 # --- Simulation utility and error branch coverage ---
-def test_simulation_reload_and_str():
+def test_simulation_reload_and_str() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
     sim2 = sim.reload()
@@ -14,13 +16,13 @@ def test_simulation_reload_and_str():
     assert isinstance(str(sim), str)
     assert isinstance(repr(sim), str)
 
-def test_simulation_launch(monkeypatch):
+def test_simulation_launch(monkeypatch) -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
     monkeypatch.setattr("threading.Thread.start", lambda self: None)
     sim.launch()
 
-def test_simulation_show_save_errors():
+def test_simulation_show_save_errors() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
     with pytest.raises(ValueError):
@@ -28,7 +30,7 @@ def test_simulation_show_save_errors():
     with pytest.raises(ValueError):
         sim.save()
 
-def test_simulation_get_index_errors():
+def test_simulation_get_index_errors() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
     sim._frames = []
@@ -46,18 +48,18 @@ def test_simulation_get_index_errors():
     assert isinstance(result2, list)
 
 # --- Loader direct coverage ---
-def test_loader_str_repr():
+def test_loader_str_repr() -> None:
     from mujoco_toolbox.loader import Loader
     loader = Loader("tests/models/box_and_leg.xml")
     assert isinstance(str(loader), str)
     assert isinstance(repr(loader), str)
 
 # --- Controllers direct coverage ---
-def test_controllers_all():
+def test_controllers_all() -> None:
     """Test all controller functions with dummy model/data objects."""
     import mujoco_toolbox.controllers as ctrl
     class Dummy:
-        def __init__(self):
+        def __init__(self) -> None:
             self.time = 0
             self.qpos = np.zeros(1)
             self.qvel = np.zeros(1)
@@ -68,15 +70,16 @@ def test_controllers_all():
         fn(m, d)
 
 # --- Warnings direct coverage (example) ---
-def test_custom_warning():
+def test_custom_warning() -> Never:
     """Test raising and catching a custom warning."""
     class CustomWarning(Warning):
         pass
     with pytest.raises(CustomWarning):
-        raise CustomWarning("test")
+        msg = "test"
+        raise CustomWarning(msg)
 
 # --- Simulation captured_data deleter ---
-def test_captured_data_deleter():
+def test_captured_data_deleter() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model).run(render=False)
     del sim.captured_data
