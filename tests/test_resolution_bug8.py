@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from mujoco_toolbox import Wrapper
+from mujoco_toolbox import Simulation
 
 
 # Test to ensure resolution is set correctly
@@ -38,7 +38,7 @@ def test_resolution() -> None:
         </equality>
     </mujoco>
     """
-    wrapper = Wrapper(model)
+    wrapper = Simulation(model)
     assert wrapper.resolution == (800, 600), "Resolution does not match expected value."
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
@@ -56,7 +56,7 @@ def test_gravity() -> None:
         </worldbody>
     </mujoco>
     """
-    wrapper = Wrapper(model)
+    wrapper = Simulation(model)
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
 # Test to ensure rendering works without errors
@@ -73,7 +73,7 @@ def test_rendering() -> None:
         </worldbody>
     </mujoco>
     """
-    wrapper = Wrapper(model)
+    wrapper = Simulation(model)
     try:
         wrapper.run(render=True).save()
     except Exception as e:

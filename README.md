@@ -117,21 +117,25 @@ ffmpeg -version
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/your/xml").run(render=True).save()
+mjtb.Simulation("path/to/your/xml").run(render=True).save()
 ```
 
 ## Controllers
 
-### Pre-Made
+### Pre-Made Controllers
+
+The following controllers are available out-of-the-box:
+
+- `sin`
+- `cos`
+- `step`
+- `random`
+- `real_time` <sub>(recommended controller for digital twins)</sub>
+
+You can import them as follows:
 
 ```python
-from mujoco_toolbox.controllers import (
-    sin,
-    cos,
-    step,
-    random,
-    real_time
-)
+import mujoco_toolbox.controllers as ctrl
 ```
 
 ### Custom
@@ -149,7 +153,7 @@ def foo(model: MjModel, data: MjData,**kwargs):
 import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 
-with mjtb.Wrapper("path/to/xml", controller=real_time) as digitaltwin:
+with mjtb.Simulation("path/to/xml", controller=real_time) as digitaltwin:
     digitaltwin.launch(show_menu=False) # Open the simulation window
     while True:
         digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"mjdata_kwargs": value})
@@ -164,20 +168,20 @@ See `MjData` objects [here](https://mujoco.readthedocs.io/en/stable/APIreference
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/xml").show()
+mjtb.Simulation("path/to/xml").show()
 ```
 
-![UR5/Vention](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png)
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png" alt="UR5/Vention" width="300">
 
 ### URDF
 
 ```python
 import mujoco_toolbox as mjtb
 
-mjtb.Wrapper("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
+mjtb.Simulation("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
 ```
 
-![UR5](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png)
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png" alt="UR5" width="300">
 
 ## Merging Capabilities
 
@@ -187,13 +191,11 @@ Supports full `<mujoco>...</mujoco>` and `<robot>...</robot>` structure as well 
 import mujoco_toolbox as mjtb
 
 # Merges: XML & URDF Files, XML & URDF Strings, Sub Tree Structures
-mjtb.Wrapper("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
+mjtb.Simulation("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 
 ```
 
 > **⚠️ WARNING**  
 > Duplicate sub-tree items with the same name will cause MuJoCo to throw a `FatalError`.
 
-### External Build
-
-![Humanoid in Box](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/human_in_box.png)
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/human_in_box.png" alt="Humanoid in Box" width="300">

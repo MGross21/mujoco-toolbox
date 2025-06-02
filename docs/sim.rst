@@ -1,7 +1,7 @@
-Wrapper Module
+Sim Module
 ==============
 
-.. automodule:: mujoco_toolbox.wrapper
+.. automodule:: mujoco_toolbox.sim
     :members:
     :undoc-members:
     :show-inheritance:

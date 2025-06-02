@@ -27,14 +27,14 @@ TESTING_MODELS = [
 # Verify that all model paths exist
 TESTING_MODELS = [model for model in TESTING_MODELS if os.path.exists(model)]
 
-mjtb.wrapper.PROGRESS_BAR_ENABLED = False
+mjtb.PROGRESS_BAR_ENABLED = False
 
 
 def test_xml1() -> None:
     """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
     model = os.path.join(Path(__file__).parent, "models", "box_and_leg.xml")
 
-    test1 = mjtb.Wrapper(
+    test1 = mjtb.Simulation(
         model,
         duration=10,
         fps=20,
@@ -70,7 +70,7 @@ def test_urdf1() -> None:
         "initial_conditions": ic,
     }
 
-    sim = mjtb.Wrapper(str(model), **params).run(render=mjtb.GUI_ENABLED)
+    sim = mjtb.Simulation(str(model), **params).run(render=mjtb.GUI_ENABLED)
 
     if mjtb.GUI_ENABLED:
         sim.show(frame_idx=0)
@@ -87,7 +87,7 @@ def test_urdf1() -> None:
 def test_mujoco_core_array() -> None:
     """Test 3: Run simulations for all models in TESTING_MODELS."""
     for model in map(str, TESTING_MODELS):
-        with mjtb.Wrapper(model) as m:
+        with mjtb.Simulation(model) as m:
             m.run(render=mjtb.GUI_ENABLED)
             assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), \
                 f"Simulation data size does not match requested parameters for model {model}."
@@ -98,28 +98,28 @@ def test_invalid_xml_path() -> None:
     """Test 4: Attempt to load a non-existent XML file."""
     invalid_path = os.path.join(os.path.dirname(__file__), "models", "non_existent.xml")
     with pytest.raises(FileNotFoundError):
-        mjtb.Wrapper(invalid_path)
+        mjtb.Simulation(invalid_path)
 
 
 def test_invalid_urdf_path() -> None:
     """Test 5: Attempt to load a non-existent URDF file."""
     invalid_path = os.path.join(os.getcwd(), "tests", "models", "non_existent.urdf")
     with pytest.raises(FileNotFoundError):
-        mjtb.Wrapper(invalid_path)
+        mjtb.Simulation(invalid_path)
 
 
 def test_negative_duration() -> None:
     """Test 6: Attempt to set a negative simulation duration."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     with pytest.raises(ValueError):
-        mjtb.Wrapper(model, duration=-10)
+        mjtb.Simulation(model, duration=-10)
 
 
 def test_invalid_resolution() -> None:
     """Test 7: Attempt to set an invalid resolution."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     with pytest.raises(ValueError):
-        mjtb.Wrapper(model, resolution=(-800, 600))
+        mjtb.Simulation(model, resolution=(-800, 600))
 
 
 def test_invalid_initial_conditions() -> None:
@@ -127,21 +127,21 @@ def test_invalid_initial_conditions() -> None:
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     invalid_ic = {"invalid_key": [1, 2, 3]}
     with pytest.raises(ValueError):
-        mjtb.Wrapper(model, initial_conditions=invalid_ic)
+        mjtb.Simulation(model, initial_conditions=invalid_ic)
 
 
 def test_invalid_controller() -> None:
     """Test 9: Attempt to set a non-callable controller."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     with pytest.raises(ValueError):
-        mjtb.Wrapper(model, controller="not_a_function")
+        mjtb.Simulation(model, controller="not_a_function")
 
 
 
 def test_large_duration_and_high_fps() -> None:
     """Test 10: Run a simulation with a very large duration and high FPS."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
-    test = mjtb.Wrapper(model, duration=100, fps=100).run(render=False)
+    test = mjtb.Simulation(model, duration=100, fps=100).run(render=False)
     assert len(test.captured_data) == len(mjtb.CAPTURE_PARAMETERS), \
         "Captured data size does not match the expected parameters for large duration and high FPS."
     assert len(test._captured_data) == (test.duration * test.data_rate), \
@@ -151,7 +151,7 @@ def test_large_duration_and_high_fps() -> None:
 def test_zero_gravity() -> None:
     """Test 11: Run a simulation with zero gravity."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
-    test = mjtb.Wrapper(model, gravity=[0, 0, 0]).run(render=False)
+    test = mjtb.Simulation(model, gravity=[0, 0, 0]).run(render=False)
     assert np.allclose(test.gravity, [0, 0, 0]), "Gravity was not set to zero as expected."
 
 
@@ -159,7 +159,7 @@ def test_extreme_gravity() -> None:
     """Test 12: Run a simulation with extreme gravity values."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     extreme_gravity = [1e6, -1e6, 1e6]
-    test = mjtb.Wrapper(model, gravity=extreme_gravity).run(render=False)
+    test = mjtb.Simulation(model, gravity=extreme_gravity).run(render=False)
     assert np.allclose(test.gravity, extreme_gravity), "Gravity was not set to extreme values as expected."
 
 
@@ -167,7 +167,7 @@ def test_invalid_gravity() -> None:
     """Test 13: Attempt to set an invalid gravity vector."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     try:
-        mjtb.Wrapper(model, gravity=[0, 0])  # Invalid gravity vector
+        mjtb.Simulation(model, gravity=[0, 0])  # Invalid gravity vector
     except ValueError as e:
         assert "Gravity must be a 3D vector." in str(e) or "Invalid gravity vector" in str(e), "Unexpected error message for invalid gravity vector."
     else:

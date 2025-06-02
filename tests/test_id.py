@@ -5,7 +5,7 @@ import pytest
 import mujoco_toolbox as mjtb
 
 # Initialize the model
-test = mjtb.Wrapper("tests/models/box_and_leg.xml")
+test = mjtb.Simulation("tests/models/box_and_leg.xml")
 
 # Test name2id for joints
 def test_name2id_joints() -> None:

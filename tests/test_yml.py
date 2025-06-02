@@ -2,12 +2,12 @@ import os
 
 import pytest
 
-from mujoco_toolbox import CAPTURE_PARAMETERS, Wrapper
+from mujoco_toolbox import CAPTURE_PARAMETERS, Simulation
 
 FILE_NAME = "test.yml"
 
 def test_yaml_creation() -> None:
-    Wrapper("<mujoco/>", data_rate=10, duration=3).run().save_yaml(FILE_NAME)
+    Simulation("<mujoco/>", data_rate=10, duration=3).run().save_yaml(FILE_NAME)
     assert os.path.exists(FILE_NAME), "YAML file was not created."
     with open(FILE_NAME) as file:
         content = file.read()
@@ -17,8 +17,8 @@ def test_yaml_creation() -> None:
 
 def test_invalid_data_rate() -> None:
     with pytest.raises(ValueError):
-        Wrapper("<mujoco/>", data_rate=-1, duration=3).run()
+        Simulation("<mujoco/>", data_rate=-1, duration=3).run()
 
 def test_invalid_duration() -> None:
     with pytest.raises(ValueError):
-        Wrapper("<mujoco/>", data_rate=10, duration=-5).run()
+        Simulation("<mujoco/>", data_rate=10, duration=-5).run()
