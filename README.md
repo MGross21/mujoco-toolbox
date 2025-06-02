@@ -171,7 +171,7 @@ import mujoco_toolbox as mjtb
 mjtb.Simulation("path/to/xml").show()
 ```
 
-![UR5/Vention](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png)
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_vention.png" alt="UR5/Vention" width="300">
 
 ### URDF
 
@@ -181,7 +181,7 @@ import mujoco_toolbox as mjtb
 mjtb.Simulation("path/to/urdf", meshdir="path/to/mesh/files").show()  # supports *.stl or *.obj
 ```
 
-![UR5](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png)
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/ur5_render_no_gui.png" alt="UR5" width="300">
 
 ## Merging Capabilities
 
@@ -198,6 +198,4 @@ mjtb.Simulation("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
 > **⚠️ WARNING**  
 > Duplicate sub-tree items with the same name will cause MuJoCo to throw a `FatalError`.
 
-### External Build
-
-![Humanoid in Box](https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/human_in_box.png)
+<img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/human_in_box.png" alt="Humanoid in Box" width="300">
