@@ -1042,7 +1042,7 @@ class Wrapper(Simulation):
     def __init__(self, *args, **kwargs) -> None:
         from . import __version__
         if __version__ >= "1.0.0":
-            msg = "Wrapper is deprecated and will be removed in v1.0.0. Use Simulation instead."
+            msg = "Wrapper was removed in v1.0.0. Use Simulation instead."
             raise RuntimeError(
                 msg,
             )
