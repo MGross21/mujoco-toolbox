@@ -1,37 +1,38 @@
 import time
-from itertools import cycle
 from pathlib import Path
-
 import numpy as np
 
 import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 
-# Load the model
-script_dir = Path(__file__).resolve().parent
-model_dir = script_dir.parent / "tests" / "models" / "ur5"
-urdf = str(model_dir / "ur5.urdf")
-meshes = str(model_dir / "meshes" / "collision")
+# Paths to URDF and mesh directory
+MODEL_DIR = Path(__file__).resolve().parent.parent / "tests" / "models" / "ur5"
+URDF_PATH = MODEL_DIR / "ur5.urdf"
+MESH_DIR = MODEL_DIR / "meshes" / "collision"
 
-initial = {
-    "qpos": [-.707, -1.57, 1.57, -1.57, -1.57, 1.57],
-}
+# Joint positions: initial and target
+QPOS_INIT = [-0.707, -1.57, 1.57, -1.57, -1.57, 1.57]
+QPOS_FINAL = [-0.707, -0.5, 0.5, -2, -1.57, 1.57]
+NUM_STEPS = 1000
 
-desired = {
-    "qpos": [-.707, -0.5, 0.5, -2, -1.57, 1.57],
-}
+# Interpolate joint positions
+qpos_trajectory = np.linspace(QPOS_INIT, QPOS_FINAL, NUM_STEPS)
 
-# Generate a sequence of joint positions from initial to desired
-num_steps = 1000
-qpos_sequence = np.linspace(initial["qpos"], desired["qpos"], num_steps)
+def main():
+    # Create and launch the digital twin
+    with mjtb.Wrapper(
+        str(URDF_PATH),
+        meshdir=str(MESH_DIR),
+        initial_conditions={"qpos": QPOS_INIT},
+        controller=real_time
+    ) as ur5:
+        ur5.launch(show_menu=False)
+        ur5.gravity = [0, 0, 0]
 
-with mjtb.Wrapper(urdf,
-                  meshdir=meshes,
-                  initial_conditions=initial,
-                  controller=real_time) as ur5:
-    ur5.launch(show_menu=False) # Open the simulation window
-    ur5.gravity = [0, 0, 0]
+        # Move through the trajectory
+        for qpos in qpos_trajectory:
+            ur5.controller(ur5.model, ur5.data, {"qpos": qpos})
+            time.sleep(5.0 / NUM_STEPS)
 
-    for qpos in cycle(qpos_sequence):
-        ur5.controller(ur5.model, ur5.data, {"qpos": qpos})
-        time.sleep(5.0 / num_steps)
+if __name__ == "__main__":
+    main()
