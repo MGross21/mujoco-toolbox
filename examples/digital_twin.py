@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+
 import numpy as np
 
 import mujoco_toolbox as mjtb
@@ -18,13 +19,13 @@ NUM_STEPS = 1000
 # Interpolate joint positions
 qpos_trajectory = np.linspace(QPOS_INIT, QPOS_FINAL, NUM_STEPS)
 
-def main():
+def main() -> None:
     # Create and launch the digital twin
     with mjtb.Simulation(
         str(URDF_PATH),
         meshdir=str(MESH_DIR),
         initial_conditions={"qpos": QPOS_INIT},
-        controller=real_time
+        controller=real_time,
     ) as ur5:
         ur5.launch(show_menu=False)
         ur5.gravity = [0, 0, 0]

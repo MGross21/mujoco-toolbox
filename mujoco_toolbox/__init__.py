@@ -43,8 +43,8 @@ from .controllers import (
     sin,
     step,
 )
-from .utils import _Platform
 from .sim import Simulation
+from .utils import _Platform
 
 __version__ = "0.6.1"
 __author__ = "Michael Gross"

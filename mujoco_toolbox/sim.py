@@ -9,6 +9,7 @@ import os
 import sys
 import threading
 import time
+import warnings
 from collections import defaultdict
 from contextlib import nullcontext
 from multiprocessing import cpu_count
@@ -21,7 +22,6 @@ import mediapy as media
 import mujoco
 import mujoco.viewer
 import numpy as np
-import warnings
 import yaml
 from IPython.display import clear_output
 from tqdm.auto import tqdm
@@ -506,7 +506,10 @@ class Simulation:
             #     gui.start()
 
             # Mujoco Renderer
-            from . import MAX_GEOM_SCALAR, PROGRESS_BAR_ENABLED  # pylint: disable=E0405
+            from . import (  # pylint: disable=E0405
+                MAX_GEOM_SCALAR,
+                PROGRESS_BAR_ENABLED,
+            )
 
             max_geom = m.ngeom * MAX_GEOM_SCALAR
             _Renderer = (  # noqa: N806, pylint: disable=C0103
@@ -1036,11 +1039,12 @@ class _SimulationData:
         }
 
 class Wrapper(Simulation):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         from . import __version__
         if __version__ >= "1.0.0":
+            msg = "Wrapper is deprecated and will be removed in v1.0.0. Use Simulation instead."
             raise RuntimeError(
-                "Wrapper is deprecated and will be removed in v1.0.0. Use Simulation instead."
+                msg,
             )
         warnings.warn(
             f"Wrapper is deprecated and will be removed in v1.0.0 (Current: {__version__}). Use Simulation instead.",
