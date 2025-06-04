@@ -12,7 +12,7 @@ import defusedxml.ElementTree as ET
 class Builder:
     """A class to build and manipulate MuJoCo XML models."""
 
-    def __init__(self, *inputs: str, meshdir: str = "meshes/") -> None:
+    def __init__(self, *inputs: str, meshdir: str | None = None) -> None:
         if not inputs:
             msg = "Input is required to initialize the Builder"
             raise ValueError(msg)
@@ -25,12 +25,12 @@ class Builder:
             self += Builder(other, meshdir=meshdir)
 
     @staticmethod
-    def merge(inputs: Sequence[Union[str, "Builder"]], meshdir: str = "meshes/") -> "Builder":
+    def merge(inputs: Sequence[Union[str, "Builder"]], meshdir: str | None = None) -> "Builder":
         """Merge multiple Builder objects and/or XML strings into one Builder.
 
         Args:
             inputs: Sequence of Builder objects and/or XML strings or file paths.
-            meshdir: Mesh directory (default: "meshes/").
+            meshdir: Mesh directory (default: None).
 
         Returns:
             Merged Builder instance.
@@ -76,28 +76,32 @@ class Builder:
                     else:
                         break
                 root.insert(insert_idx, mujoco_tag)
-            # Ensure <compiler> exists under <mujoco>
+            # Ensure <compiler> exists under <mujoco> and do not override if present
             compiler_tag = mujoco_tag.find("compiler")
             if compiler_tag is None:
-                compiler_tag = StdET.Element("compiler", {
+                compiler_attrs = {
                     "angle": "radian",
-                    "meshdir": self.meshdir,
                     "balanceinertia": "true",
                     "discardvisual": "true",
-                })
+                }
+                if self.meshdir is not None:
+                    compiler_attrs["meshdir"] = self.meshdir
+                compiler_tag = StdET.Element("compiler", compiler_attrs)
                 mujoco_tag.insert(0, compiler_tag)
             return self._to_safe_tree(root), root
 
-        # If root is <mujoco>, ensure <compiler> exists
+        # If root is <mujoco>, ensure <compiler> exists and do not override if present
         if root.tag == "mujoco":
             compiler_tag = root.find("compiler")
             if compiler_tag is None:
-                compiler_tag = StdET.Element("compiler", {
+                compiler_attrs = {
                     "angle": "radian",
-                    "meshdir": self.meshdir,
                     "balanceinertia": "true",
                     "discardvisual": "true",
-                })
+                }
+                if self.meshdir is not None:
+                    compiler_attrs["meshdir"] = self.meshdir
+                compiler_tag = StdET.Element("compiler", compiler_attrs)
                 root.insert(0, compiler_tag)
             return self._to_safe_tree(root), root
 
@@ -106,12 +110,14 @@ class Builder:
         mujoco_tag.append(root)
         compiler_tag = mujoco_tag.find("compiler")
         if compiler_tag is None:
-            compiler_tag = StdET.Element("compiler", {
+            compiler_attrs = {
                 "angle": "radian",
-                "meshdir": self.meshdir,
                 "balanceinertia": "true",
                 "discardvisual": "true",
-            })
+            }
+            if self.meshdir is not None:
+                compiler_attrs["meshdir"] = self.meshdir
+            compiler_tag = StdET.Element("compiler", compiler_attrs)
             mujoco_tag.insert(0, compiler_tag)
         return self._to_safe_tree(mujoco_tag), mujoco_tag
 
@@ -191,7 +197,10 @@ class Builder:
         return self.__str__()
 
     def __len__(self) -> int:
-        return len(self.root) if self.root is not None else 0
+        # Only count user-supplied top-level tags, not injected <compiler>
+        if self.root is None:
+            return 0
+        return len([el for el in self.root if el.tag != "compiler"])
 
     def __radd__(self, other: Union[str, "Builder"]) -> "Builder":
         return self.__add__(other)

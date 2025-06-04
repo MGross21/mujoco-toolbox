@@ -80,7 +80,7 @@ class Simulation:
         initial_conditions: dict[str, list] | None = None,
         keyframe: int | None = None,
         controller: Callable[[mjModel, mjData, Any], None] | None = None,
-        meshdir: str = "meshes/",
+        meshdir: str | None = None,  # Changed default to None
         **kwargs: Any,
     ) -> None:
         """Initialize the Simulation class for managing MuJoCo simulations.
@@ -99,7 +99,7 @@ class Simulation:
             keyframe (int | None, optional): Keyframe index for resetting the simulation.
             controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom
                 controller function for the simulation.
-            meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes/".
+            meshdir (str | None, optional): Directory containing mesh files for URDF models. Defaults to None.
             **kwargs: Additional keyword arguments for model configuration.
 
         Raises:
@@ -110,7 +110,7 @@ class Simulation:
             msg = "At least one XML file, string, or Builder is required."
             raise ValueError(msg)
 
-        self._builder = Builder.merge(xml_args, meshdir=meshdir)
+        self._builder = Builder.merge(xml_args, meshdir=meshdir) if meshdir is not None else Builder.merge(xml_args)
         self._meshdir = meshdir
         self._loader = Loader(self._builder)
 
