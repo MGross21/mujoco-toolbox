@@ -1,5 +1,4 @@
 import pytest
-
 from mujoco_toolbox.builder import Builder
 
 # Test data
@@ -96,3 +95,157 @@ def test_builder_merge_sections() -> None:
     merged_builder = builder1 + builder2
     assert merged_builder.root.find("asset") is not None, "Merged builder is missing 'asset' section"
     assert merged_builder.root.find("worldbody") is not None, "Merged builder is missing 'worldbody' section"
+
+# Additional meshdir/compiler tests
+
+def test_compiler_meshdir_not_set_when_not_provided():
+    xml = """
+    <mujoco>
+      <compiler angle="radian"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder(xml)
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert "meshdir" not in compiler.attrib
+
+def test_compiler_meshdir_set_when_provided():
+    xml = """
+    <mujoco>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder(xml, meshdir="my_meshes/")
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["meshdir"] == "my_meshes/"
+
+def test_compiler_meshdir_not_overwritten():
+    xml = """
+    <mujoco>
+      <compiler meshdir="existing_meshes/" angle="radian"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder(xml, meshdir="should_not_override/")
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["meshdir"] == "existing_meshes/"
+
+def test_compiler_meshdir_merge_behavior():
+    xml1 = """
+    <mujoco>
+      <compiler meshdir="foo/"/>
+      <worldbody/>
+    </mujoco>
+    """
+    xml2 = """
+    <mujoco>
+      <compiler meshdir="bar/"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder1 = Builder(xml1)
+    builder2 = Builder(xml2)
+    merged = builder1 + builder2
+    compiler = merged.root.find("compiler")
+    assert compiler is not None
+    # The first builder's meshdir should be preserved
+    assert compiler.attrib["meshdir"] == "foo/"
+
+# Comprehensive tests
+
+def test_builder_file_path(tmp_path):
+    xml_content = """
+    <mujoco><worldbody><body name='test'/></worldbody></mujoco>
+    """
+    xml_file = tmp_path / "test.xml"
+    xml_file.write_text(xml_content)
+    builder = Builder(str(xml_file))
+    assert builder.root.find("worldbody") is not None
+    assert builder.root.find("worldbody").find("body").attrib["name"] == "test"
+
+def test_builder_invalid_file_path():
+    import tempfile
+    with pytest.raises(FileNotFoundError):
+        Builder("nonexistent_file.xml")
+
+def test_builder_invalid_xml():
+    bad_xml = "<mujoco><worldbody><body></mujoco>"  # malformed
+    with pytest.raises(Exception):
+        Builder(bad_xml)
+
+def test_compiler_default_attributes():
+    xml = "<mujoco><worldbody/></mujoco>"
+    builder = Builder(xml)
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["angle"] == "radian"
+    assert compiler.attrib["balanceinertia"] == "true"
+    assert compiler.attrib["discardvisual"] == "true"
+
+def test_compiler_preserves_existing_attributes():
+    xml = "<mujoco><compiler angle='degree' custom='yes'/><worldbody/></mujoco>"
+    builder = Builder(xml)
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["angle"] == "degree"
+    assert compiler.attrib["custom"] == "yes"
+
+def test_merge_non_overlapping_tags():
+    xml1 = "<mujoco><asset><texture name='t1'/></asset></mujoco>"
+    xml2 = "<mujoco><worldbody><body name='b1'/></worldbody></mujoco>"
+    builder1 = Builder(xml1)
+    builder2 = Builder(xml2)
+    merged = builder1 + builder2
+    assert merged.root.find("asset") is not None
+    assert merged.root.find("worldbody") is not None
+
+def test_merge_nested_tags():
+    xml1 = "<mujoco><asset><texture name='t1'/></asset></mujoco>"
+    xml2 = "<mujoco><asset><material name='m1'/></asset></mujoco>"
+    builder1 = Builder(xml1)
+    builder2 = Builder(xml2)
+    merged = builder1 + builder2
+    asset = merged.root.find("asset")
+    assert asset is not None
+    names = {el.attrib["name"] for el in asset}
+    assert "t1" in names and "m1" in names
+
+def test_add_and_radd():
+    xml1 = "<mujoco><worldbody><body name='a'/></worldbody></mujoco>"
+    xml2 = "<mujoco><worldbody><body name='b'/></worldbody></mujoco>"
+    builder1 = Builder(xml1)
+    builder2 = Builder(xml2)
+    merged1 = builder1 + builder2
+    merged2 = builder2.__radd__(builder1)
+    assert any(body.attrib["name"] == "a" for body in merged1.root.find("worldbody"))
+    assert any(body.attrib["name"] == "b" for body in merged1.root.find("worldbody"))
+    assert any(body.attrib["name"] == "a" for body in merged2.root.find("worldbody"))
+    assert any(body.attrib["name"] == "b" for body in merged2.root.find("worldbody"))
+
+def test_str_and_repr():
+    xml = "<mujoco><worldbody><body name='test'/></worldbody></mujoco>"
+    builder = Builder(xml)
+    s = str(builder)
+    r = repr(builder)
+    assert s.startswith("<mujoco>") and "body" in s
+    assert r == s
+
+def test_len():
+    xml = "<mujoco><worldbody/><asset/></mujoco>"
+    builder = Builder(xml)
+    assert len(builder) == 2
+
+def test_merge_with_empty_builder():
+    xml = "<mujoco><worldbody/></mujoco>"
+    builder1 = Builder(xml)
+    builder2 = Builder("<mujoco/>")
+    merged = builder1 + builder2
+    assert merged.root.find("worldbody") is not None
+
+def test_large_complex_xml():
+    xml = "<mujoco>" + "".join(f"<body name='b{i}'/>" for i in range(100)) + "</mujoco>"
+    builder = Builder(xml)
+    assert all(f"b{i}" in str(builder) for i in range(100))
