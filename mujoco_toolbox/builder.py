@@ -88,6 +88,7 @@ class Builder:
                     compiler_attrs["meshdir"] = self.meshdir
                 compiler_tag = StdET.Element("compiler", compiler_attrs)
                 mujoco_tag.insert(0, compiler_tag)
+            # If compiler exists, do NOT override any attributes, including meshdir
             return self._to_safe_tree(root), root
 
         # If root is <mujoco>, ensure <compiler> exists and do not override if present
@@ -103,6 +104,7 @@ class Builder:
                     compiler_attrs["meshdir"] = self.meshdir
                 compiler_tag = StdET.Element("compiler", compiler_attrs)
                 root.insert(0, compiler_tag)
+            # If compiler exists, do NOT override any attributes, including meshdir
             return self._to_safe_tree(root), root
 
         # If root is neither <robot> nor <mujoco>, wrap in <mujoco> and inject <compiler>

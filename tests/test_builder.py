@@ -154,6 +154,34 @@ def test_compiler_meshdir_merge_behavior():
     # The first builder's meshdir should be preserved
     assert compiler.attrib["meshdir"] == "foo/"
 
+def test_compiler_existing_tag_not_overridden():
+    xml = """
+    <mujoco>
+      <compiler meshdir="keep_this/" angle="degree" custom="yes"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder(xml, meshdir="should_not_override/")
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["meshdir"] == "keep_this/"
+    assert compiler.attrib["angle"] == "degree"
+    assert compiler.attrib["custom"] == "yes"
+
+
+def test_compiler_existing_tag_with_partial_attrs():
+    xml = """
+    <mujoco>
+      <compiler angle="degree"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder(xml, meshdir="should_not_override/")
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert "meshdir" not in compiler.attrib  # meshdir should not be injected
+    assert compiler.attrib["angle"] == "degree"
+
 # Comprehensive tests
 
 def test_builder_file_path(tmp_path):
