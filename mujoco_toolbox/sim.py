@@ -27,7 +27,6 @@ from IPython.display import clear_output
 from tqdm.auto import tqdm
 
 from .builder import Builder
-from .loader import Loader
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -80,7 +79,6 @@ class Simulation:
         initial_conditions: dict[str, list] | None = None,
         keyframe: int | None = None,
         controller: Callable[[mjModel, mjData, Any], None] | None = None,
-        meshdir: str | None = None,  # Changed default to None
         **kwargs: Any,
     ) -> None:
         """Initialize the Simulation class for managing MuJoCo simulations.
@@ -99,26 +97,19 @@ class Simulation:
             keyframe (int | None, optional): Keyframe index for resetting the simulation.
             controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom
                 controller function for the simulation.
-            meshdir (str | None, optional): Directory containing mesh files for URDF models. Defaults to None.
             **kwargs: Additional keyword arguments for model configuration.
-
-        Raises:
-            ValueError: If no XML arguments are provided.
-
         """
         if not xml_args:
             msg = "At least one XML file, string, or Builder is required."
             raise ValueError(msg)
 
-        self._builder = Builder.merge(xml_args, meshdir=meshdir) if meshdir is not None else Builder.merge(xml_args)
-        self._meshdir = meshdir
-        self._loader = Loader(self._builder)
-
-        # Validate meshes after loading
-        self._loader.validate_meshes()
-
-        self.xml = self._loader.xml
-        self._model = self._loader.model
+        # Build by merging all XML inputs
+        self._builder = Builder.merge(xml_args)
+        self.xml = str(self._builder)
+        try:
+            self._model = mujoco.MjModel.from_xml_string(self.xml)
+        except Exception:
+            raise
 
         # Simulation Parameters
         self.duration = duration
@@ -171,26 +162,6 @@ class Simulation:
             pass
         return (400, 300)
 
-    def reload(self: Simulation) -> Simulation:
-        """Reload the model and data objects.
-
-        Returns:
-            Simulation: Self for method chaining.
-
-        """
-        # Use the Loader to handle model reloading
-        loader = Loader(self.xml, meshdir=self._meshdir)
-        self._model = loader.model
-        self._data = mujoco.MjData(self._model)
-
-        self._initialize_names()  # Reinitialize names and apply ic's
-
-        # Apply initial conditions
-        for key, value in getattr(self, "init_conditions", {}).items():
-            if hasattr(self._data, key):
-                setattr(self._data, key, value)
-
-        return self
 
     def __str__(self) -> str:  # noqa: D105
         return self._model.__str__()
@@ -435,9 +406,9 @@ class Simulation:
         *,
         render: bool = False,
         camera: str | None = None,
-        interactive: bool = False,
-        show_menu: bool = True,  # TODO@MGross21: Implement this with launch
-        multi_thread: bool = False,
+        # interactive: bool = False,
+        # show_menu: bool = True,  # TODO@MGross21: Implement this with launch
+        # multi_thread: bool = False,
     ) -> Simulation:
         """Run the simulation with optional rendering.
 
@@ -459,12 +430,12 @@ class Simulation:
         # TODO: Integrate interactive mujoco.viewer into this method
         # Eventually rename this to run() and point to sub-methods
 
-        if interactive:
-            msg = "Interactive mode (w/ menu option) is not yet implemented."
-            raise NotImplementedError(msg)
-        if multi_thread:
-            msg = "Multi-threading is not yet implemented."
-            raise NotImplementedError(msg)
+        # if interactive:
+        #     msg = "Interactive mode (w/ menu option) is not yet implemented."
+        #     raise NotImplementedError(msg)
+        # if multi_thread:
+        #     msg = "Multi-threading is not yet implemented."
+        #     raise NotImplementedError(msg)
         try:
             mujoco.mj_resetData(self._model, self._data)
             if self._controller is not None:
@@ -497,9 +468,9 @@ class Simulation:
                 frames = np.zeros((max_frames, h, w, 3), dtype=np.uint8)
                 frame_count = 0
 
-            if multi_thread:
-                cpu_count()
-                # TODO: Implement multi-threading
+            # if multi_thread:
+            #     cpu_count()
+            #     # TODO: Implement multi-threading
 
             # if interactive:
             #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})  # noqa: ERA001

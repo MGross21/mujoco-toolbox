@@ -9,7 +9,6 @@ from mujoco_toolbox.controllers import real_time
 # Paths to URDF and mesh directory
 MODEL_DIR = Path(__file__).resolve().parent.parent / "tests" / "models" / "ur5"
 URDF_PATH = MODEL_DIR / "ur5.urdf"
-MESH_DIR = MODEL_DIR / "meshes" / "collision"
 
 # Joint positions: initial and target
 QPOS_INIT = [-0.707, -1.57, 1.57, -1.57, -1.57, 1.57]
@@ -23,7 +22,6 @@ def main() -> None:
     # Create and launch the digital twin
     with mjtb.Simulation(
         str(URDF_PATH),
-        meshdir=str(MESH_DIR),
         initial_conditions={"qpos": QPOS_INIT},
         controller=real_time,
     ) as ur5:

@@ -6,6 +6,20 @@ WORLD_ASSETS = Path(__file__).parent.joinpath("templates", "world.xml").read_tex
 """Pre-made world assets for MuJoCo simulation:
 `skybox`, `grid`, `body`, and `background` textures."""
 
+def urdf_compiler(*, meshdir: str = "meshes/") -> str:
+    """
+    Generate URDF `<compiler/>` configuration with customizable mesh directory.
+    
+    Args:
+        meshdir: Directory path for meshes. Defaults to "meshes/".
+        
+    Returns:
+        Formatted URDF compiler XML.
+    """
+    return Template(
+        Path(__file__).parent.joinpath("templates", "urdf_compiler.xml").read_text()
+    ).render(meshdir=meshdir)
+
 def glovebox(
     *,
     width: float = 1.25,

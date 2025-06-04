@@ -53,7 +53,7 @@ def mujoco_standard() -> float:
 
 def mujoco_tbx() -> float:
     start_time = time.time()
-    mjtb.Simulation(MODEL, duration=DURATION, data_rate=DATA_RATE).run(multi_thread=False)
+    mjtb.Simulation(MODEL, duration=DURATION, data_rate=DATA_RATE).run()
     end_time = time.time()
     return end_time - start_time
 
@@ -117,45 +117,39 @@ def progress_over_time() -> None:
 
     # Sort toolbox data by version
     toolbox_versions, toolbox_performances = zip(
-        *sorted(toolbox_data.items(), key=lambda x: tuple(map(int, x[0].split(".")))), strict=False,
+        *sorted(toolbox_data.items(), key=lambda x: tuple(map(int, x[0].split("."))))
     )
+
+    # Calculate differences
+    performance_differences = [toolbox - mujoco for toolbox, mujoco in zip(toolbox_performances, mujoco_data)]
 
     # Plot data
     plt.style.use("ggplot")
     plt.figure(figsize=(12, 8))
     plt.plot(
-        range(len(mujoco_data)),
-        mujoco_data,
-        marker="o",
-        label="MuJoCo",
-        color="blue",
-        linewidth=2,
-        markersize=8,
-    )
-    plt.plot(
         toolbox_versions,
-        toolbox_performances,
+        performance_differences,
         marker="o",
-        label="MuJoCo Toolbox",
-        color="green",
+        label="Performance Difference (Toolbox - MuJoCo)",
+        color="purple",
         linewidth=2,
         markersize=8,
     )
 
-    plt.xlabel("Test Index / Version (MAJOR.MINOR)", fontsize=14)
-    plt.ylabel("Average Performance (seconds)", fontsize=14)
-    plt.title("Performance Over Time", fontsize=16, fontweight="bold")
+    plt.xlabel("Version (MAJOR.MINOR)", fontsize=14)
+    plt.ylabel("Performance Difference (seconds)", fontsize=14)
+    plt.title("Performance Difference Over Time", fontsize=16, fontweight="bold")
     plt.legend(fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.7)
     plt.xticks(
-        list(range(len(mujoco_data))) + list(range(len(toolbox_versions))),
-        labels=[str(i) for i in range(len(mujoco_data))] + list(toolbox_versions),
+        range(len(toolbox_versions)),
+        labels=toolbox_versions,
         rotation=45,
         fontsize=12,
     )
     plt.yticks(fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(data_dir, "performance_over_time.png"), dpi=300)
+    plt.savefig(os.path.join(data_dir, "performance_difference_over_time.png"), dpi=300)
 
     if mjtb.GUI_ENABLED:
         plt.show()

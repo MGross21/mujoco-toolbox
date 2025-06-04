@@ -1,11 +1,8 @@
 <?xml version="1.0" ?>
 <robot name="ur5_robot">
-
-
-  <!-- <mujoco>
-      <compiler meshdir="meshes/collision/" balanceinertia="true" discardvisual="true"/>
-  </mujoco> -->
-
+  <mujoco>
+    <compiler meshdir="meshes/collision/" balanceinertia="true" discardvisual="true"/>
+  </mujoco>
 
   <transmission name="shoulder_pan_trans">
     <type>transmission_interface/SimpleTransmission</type>

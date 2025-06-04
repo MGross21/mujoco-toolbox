@@ -34,7 +34,7 @@ Please refer to the documentation for the most up-to-date information.
 
 """  # noqa: D205, D400, D415, W291
 
-from .assets import WORLD_ASSETS, glovebox
+from .assets import WORLD_ASSETS, glovebox, urdf_compiler
 from .builder import Builder
 from .controllers import (
     cos,
@@ -52,10 +52,11 @@ __license__ = "MIT"
 __all__ = [
     "CAPTURE_PARAMETERS",
     "WORLD_ASSETS",
+    "urdf_compiler",
+    "glovebox",
     "Builder",
     "Simulation",
     "cos",
-    "glovebox",
     "random",
     "real_time",
     "sin",

@@ -98,7 +98,7 @@ def test_builder_merge_sections() -> None:
 
 # Additional meshdir/compiler tests
 
-def test_compiler_meshdir_not_set_when_not_provided():
+def test_compiler_preserved_when_exists():
     xml = """
     <mujoco>
       <compiler angle="radian"/>
@@ -108,66 +108,41 @@ def test_compiler_meshdir_not_set_when_not_provided():
     builder = Builder(xml)
     compiler = builder.root.find("compiler")
     assert compiler is not None
-    assert "meshdir" not in compiler.attrib
 
-def test_compiler_meshdir_set_when_provided():
+def test_compiler_not_added_when_not_in_source():
     xml = """
     <mujoco>
       <worldbody/>
     </mujoco>
     """
-    builder = Builder(xml, meshdir="my_meshes/")
+    # Builder.merge no longer injects compiler
+    builder = Builder.merge([xml])
     compiler = builder.root.find("compiler")
-    assert compiler is not None
-    assert compiler.attrib["meshdir"] == "my_meshes/"
+    assert compiler is None
 
-def test_compiler_meshdir_not_overwritten():
+def test_compiler_preserved_from_source():
     xml = """
     <mujoco>
-      <compiler meshdir="existing_meshes/" angle="radian"/>
+      <compiler angle="radian"/>
       <worldbody/>
     </mujoco>
     """
-    builder = Builder(xml, meshdir="should_not_override/")
+    builder = Builder(xml)
     compiler = builder.root.find("compiler")
     assert compiler is not None
-    assert compiler.attrib["meshdir"] == "existing_meshes/"
-
-def test_compiler_meshdir_merge_behavior():
-    xml1 = """
-    <mujoco>
-      <compiler meshdir="foo/"/>
-      <worldbody/>
-    </mujoco>
-    """
-    xml2 = """
-    <mujoco>
-      <compiler meshdir="bar/"/>
-      <worldbody/>
-    </mujoco>
-    """
-    builder1 = Builder(xml1)
-    builder2 = Builder(xml2)
-    merged = builder1 + builder2
-    compiler = merged.root.find("compiler")
-    assert compiler is not None
-    # The first builder's meshdir should be preserved
-    assert compiler.attrib["meshdir"] == "foo/"
 
 def test_compiler_existing_tag_not_overridden():
     xml = """
     <mujoco>
-      <compiler meshdir="keep_this/" angle="degree" custom="yes"/>
+      <compiler angle="degree" custom="yes"/>
       <worldbody/>
     </mujoco>
     """
-    builder = Builder(xml, meshdir="should_not_override/")
+    builder = Builder(xml)
     compiler = builder.root.find("compiler")
     assert compiler is not None
-    assert compiler.attrib["meshdir"] == "keep_this/"
     assert compiler.attrib["angle"] == "degree"
     assert compiler.attrib["custom"] == "yes"
-
 
 def test_compiler_existing_tag_with_partial_attrs():
     xml = """
@@ -176,11 +151,56 @@ def test_compiler_existing_tag_with_partial_attrs():
       <worldbody/>
     </mujoco>
     """
-    builder = Builder(xml, meshdir="should_not_override/")
+    builder = Builder(xml)
     compiler = builder.root.find("compiler")
     assert compiler is not None
-    assert "meshdir" not in compiler.attrib  # meshdir should not be injected
+
+def test_merge_preserves_compiler():
+    # Simple case: no compiler tags
+    xml = """
+    <mujoco>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder.merge([xml])
+    compiler = builder.root.find("compiler")
+    assert compiler is None
+
+    # Case with compiler tag in input
+    xml2 = """
+    <mujoco>
+      <compiler angle="degree"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder.merge([xml, xml2])
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
     assert compiler.attrib["angle"] == "degree"
+
+    # Compiler in second input
+    builder = Builder.merge([xml2, xml])
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["angle"] == "degree"
+
+    # Compiler in both, first one preserved
+    xml3 = """
+    <mujoco>
+      <compiler angle="deg1"/>
+      <worldbody/>
+    </mujoco>
+    """
+    xml4 = """
+    <mujoco>
+      <compiler angle="deg2"/>
+      <worldbody/>
+    </mujoco>
+    """
+    builder = Builder.merge([xml3, xml4])
+    compiler = builder.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["angle"] == "deg1"
 
 # Comprehensive tests
 
@@ -204,14 +224,11 @@ def test_builder_invalid_xml():
     with pytest.raises(Exception):
         Builder(bad_xml)
 
-def test_compiler_default_attributes():
+def test_compiler_no_injection():
     xml = "<mujoco><worldbody/></mujoco>"
-    builder = Builder(xml)
+    builder = Builder.merge([xml])
     compiler = builder.root.find("compiler")
-    assert compiler is not None
-    assert compiler.attrib["angle"] == "radian"
-    assert compiler.attrib["balanceinertia"] == "true"
-    assert compiler.attrib["discardvisual"] == "true"
+    assert compiler is None  # No compiler injection
 
 def test_compiler_preserves_existing_attributes():
     xml = "<mujoco><compiler angle='degree' custom='yes'/><worldbody/></mujoco>"
@@ -277,3 +294,61 @@ def test_large_complex_xml():
     xml = "<mujoco>" + "".join(f"<body name='b{i}'/>" for i in range(100)) + "</mujoco>"
     builder = Builder(xml)
     assert all(f"b{i}" in str(builder) for i in range(100))
+
+def test_merge_with_mixed_inputs():
+    xml1 = """
+    <mujoco>
+      <worldbody/>
+    </mujoco>
+    """
+    xml2 = """
+    <mujoco>
+      <compiler angle="deg1"/>
+      <worldbody/>
+    </mujoco>
+    """
+    # Merge string and Builder, preserves compiler
+    merged = Builder.merge([xml1, Builder(xml2)])
+    compiler = merged.root.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["angle"] == "deg1"
+
+    # Merge multiple strings with no compiler
+    merged = Builder.merge([xml1, xml1])
+    compiler = merged.root.find("compiler")
+    assert compiler is None
+
+    # Merge with one input as Builder, one as string
+    merged = Builder.merge([Builder(xml1), xml1])
+    compiler = merged.root.find("compiler")
+    assert compiler is None
+
+    # Merge with a robot root
+    robot_xml = """
+    <robot>
+      <mujoco>
+        <worldbody/>
+      </mujoco>
+    </robot>
+    """
+    merged = Builder.merge([robot_xml, xml1])
+    mujoco_tag = merged.root.find("mujoco")
+    assert mujoco_tag is not None
+    compiler = mujoco_tag.find("compiler")
+    assert compiler is None
+
+    # Merge with a robot root and an existing compiler
+    robot_with_compiler = """
+    <robot>
+      <mujoco>
+        <compiler angle="degree"/>
+        <worldbody/>
+      </mujoco>
+    </robot>
+    """
+    merged = Builder.merge([robot_with_compiler, xml1])
+    mujoco_tag = merged.root.find("mujoco")
+    assert mujoco_tag is not None
+    compiler = mujoco_tag.find("compiler")
+    assert compiler is not None
+    assert compiler.attrib["angle"] == "degree"

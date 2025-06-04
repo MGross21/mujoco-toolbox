@@ -7,50 +7,61 @@ from typing import Union
 from xml.etree.ElementTree import Element, ElementTree
 
 import defusedxml.ElementTree as ET
-
+import warnings
 
 class Builder:
     """A class to build and manipulate MuJoCo XML models."""
 
-    def __init__(self, *inputs: str, meshdir: str | None = None) -> None:
-        if not inputs:
-            msg = "Input is required to initialize the Builder"
-            raise ValueError(msg)
-        if not all(isinstance(i, str) for i in inputs):
-            msg = "Input must be an XML string or a file path"
-            raise TypeError(msg)
-        self.meshdir = meshdir
-        self.tree, self.root = self._parse_input(inputs[0])
-        for other in inputs[1:]:
-            self += Builder(other, meshdir=meshdir)
-
-    @staticmethod
-    def merge(inputs: Sequence[Union[str, "Builder"]], meshdir: str | None = None) -> "Builder":
-        """Merge multiple Builder objects and/or XML strings into one Builder.
+    def __init__(self, *inputs: str) -> None:
+        """
+        Initialize a Builder from one or more XML strings or file paths.
 
         Args:
-            inputs: Sequence of Builder objects and/or XML strings or file paths.
-            meshdir: Mesh directory (default: None).
-
-        Returns:
-            Merged Builder instance.
-
+            *inputs: One or more XML strings or file paths.
         Raises:
             ValueError: If no inputs are provided.
-
+            TypeError: If any input is not a string.
         """
         if not inputs:
-            msg = "No inputs provided for merging."
-            raise ValueError(msg)
-        builders = [i for i in inputs if isinstance(i, Builder)]
-        strings = [i for i in inputs if isinstance(i, str)]
-        if builders:
-            builder = sum(builders[1:], builders[0])
-            if strings:
-                builder += Builder(*strings, meshdir=meshdir)
-        else:
-            builder = Builder(*strings, meshdir=meshdir)
-        return builder
+            raise ValueError("Input is required to initialize the Builder")
+        if not all(isinstance(i, str) for i in inputs):
+            raise TypeError("Input must be an XML string or a file path")
+        self.tree, self.root = self._parse_input(inputs[0])
+        for other in inputs[1:]:
+            self += Builder(other)
+
+    @classmethod
+    def merge(cls, items):
+        """
+        Merge multiple XML strings or Builder instances into a single Builder.
+        Ensure `<compiler>` tags are merged correctly.
+        """
+        import xml.etree.ElementTree as ET  # Use standard library for XML handling
+        roots = []
+        for item in items:
+            if isinstance(item, str):
+                roots.append(Builder(item).root)
+            elif isinstance(item, Builder):
+                roots.append(item.root)
+            else:
+                raise TypeError(
+                    "All items to merge must be XML strings or Builder instances"
+                )
+        merged_tree = ET.Element("robot")  # Use a generic root element instead of <mujoco>
+        compiler_tags = []
+        for root in roots:
+            for child in root:
+                if child.tag == "compiler":
+                    compiler_tags.append(child)
+                else:
+                    merged_tree.append(child)
+        # Warn if multiple <compiler> tags are found
+        if len(compiler_tags) > 1:
+            warnings.warn("Multiple <compiler> tags found. Only the first will be retained.")
+        # Merge compiler tags if any
+        if compiler_tags:
+            merged_tree.append(compiler_tags[0])
+        return cls(ET.tostring(merged_tree, encoding="unicode"))
 
     def _parse_input(self, xml_input: str) -> tuple[ElementTree, Element]:
         # Parse XML from string or file
@@ -76,67 +87,19 @@ class Builder:
                     else:
                         break
                 root.insert(insert_idx, mujoco_tag)
-            # Ensure <compiler> exists under <mujoco> and do not override if present
-            compiler_tag = mujoco_tag.find("compiler")
-            if compiler_tag is None:
-                compiler_attrs = {
-                    "angle": "radian",
-                    "balanceinertia": "true",
-                    "discardvisual": "true",
-                }
-                if self.meshdir is not None:
-                    compiler_attrs["meshdir"] = self.meshdir
-                compiler_tag = StdET.Element("compiler", compiler_attrs)
-                mujoco_tag.insert(0, compiler_tag)
-            # If compiler exists, do NOT override any attributes, including meshdir
             return self._to_safe_tree(root), root
 
-        # If root is <mujoco>, ensure <compiler> exists and do not override if present
+        # If root is <mujoco>, return as-is
         if root.tag == "mujoco":
-            compiler_tag = root.find("compiler")
-            if compiler_tag is None:
-                compiler_attrs = {
-                    "angle": "radian",
-                    "balanceinertia": "true",
-                    "discardvisual": "true",
-                }
-                if self.meshdir is not None:
-                    compiler_attrs["meshdir"] = self.meshdir
-                compiler_tag = StdET.Element("compiler", compiler_attrs)
-                root.insert(0, compiler_tag)
-            # If compiler exists, do NOT override any attributes, including meshdir
             return self._to_safe_tree(root), root
 
-        # If root is neither <robot> nor <mujoco>, wrap in <mujoco> and inject <compiler>
-        mujoco_tag = StdET.Element("mujoco")
-        mujoco_tag.append(root)
-        compiler_tag = mujoco_tag.find("compiler")
-        if compiler_tag is None:
-            compiler_attrs = {
-                "angle": "radian",
-                "balanceinertia": "true",
-                "discardvisual": "true",
-            }
-            if self.meshdir is not None:
-                compiler_attrs["meshdir"] = self.meshdir
-            compiler_tag = StdET.Element("compiler", compiler_attrs)
-            mujoco_tag.insert(0, compiler_tag)
-        return self._to_safe_tree(mujoco_tag), mujoco_tag
+        # If root is neither <robot> nor <mujoco>, wrap in <robot>
+        robot_tag = StdET.Element("robot")
+        robot_tag.append(root)
+        return self._to_safe_tree(robot_tag), robot_tag
 
-    def _to_safe_tree(self, root: Element) -> ElementTree:
-        xml_string = StdET.tostring(root)
-        return ET.parse(BytesIO(xml_string))
-
-    def __add__(self, other: Union[str, "Builder"]) -> "Builder":
-        if isinstance(other, str):
-            _, other_root = Builder(other, meshdir=self.meshdir)._parse_input(other)
-        elif isinstance(other, Builder):
-            other_root = other.root
-        else:
-            msg = "Can only merge with str or Builder"
-            raise TypeError(msg)
-
-        # Determine merge context: MJCF or URDF
+    def _merge_root(self, other_root: Element) -> None:
+        # Merge <mujoco> or <robot> roots, or fallback
         if self.root.tag == "robot":
             mujoco_self = self.root.find("mujoco")
             mujoco_other = other_root.find("mujoco") if other_root.tag == "robot" else other_root if other_root.tag == "mujoco" else None
@@ -148,9 +111,24 @@ class Builder:
             if mujoco_other is not None:
                 self._merge_mujoco_tags(mujoco_self, mujoco_other)
         else:
-            # Fallback: merge at root
             self._merge_tag("asset", self.root, other_root)
             self._merge_tag("worldbody", self.root, other_root)
+
+    def _to_safe_tree(self, root: Element) -> ElementTree:
+        xml_string = StdET.tostring(root)
+        return ET.parse(BytesIO(xml_string))
+
+    def __add__(self, other: Union[str, "Builder"]) -> "Builder":
+        """
+        Add (merge) another Builder or XML string into this Builder.
+        """
+        if isinstance(other, str):
+            _, other_root = Builder(other)._parse_input(other)
+        elif isinstance(other, Builder):
+            other_root = other.root
+        else:
+            raise TypeError("Can only merge with str or Builder")
+        self._merge_root(other_root)
         return self
 
     def _merge_mujoco_tags(self, mujoco_self: Element, mujoco_other: Element) -> None:
@@ -205,4 +183,7 @@ class Builder:
         return len([el for el in self.root if el.tag != "compiler"])
 
     def __radd__(self, other: Union[str, "Builder"]) -> "Builder":
+        """
+        Right-add (merge) another Builder or XML string into this Builder.
+        """
         return self.__add__(other)
