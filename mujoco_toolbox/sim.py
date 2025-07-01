@@ -685,7 +685,10 @@ class Simulation:
 
         Args:
             title (str, optional): Title for the rendered media.
-            codec (str, optional): Video codec/format. Defaults to "gif".
+            codec (str, optional): Video codec/format. Supports container formats 
+                (mp4, avi, mov, mkv, webm) and video codecs (libx264, libx265, h264, 
+                libvpx, gif). Container formats are automatically mapped to appropriate 
+                codecs. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
@@ -714,13 +717,44 @@ class Simulation:
                     return False
 
             if is_jupyter():
+                # Map container formats to appropriate codecs and handle codec-to-container mapping
+                container_to_codec = {
+                    "mp4": "libx264",
+                    "avi": "libx264", 
+                    "mov": "libx264",
+                    "mkv": "libx264",
+                    "webm": "libvpx",
+                }
+                
+                # Map codecs to appropriate container extensions  
+                codec_to_container = {
+                    "libx264": "mp4",
+                    "libx265": "mp4", 
+                    "h264": "mp4",
+                    "h265": "mp4",
+                    "libvpx": "webm",
+                    "libvpx-vp9": "webm",
+                }
+                
+                # Determine actual codec
+                codec_lower = codec.lower()
+                if codec_lower in container_to_codec:
+                    # User specified a container format, use mapped codec
+                    actual_codec = container_to_codec[codec_lower]
+                elif codec_lower in codec_to_container:
+                    # User specified a codec, use it directly
+                    actual_codec = codec
+                else:
+                    # User specified something else (e.g., gif), use as-is
+                    actual_codec = codec
+                
                 # Show the video
                 media.show_video(
                     subset_frames,
                     fps=1 if len(subset_frames) == 1 else self._fps,
                     width=self.resolution[0],
                     height=self.resolution[1],
-                    codec=codec,
+                    codec=actual_codec,
                     title=title,
                 )
             else:
@@ -745,7 +779,10 @@ class Simulation:
 
         Args:
             title (str, optional): Filename for the saved media.
-            codec (str, optional): Video codec/format. Defaults to "gif".
+            codec (str, optional): Video codec/format. Supports container formats 
+                (mp4, avi, mov, mkv, webm) and video codecs (libx264, libx265, h264, 
+                libvpx, gif). Container formats are automatically mapped to appropriate 
+                codecs. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
@@ -756,6 +793,16 @@ class Simulation:
 
         Raises:
             ValueError: If no frames are captured or invalid input parameters.
+
+        Examples:
+            Save as MP4 video:
+                >>> sim.save(codec="mp4")  # Creates .mp4 file with H.264 encoding
+
+            Save as GIF:
+                >>> sim.save(codec="gif")  # Creates .gif file
+
+            Save with specific codec:
+                >>> sim.save(codec="libx264")  # Creates .mp4 file with H.264 encoding
 
         """
         if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
@@ -769,17 +816,51 @@ class Simulation:
                 time_idx=time_idx,
             )
 
-            # Ensure the title ends with the correct codec extension
+            # Map container formats to appropriate codecs and handle codec-to-container mapping
+            container_to_codec = {
+                "mp4": "libx264",
+                "avi": "libx264", 
+                "mov": "libx264",
+                "mkv": "libx264",
+                "webm": "libvpx",
+            }
+            
+            # Map codecs to appropriate container extensions
+            codec_to_container = {
+                "libx264": "mp4",
+                "libx265": "mp4", 
+                "h264": "mp4",
+                "h265": "mp4",
+                "libvpx": "webm",
+                "libvpx-vp9": "webm",
+            }
+            
+            # Determine actual codec and file extension
+            codec_lower = codec.lower()
+            if codec_lower in container_to_codec:
+                # User specified a container format, use mapped codec
+                actual_codec = container_to_codec[codec_lower]
+                file_extension = codec_lower
+            elif codec_lower in codec_to_container:
+                # User specified a codec, use appropriate container
+                actual_codec = codec
+                file_extension = codec_to_container[codec_lower]
+            else:
+                # User specified something else (e.g., gif), use as-is
+                actual_codec = codec
+                file_extension = codec_lower
+            
+            # Ensure the title ends with the correct extension
             title_path = Path(title)
-            if title_path.suffix != f".{codec}":
-                title_path = title_path.with_suffix(f".{codec}")
+            if title_path.suffix != f".{file_extension}":
+                title_path = title_path.with_suffix(f".{file_extension}")
 
             # Save the video
             media.write_video(
                 str(title_path),
                 subset_frames,
                 fps=1 if len(subset_frames) == 1 else self._fps,
-                codec=codec,
+                codec=actual_codec,
             )
 
             return str(title_path.resolve())
