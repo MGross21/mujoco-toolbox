@@ -879,7 +879,7 @@ class Simulation:
         msg = f"ID '{id}' not found."
         raise ValueError(msg)
 
-    def save_yaml(self, name: str = "Model") -> None:
+    def to_yaml(self, name: str = "Model") -> None:
         """Save simulation data to a YAML file.
 
         Args:
