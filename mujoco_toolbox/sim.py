@@ -1039,16 +1039,50 @@ class _SimulationData:
         }
 
 class Wrapper(Simulation):
+    """Digital Twin wrapper with optimized API for real-time control."""
+    
     def __init__(self, *args, **kwargs) -> None:
-        from . import __version__
-        if __version__ >= "1.0.0":
-            msg = "Wrapper was removed in v1.0.0. Use Simulation instead."
-            raise RuntimeError(
-                msg,
-            )
-        warnings.warn(
-            f"Wrapper is deprecated and will be removed in v1.0.0 (Current: {__version__}). Use Simulation instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+        # Auto-assign real_time controller if none provided
+        if 'controller' not in kwargs or kwargs['controller'] is None:
+            from .controllers import real_time
+            kwargs['controller'] = real_time
+        
         super().__init__(*args, **kwargs)
+        self._launched = False
+    
+    def __enter__(self) -> Self:
+        """Enhanced context manager that automatically launches the simulation."""
+        # Auto-launch with default settings
+        self.launch(show_menu=False)
+        self._launched = True
+        return super().__enter__()
+    
+    @property
+    def controller(self):
+        """Optimized controller that automatically passes model and data.
+        
+        Returns a callable that accepts controller parameters directly without
+        requiring model and data to be passed explicitly.
+        
+        Example:
+            # Instead of: digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"qpos": value})
+            # Use: digitaltwin.controller({"qpos": value})
+        """
+        if self._controller is None:
+            return None
+        
+        def optimized_controller(*args, **kwargs):
+            """Wrapper function that automatically passes model and data."""
+            return self._controller(self._model, self._data, *args, **kwargs)
+        
+        # Preserve the original function's name for debugging
+        optimized_controller.__name__ = getattr(self._controller, '__name__', 'controller')
+        return optimized_controller
+    
+    @controller.setter
+    def controller(self, func: Callable[[mjModel, mjData, Any], None]) -> None:
+        """Set the controller function."""
+        if func is not None and not callable(func):
+            msg = "Controller must be a callable function."
+            raise ValueError(msg)
+        self._controller = func

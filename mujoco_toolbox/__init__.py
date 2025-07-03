@@ -43,7 +43,7 @@ from .controllers import (
     sin,
     step,
 )
-from .sim import Simulation
+from .sim import Simulation, Wrapper
 from .utils import _Platform
 
 __version__ = "0.6.2"
@@ -54,6 +54,7 @@ __all__ = [
     "WORLD_ASSETS",
     "Builder",
     "Simulation",
+    "Wrapper",
     "cos",
     "glovebox",
     "random",
