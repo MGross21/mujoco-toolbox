@@ -685,9 +685,9 @@ class Simulation:
 
         Args:
             title (str, optional): Title for the rendered media.
-            codec (str, optional): Video codec/format. Supports container formats 
-                (mp4, avi, mov, mkv, webm) and video codecs (libx264, libx265, h264, 
-                libvpx, gif). Container formats are automatically mapped to appropriate 
+            codec (str, optional): Video codec/format. Supports container formats
+                (mp4, avi, mov, mkv, webm) and video codecs (libx264, libx265, h264,
+                libvpx, gif). Container formats are automatically mapped to appropriate
                 codecs. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
@@ -720,22 +720,22 @@ class Simulation:
                 # Map container formats to appropriate codecs and handle codec-to-container mapping
                 container_to_codec = {
                     "mp4": "libx264",
-                    "avi": "libx264", 
+                    "avi": "libx264",
                     "mov": "libx264",
                     "mkv": "libx264",
                     "webm": "libvpx",
                 }
-                
-                # Map codecs to appropriate container extensions  
+
+                # Map codecs to appropriate container extensions
                 codec_to_container = {
                     "libx264": "mp4",
-                    "libx265": "mp4", 
+                    "libx265": "mp4",
                     "h264": "mp4",
                     "h265": "mp4",
                     "libvpx": "webm",
                     "libvpx-vp9": "webm",
                 }
-                
+
                 # Determine actual codec
                 codec_lower = codec.lower()
                 if codec_lower in container_to_codec:
@@ -747,7 +747,7 @@ class Simulation:
                 else:
                     # User specified something else (e.g., gif), use as-is
                     actual_codec = codec
-                
+
                 # Show the video
                 media.show_video(
                     subset_frames,
@@ -779,9 +779,9 @@ class Simulation:
 
         Args:
             title (str, optional): Filename for the saved media.
-            codec (str, optional): Video codec/format. Supports container formats 
-                (mp4, avi, mov, mkv, webm) and video codecs (libx264, libx265, h264, 
-                libvpx, gif). Container formats are automatically mapped to appropriate 
+            codec (str, optional): Video codec/format. Supports container formats
+                (mp4, avi, mov, mkv, webm) and video codecs (libx264, libx265, h264,
+                libvpx, gif). Container formats are automatically mapped to appropriate
                 codecs. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
@@ -819,22 +819,22 @@ class Simulation:
             # Map container formats to appropriate codecs and handle codec-to-container mapping
             container_to_codec = {
                 "mp4": "libx264",
-                "avi": "libx264", 
+                "avi": "libx264",
                 "mov": "libx264",
                 "mkv": "libx264",
                 "webm": "libvpx",
             }
-            
+
             # Map codecs to appropriate container extensions
             codec_to_container = {
                 "libx264": "mp4",
-                "libx265": "mp4", 
+                "libx265": "mp4",
                 "h264": "mp4",
                 "h265": "mp4",
                 "libvpx": "webm",
                 "libvpx-vp9": "webm",
             }
-            
+
             # Determine actual codec and file extension
             codec_lower = codec.lower()
             if codec_lower in container_to_codec:
@@ -849,7 +849,7 @@ class Simulation:
                 # User specified something else (e.g., gif), use as-is
                 actual_codec = codec
                 file_extension = codec_lower
-            
+
             # Ensure the title ends with the correct extension
             title_path = Path(title)
             if title_path.suffix != f".{file_extension}":
