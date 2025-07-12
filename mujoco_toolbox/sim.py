@@ -36,7 +36,7 @@ mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
 mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
 
 # pylint: disable=E1101
-mujoco_object_types = [
+_MJ_OBJ_TYPES = [
     mujoco.mjtObj.mjOBJ_BODY,
     mujoco.mjtObj.mjOBJ_JOINT,
     mujoco.mjtObj.mjOBJ_GEOM,
@@ -58,6 +58,18 @@ mujoco_object_types = [
     mujoco.mjtObj.mjOBJ_KEY,
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
+
+_FFMPEG_CODEC_EXT = {
+    "av1": ".mkv",
+    "ffv1": ".mkv",
+    "gif": ".gif",
+    "h264": ".mp4",
+    "hevc": ".mp4",
+    "mjpeg": ".avi",
+    "mpeg4": ".mp4",
+    "prores": ".mov",
+    "vp9": ".webm",
+}
 
 class Simulation:
     """Simulation class for managing MuJoCo simulations."""
@@ -761,6 +773,12 @@ class Simulation:
         if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
+        
+        if codec not in _FFMPEG_CODEC_EXT:
+            supported = ', '.join(sorted(_FFMPEG_CODEC_EXT.keys()))
+            raise ValueError(f"Unsupported codec '{codec}'. Supported codecs are: {supported}.")
+
+        file_ext = _FFMPEG_CODEC_EXT[codec]
 
         try:
             # Extract frames
@@ -770,9 +788,7 @@ class Simulation:
             )
 
             # Ensure the title ends with the correct codec extension
-            title_path = Path(title)
-            if title_path.suffix != f".{codec}":
-                title_path = title_path.with_suffix(f".{codec}")
+            title_path = Path(title).with_suffix(file_ext)
 
             # Save the video
             media.write_video(
@@ -845,7 +861,7 @@ class Simulation:
             int: The index of the body.
 
         """
-        for obj_type in mujoco_object_types:
+        for obj_type in _MJ_OBJ_TYPES:
             try:
                 obj_id = mujoco.mj_name2id(self._model, obj_type, name)
                 if obj_id >= 0:
@@ -868,7 +884,7 @@ class Simulation:
         # BUG: Fix this to work properly
         msg = "This method is not implemented yet."
         raise NotImplementedError(msg)
-        for obj_type in mujoco_object_types:
+        for obj_type in _MJ_OBJ_TYPES:
             try:
                 obj_name = mujoco.mj_id2name(self._model, obj_type, id)
                 if obj_name is None:
