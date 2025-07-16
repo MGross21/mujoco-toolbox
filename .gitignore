@@ -38,4 +38,4 @@ CMake*
 _deps/
 
 # Local Testing
-local_tests/
+local_test*/

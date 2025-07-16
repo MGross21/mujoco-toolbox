@@ -749,14 +749,14 @@ class Simulation:
     def save(
         self,
         title: str = "render",
-        codec: str = "gif",
+        codec: str = None,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> str:
         """Save specific frame(s) as a video or GIF to a file.
 
         Args:
-            title (str, optional): Filename for the saved media.
+            title (str, optional): Filename for the saved media. File extension determines the codec.
             codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
@@ -770,11 +770,18 @@ class Simulation:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
-        if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
+        if not hasattr(self, "_frames") or self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
-        
-        if codec not in _FFMPEG_CODEC_EXT:
+
+        # Determine codec and file extension
+        ext = Path(title).suffix.lower()
+        if codec is None:
+            # Try to infer codec from extension
+            codec = next((k for k, v in _FFMPEG_CODEC_EXT.items() if v == ext), None)
+            if codec is None:
+                codec = "gif"  # Default if extension not recognized
+        elif codec not in _FFMPEG_CODEC_EXT:
             supported = ', '.join(sorted(_FFMPEG_CODEC_EXT.keys()))
             raise ValueError(f"Unsupported codec '{codec}'. Supported codecs are: {supported}.")
 

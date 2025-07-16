@@ -1,6 +1,7 @@
 import mujoco_toolbox as mjtb
 from pathlib import Path
 import pytest
+import os
 
 MODEL = (Path(__file__).parent / "models/humanoid.xml").resolve().__str__()
 def test_codec_error_mp4_issue_60():
@@ -13,3 +14,6 @@ def test_codecs_dict_save():
     sim = mjtb.Simulation(MODEL, fps=5, duration=1, data_rate=20)
     for codec in mjtb.sim._FFMPEG_CODEC_EXT.keys():
         sim.run(render=mjtb.GUI_ENABLED).save(codec=codec)
+
+        assert os.path.exists(f"render.{codec}"), f"File render.{codec} was not created."
+        os.remove(f"render.{codec}")  # Clean up after test
