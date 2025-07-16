@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import pytest
 
 import mujoco_toolbox as mjtb
 
