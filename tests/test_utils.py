@@ -1,4 +1,3 @@
-import os
 
 from mujoco_toolbox import utils
 

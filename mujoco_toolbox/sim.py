@@ -17,14 +17,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self, TypeAlias
 
 import defusedxml.ElementTree as ET
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import imageio.v3 as iio
+import matplotlib.pyplot as plt
 import mujoco
 import mujoco.viewer
 import numpy as np
 import yaml
-from IPython.display import clear_output, HTML
+from IPython.display import HTML, clear_output
+from matplotlib import animation
 from tqdm.auto import tqdm
 
 from .builder import Builder
@@ -715,7 +715,7 @@ class Simulation:
 
             # Set up the figure and image once
             fig, ax = plt.subplots()
-            im = ax.imshow(np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8), interpolation='nearest')
+            im = ax.imshow(np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8), interpolation="nearest")
             ax.set_axis_off()
             ax.set_title(title)
             plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
@@ -726,18 +726,17 @@ class Simulation:
                     lambda frame: (im.set_data(frame), [im])[1],
                     frames=subset_frames,
                     interval=(1000 / self._fps),
-                    blit=True
+                    blit=True,
                 )
                 plt.close(fig)
                 return HTML(ani.to_jshtml())
-            else:
-                plt.ion()
-                delay = 1.0 / self._fps
-                for frame in subset_frames:
-                    im.set_data(frame)
-                    plt.pause(delay)
-                plt.ioff()
-                plt.close(fig)
+            plt.ion()
+            delay = 1.0 / self._fps
+            for frame in subset_frames:
+                im.set_data(frame)
+                plt.pause(delay)
+            plt.ioff()
+            plt.close(fig)
         except Exception as e:
             msg = "Error while showing video subset."
             raise Exception(msg) from e  # noqa: TRY002
@@ -769,7 +768,7 @@ class Simulation:
         if not hasattr(self, "_frames") or self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
-        
+
         # Extract frames
         subset_frames = self._get_index(
             frame_idx=frame_idx,
@@ -777,7 +776,7 @@ class Simulation:
         )
 
         title_path = Path(title)
-    
+
         try:
             # Save the video
             iio.imwrite(

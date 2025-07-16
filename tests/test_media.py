@@ -1,7 +1,9 @@
-import mujoco_toolbox as mjtb
-from pathlib import Path
-import pytest
 import os
+from pathlib import Path
+
+import mujoco_toolbox as mjtb
+
+FILE_EXTENSIONS = ["mp4", "gif", "avi", "webm", "mov"]
 
 FILE_EXTENSIONS = ["mp4", "gif", "avi", "webm", "mov"]
 
