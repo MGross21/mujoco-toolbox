@@ -16,14 +16,15 @@ from multiprocessing import cpu_count
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self, TypeAlias
 
-import cv2
 import defusedxml.ElementTree as ET
-import mediapy as media
+import imageio.v3 as iio
+import matplotlib.pyplot as plt
 import mujoco
 import mujoco.viewer
 import numpy as np
 import yaml
-from IPython.display import clear_output
+from IPython.display import HTML, clear_output
+from matplotlib import animation
 from tqdm.auto import tqdm
 
 from .builder import Builder
@@ -36,7 +37,7 @@ mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
 mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
 
 # pylint: disable=E1101
-mujoco_object_types = [
+_MJ_OBJ_TYPES = [
     mujoco.mjtObj.mjOBJ_BODY,
     mujoco.mjtObj.mjOBJ_JOINT,
     mujoco.mjtObj.mjOBJ_GEOM,
@@ -677,7 +678,7 @@ class Simulation:
     def show(
         self,
         title: str | None = None,
-        codec: str = "gif",
+        *,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> None:
@@ -685,7 +686,6 @@ class Simulation:
 
         Args:
             title (str, optional): Title for the rendered media.
-            codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
@@ -713,39 +713,46 @@ class Simulation:
                 except Exception:
                     return False
 
+            # Set up the figure and image once
+            fig, ax = plt.subplots()
+            im = ax.imshow(np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8), interpolation="nearest")
+            ax.set_axis_off()
+            ax.set_title(title)
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
+
             if is_jupyter():
-                # Show the video
-                media.show_video(
-                    subset_frames,
-                    fps=1 if len(subset_frames) == 1 else self._fps,
-                    width=self.resolution[0],
-                    height=self.resolution[1],
-                    codec=codec,
-                    title=title,
+                ani = animation.FuncAnimation(
+                    fig,
+                    lambda frame: (im.set_data(frame), [im])[1],
+                    frames=subset_frames,
+                    interval=(1000 / self._fps),
+                    blit=True,
                 )
-            else:
-                for frame in subset_frames:
-                    cv2.imshow("Video", frame)
-                    if cv2.waitKey(int(1000 / self._fps)) & 0xFF == ord("q"):
-                        break
-                cv2.waitKey(1)
-                cv2.destroyAllWindows()
+                plt.close(fig)
+                return HTML(ani.to_jshtml())
+            plt.ion()
+            delay = 1.0 / self._fps
+            for frame in subset_frames:
+                im.set_data(frame)
+                plt.pause(delay)
+            plt.ioff()
+            plt.close(fig)
         except Exception as e:
             msg = "Error while showing video subset."
             raise Exception(msg) from e  # noqa: TRY002
 
     def save(
         self,
-        title: str = "render",
-        codec: str = "gif",
+        title: str = "output.gif",
+        *,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> str:
         """Save specific frame(s) as a video or GIF to a file.
 
         Args:
-            title (str, optional): Filename for the saved media.
-            codec (str, optional): Video codec/format. Defaults to "gif".
+            title (str, optional): Filename for the saved media. Filename
+                should end with the desired codec extension (e.g., .mp4, .gif)
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
@@ -758,32 +765,29 @@ class Simulation:
             ValueError: If no frames are captured or invalid input parameters.
 
         """
-        if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
+        if not hasattr(self, "_frames") or self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
 
+        # Extract frames
+        subset_frames = self._get_index(
+            frame_idx=frame_idx,
+            time_idx=time_idx,
+        )
+
+        title_path = Path(title)
+
         try:
-            # Extract frames
-            subset_frames = self._get_index(
-                frame_idx=frame_idx,
-                time_idx=time_idx,
-            )
-
-            # Ensure the title ends with the correct codec extension
-            title_path = Path(title)
-            if title_path.suffix != f".{codec}":
-                title_path = title_path.with_suffix(f".{codec}")
-
             # Save the video
-            media.write_video(
-                str(title_path),
+            iio.imwrite(
+                title,
                 subset_frames,
-                fps=1 if len(subset_frames) == 1 else self._fps,
-                codec=codec,
+                fps=self._fps if len(subset_frames) != 1 else 1,
             )
 
             return str(title_path.resolve())
-
+        except RuntimeError:
+            raise
         except Exception as e:
             msg = "Error while saving video subset."
             raise Exception(msg) from e  # noqa: TRY002
@@ -845,7 +849,7 @@ class Simulation:
             int: The index of the body.
 
         """
-        for obj_type in mujoco_object_types:
+        for obj_type in _MJ_OBJ_TYPES:
             try:
                 obj_id = mujoco.mj_name2id(self._model, obj_type, name)
                 if obj_id >= 0:
@@ -868,7 +872,7 @@ class Simulation:
         # BUG: Fix this to work properly
         msg = "This method is not implemented yet."
         raise NotImplementedError(msg)
-        for obj_type in mujoco_object_types:
+        for obj_type in _MJ_OBJ_TYPES:
             try:
                 obj_name = mujoco.mj_id2name(self._model, obj_type, id)
                 if obj_name is None:

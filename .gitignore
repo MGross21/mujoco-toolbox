@@ -11,6 +11,7 @@ docs/_build/
 
 # Logs
 **/*LOG.txt
+.coverage*
 
 # Jupyter Notebook Output
 *.ipynb_checkpoints
@@ -18,6 +19,10 @@ docs/_build/
 # Other Output
 *.gif
 *.mp4
+*.avi
+*.webm
+*.mov
+*.mkv
 *test.yml
 
 # Environment
@@ -33,4 +38,4 @@ CMake*
 _deps/
 
 # Local Testing
-local_tests/
+local_test*/
