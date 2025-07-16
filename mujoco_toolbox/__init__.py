@@ -34,6 +34,18 @@ Please refer to the documentation for the most up-to-date information.
 
 """  # noqa: D205, D400, D415, W291
 
+import os
+
+if "WAYLAND_DISPLAY" in os.environ:
+    os.environ["MUJOCO_GL"] = "egl"
+    os.environ["QT_QPA_PLATFORM"] = "wayland"
+    os.environ["SDL_VIDEODRIVER"] = "wayland"
+    os.environ["PYGLFW_LIBRARY_VARIANT"] = "wayland"
+
+    # Suppress GLFWError warnings
+    from warnings import filterwarnings
+    filterwarnings("ignore", category=UserWarning, module="glfw")
+
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controllers import (
