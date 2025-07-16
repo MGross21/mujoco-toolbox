@@ -16,7 +16,6 @@ from multiprocessing import cpu_count
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self, TypeAlias
 
-import cv2
 import defusedxml.ElementTree as ET
 import mediapy as media
 import mujoco
@@ -725,6 +724,13 @@ class Simulation:
                 except Exception:
                     return False
 
+            # Set up the figure and image once
+            fig, ax = plt.subplots()
+            im = ax.imshow(np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8), interpolation='nearest')
+            ax.set_axis_off()
+            ax.set_title(title)
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
+
             if is_jupyter():
                 # Show the video
                 media.show_video(
@@ -736,12 +742,13 @@ class Simulation:
                     title=title,
                 )
             else:
+                plt.ion()
+                delay = 1.0 / self._fps
                 for frame in subset_frames:
-                    cv2.imshow("Video", frame)
-                    if cv2.waitKey(int(1000 / self._fps)) & 0xFF == ord("q"):
-                        break
-                cv2.waitKey(1)
-                cv2.destroyAllWindows()
+                    im.set_data(frame)
+                    plt.pause(delay)
+                plt.ioff()
+                plt.close(fig)
         except Exception as e:
             msg = "Error while showing video subset."
             raise Exception(msg) from e  # noqa: TRY002
