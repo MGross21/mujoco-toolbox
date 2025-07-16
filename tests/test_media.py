@@ -5,7 +5,6 @@ import mujoco_toolbox as mjtb
 
 FILE_EXTENSIONS = ["mp4", "gif", "avi", "webm", "mov"]
 
-FILE_EXTENSIONS = ["mp4", "gif", "avi", "webm", "mov"]
 
 # Source: https://github.com/MGross21/mujoco-toolbox/issues/60
 MODEL = (Path(__file__).parent / "models/humanoid.xml").resolve().__str__()
