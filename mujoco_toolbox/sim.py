@@ -17,12 +17,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self, TypeAlias
 
 import defusedxml.ElementTree as ET
-import mediapy as media
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import imageio.v3 as iio
 import mujoco
 import mujoco.viewer
 import numpy as np
 import yaml
-from IPython.display import clear_output
+from IPython.display import clear_output, HTML
 from tqdm.auto import tqdm
 
 from .builder import Builder
@@ -57,18 +59,6 @@ _MJ_OBJ_TYPES = [
     mujoco.mjtObj.mjOBJ_KEY,
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
-
-_FFMPEG_CODEC_EXT = {
-    "av1": ".mkv",
-    "ffv1": ".mkv",
-    "gif": ".gif",
-    "h264": ".mp4",
-    "hevc": ".mp4",
-    "mjpeg": ".avi",
-    "mpeg4": ".mp4",
-    "prores": ".mov",
-    "vp9": ".webm",
-}
 
 class Simulation:
     """Simulation class for managing MuJoCo simulations."""
@@ -688,7 +678,7 @@ class Simulation:
     def show(
         self,
         title: str | None = None,
-        codec: str = "gif",
+        *,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> None:
@@ -696,7 +686,6 @@ class Simulation:
 
         Args:
             title (str, optional): Title for the rendered media.
-            codec (str, optional): Video codec/format. Defaults to "gif".
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
@@ -732,15 +721,15 @@ class Simulation:
             plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
 
             if is_jupyter():
-                # Show the video
-                media.show_video(
-                    subset_frames,
-                    fps=1 if len(subset_frames) == 1 else self._fps,
-                    width=self.resolution[0],
-                    height=self.resolution[1],
-                    codec=codec,
-                    title=title,
+                ani = animation.FuncAnimation(
+                    fig,
+                    lambda frame: (im.set_data(frame), [im])[1],
+                    frames=subset_frames,
+                    interval=(1000 / self._fps),
+                    blit=True
                 )
+                plt.close(fig)
+                return HTML(ani.to_jshtml())
             else:
                 plt.ion()
                 delay = 1.0 / self._fps
@@ -755,16 +744,16 @@ class Simulation:
 
     def save(
         self,
-        title: str = "render",
-        codec: str = None,
+        title: str = "output.gif",
+        *,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> str:
         """Save specific frame(s) as a video or GIF to a file.
 
         Args:
-            title (str, optional): Filename for the saved media. File extension determines the codec.
-            codec (str, optional): Video codec/format. Defaults to "gif".
+            title (str, optional): Filename for the saved media. Filename
+                should end with the desired codec extension (e.g., .mp4, .gif)
             frame_idx (int or tuple, optional): Single frame index or
                 (start, stop) frame indices.
             time_idx (float or tuple, optional): Single time or
@@ -780,40 +769,26 @@ class Simulation:
         if not hasattr(self, "_frames") or self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
+        
+        # Extract frames
+        subset_frames = self._get_index(
+            frame_idx=frame_idx,
+            time_idx=time_idx,
+        )
 
-        # Determine codec and file extension
-        ext = Path(title).suffix.lower()
-        if codec is None:
-            # Try to infer codec from extension
-            codec = next((k for k, v in _FFMPEG_CODEC_EXT.items() if v == ext), None)
-            if codec is None:
-                codec = "gif"  # Default if extension not recognized
-        elif codec not in _FFMPEG_CODEC_EXT:
-            supported = ', '.join(sorted(_FFMPEG_CODEC_EXT.keys()))
-            raise ValueError(f"Unsupported codec '{codec}'. Supported codecs are: {supported}.")
-
-        file_ext = _FFMPEG_CODEC_EXT[codec]
-
+        title_path = Path(title)
+    
         try:
-            # Extract frames
-            subset_frames = self._get_index(
-                frame_idx=frame_idx,
-                time_idx=time_idx,
-            )
-
-            # Ensure the title ends with the correct codec extension
-            title_path = Path(title).with_suffix(file_ext)
-
             # Save the video
-            media.write_video(
-                str(title_path),
+            iio.imwrite(
+                title,
                 subset_frames,
-                fps=1 if len(subset_frames) == 1 else self._fps,
-                codec=codec,
+                fps=self._fps if len(subset_frames) != 1 else 1,
             )
 
             return str(title_path.resolve())
-
+        except RuntimeError:
+            raise
         except Exception as e:
             msg = "Error while saving video subset."
             raise Exception(msg) from e  # noqa: TRY002
