@@ -37,7 +37,7 @@ Please refer to the documentation for the most up-to-date information.
 import os
 
 if "WAYLAND_DISPLAY" in os.environ:
-    os.environ["QT_QPA_PLATFORM"] = "xcb" # Force Qt to use X11 backend
+    # os.environ["QT_QPA_PLATFORM"] = "xcb" # Force Qt to use X11 backend
 
     # Suppress GLFWError warnings
     from warnings import filterwarnings
