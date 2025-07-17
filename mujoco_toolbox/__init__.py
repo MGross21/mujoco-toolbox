@@ -37,14 +37,17 @@ Please refer to the documentation for the most up-to-date information.
 import os
 
 if "WAYLAND_DISPLAY" in os.environ:
-    os.environ["MUJOCO_GL"] = "egl"
-    os.environ["QT_QPA_PLATFORM"] = "wayland"
-    os.environ["SDL_VIDEODRIVER"] = "wayland"
-    os.environ["PYGLFW_LIBRARY_VARIANT"] = "wayland"
+    os.environ["QT_QPA_PLATFORM"] = "xcb" # Force Qt to use X11 backend
 
     # Suppress GLFWError warnings
     from warnings import filterwarnings
     filterwarnings("ignore", category=UserWarning, module="glfw")
+
+    try:
+        from ctypes import CDLL
+        CDLL("libfontconfig.so.1").FcInit()
+    except Exception:
+        pass
 
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
