@@ -37,8 +37,10 @@ Please refer to the documentation for the most up-to-date information.
 import os
 
 if "WAYLAND_DISPLAY" in os.environ:
-    # Suppress GLFWError window position warnings. Caused by Linux Wayland Auto-tiling Window Manager
-    # Warning Source: https://github.com/glfw/glfw/blob/master/src/wl_window.c#L2246-L2253
+    # Suppress GLFWError window position warnings
+    # Caused by Linux Wayland Auto-tiling Window Manager
+    # Warning Source:
+    # https://github.com/glfw/glfw/blob/master/src/wl_window.c#L2246-L2253
     # Reduces stdout clutter when using MuJoCo with Wayland
     from warnings import filterwarnings
     filterwarnings(
