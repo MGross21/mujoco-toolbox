@@ -37,12 +37,16 @@ Please refer to the documentation for the most up-to-date information.
 import os
 
 if "WAYLAND_DISPLAY" in os.environ:
-    # os.environ["QT_QPA_PLATFORM"] = "xcb" # Force Qt to use X11 backend
-
-    # Suppress GLFWError warnings
+    # Suppress GLFWError window position warnings. Caused by Linux Wayland Auto-tiling Window Manager
+    # Warning Source: https://github.com/glfw/glfw/blob/master/src/wl_window.c#L2246-L2253
+    # Reduces stdout clutter when using MuJoCo with Wayland
     from warnings import filterwarnings
-    filterwarnings("ignore", category=UserWarning, module="glfw")
-
+    filterwarnings(
+        "ignore",
+        category=UserWarning,
+        module="glfw",
+        message=".*window position.*",
+    )
     try:
         from ctypes import CDLL
         CDLL("libfontconfig.so.1").FcInit()
