@@ -1,4 +1,3 @@
-import os
 
 import pytest
 
@@ -52,13 +51,3 @@ def test_name2id_lights() -> None:
 # TODO: Implement this test
 
 
-# Run all tests
-if __name__ == "__main__":
-    test_name2id_joints()
-    test_name2id_bodies()
-    test_name2id_geoms()
-    test_name2id_actuators()
-    test_name2id_sensors()
-    test_name2id_lights()
-    # test_id2name()
-    mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")

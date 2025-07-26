@@ -37,10 +37,3 @@ def test_world_xml() -> None:
     assert "<mujoco>" in world
     assert "<worldbody>" in world
     assert '<geom type="plane"' in world
-
-if __name__ == "__main__":
-    test_world_assets()
-    test_glovebox_generation()
-    test_glovebox_custom_dimensions()
-    test_world_xml()
-    print("All tests passed!")

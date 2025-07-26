@@ -7,7 +7,7 @@ from mujoco_toolbox import CAPTURE_PARAMETERS, Simulation
 FILE_NAME = "test.yml"
 
 def test_yaml_creation() -> None:
-    Simulation("<mujoco/>", data_rate=10, duration=3).run().save_yaml(FILE_NAME)
+    Simulation("<mujoco/>", data_rate=10, duration=3).run().to_yaml(FILE_NAME)
     assert os.path.exists(FILE_NAME), "YAML file was not created."
     with open(FILE_NAME) as file:
         content = file.read()
