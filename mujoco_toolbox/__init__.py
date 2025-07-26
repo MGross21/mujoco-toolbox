@@ -34,6 +34,26 @@ Please refer to the documentation for the most up-to-date information.
 
 """  # noqa: D205, D400, D415, W291
 
+import os
+
+if "WAYLAND_DISPLAY" in os.environ:
+    # Suppress GLFWError window position warnings caused by Wayland.
+    # Warning Source:
+    # https://github.com/glfw/glfw/blob/master/src/wl_window.c#L2246-L2253
+    # Reduces stdout clutter when using MuJoCo with Wayland
+    from warnings import filterwarnings
+    filterwarnings(
+        "ignore",
+        category=UserWarning,
+        module="glfw",
+        message=".*window position.*",
+    )
+    try:
+        from ctypes import CDLL
+        CDLL("libfontconfig.so.1").FcInit()
+    except Exception:
+        pass
+
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
 from .controllers import (
