@@ -1,43 +1,46 @@
 # IDE Settings
 .vscode/
 
-# Ignore Caches
-**/__pycache__/
-.*_cache/
+# Python Caches
+__pycache__/
+*_cache/
+*.egg-info
 
-# Generated Builds
+# Build & Distribution
+build/
 dist/
 docs/_build/
 target
 
-# Logs
-**/*LOG.txt
+# Logs & Coverage
+*.LOG.txt
 .coverage*
+.coverage
 
 # Jupyter Notebook Output
 *.ipynb_checkpoints
 
-# Other Output
+# Media Output
 *.gif
 *.mp4
 *.avi
 *.webm
 *.mov
 *.mkv
+
+# Test Files
 *test.yml
 
-# Environment
+# Environment Files & Folders
 .env
 *env/
 .venv*
-*.egg-info
-build/
-.coverage
 
-# Bindings
+# Bindings & Dependencies
 mujoco/
 CMake*
 _deps/
+*.so
 
 # Local Testing
 local_test*/

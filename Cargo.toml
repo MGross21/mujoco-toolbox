@@ -12,5 +12,5 @@ name = "_mjrs"
 crate-type = ["cdylib"] # "C dynamic library"
 
 [dependencies]
-clippy = "0.0.302"
+# clippy = "0.0.302"
 pyo3 = { version = "0.22", features = ["extension-module"] }

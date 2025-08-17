@@ -2,10 +2,19 @@
 requires = ["maturin>=1.5"]
 build-backend = "maturin"
 
+# TODO: Clean up maturin package handling
 [tool.maturin]
-module-name = "mujoco_toolbox.core_rs"
-python-source = "mujoco_toolbox"
-features = []
+module-name = "mujoco_toolbox._mjrs"
+python-source = "."
+features = ["pyo3/extension-module"]
+binding = "pyo3"
+mixed = true
+include = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "src/**/*",
+  "mujoco_toolbox/**/*"
+]
 
 [project]
 name = "mujoco-toolbox"
@@ -14,7 +23,6 @@ requires-python = ">=3.9,<4.0"
 description = "A Modern Simulation Wrapper for Google DeepMind's MuJoCo"
 readme = "README.md"
 license = { file = "LICENSE" }
-packages = [{ include = "mujoco_toolbox" }]
 authors = [
   { name = "MGross21", email = "MGross21@example.com" }
 ]
