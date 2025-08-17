@@ -8,10 +8,8 @@
 - [ ] Bug Fix
 - [ ] Documentation Update
 
-### Simulation Context
-- Which Mujoco environment or wrapper are you modifying?
-- What specific simulation aspect does this change impact?
-
+### Context
+- What is the motivation behind the change?
 ### Description
 Provide details about:
 - The motivation behind this change
@@ -21,7 +19,6 @@ Provide details about:
 ### Testing
 - [ ] Added/updated unit tests for simulation logic
 - [ ] Verified simulation stability
-- [ ] Tested across different robot configurations
 - [ ] Checked performance metrics
 - [ ] Validated against existing Mujoco baselines
 
@@ -38,4 +35,3 @@ Provide details about:
 
 ### Additional Simulation Context
 - Attach performance benchmarks
-- Include sample simulation rollouts if applicable

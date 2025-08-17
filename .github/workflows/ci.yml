@@ -34,24 +34,18 @@ jobs:
           restore-keys: |
             python-3.10-pip-
 
-      - name: Install Poetry and Dependencies
+      - name: Install uv and Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction
+          pip install uv
+          uv sync --group ci
 
       - name: Run Linters
         continue-on-error: true
         run: |
-          poetry run ruff check . --fix --unsafe-fixes
-          poetry run ruff format .
-          poetry run black .
-          poetry run isort .
-          poetry run flake8 .
-          poetry run bandit -r . --quiet
-          poetry run pylint mujoco_toolbox/
+          uv run ruff check . --fix --unsafe-fixes
+          uv run ruff format .
+          uv run black .
 
       - name: Run Type Checking with MyPy
         continue-on-error: true
@@ -120,18 +114,17 @@ jobs:
           echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
           echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
-      - name: Install Poetry and Dependencies
+      - name: Install uv and Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction
+          pip install uv
+          uv sync --group dev
+          uv run maturin develop
 
       - name: Run Tests
         run: |
-          poetry run pip install pytest pytest-cov
-          poetry run pytest tests/ --cov=mujoco_toolbox --cov-report=xml --maxfail=3 -v
+          uv run pip install pytest pytest-cov
+          uv run pytest tests/ --cov=mujoco_toolbox --cov-report=xml --maxfail=3 -v
 
       # Uncomment below if using codecov
       # - name: Upload Coverage Report

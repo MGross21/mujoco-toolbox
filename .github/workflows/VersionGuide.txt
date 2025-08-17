@@ -1,4 +1,0 @@
-actions/checkout@v4
-codecov/codecov-action@v5
-actions/setup-python@v5
-actions/cache@v4
