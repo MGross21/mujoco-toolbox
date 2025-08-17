@@ -30,6 +30,12 @@ from tqdm.auto import tqdm
 from .builder import Builder
 from .loader import Loader
 
+# Import Rust extensions
+try:
+    from ._mjrs import add
+except ImportError:
+    pass
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 

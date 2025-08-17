@@ -1,6 +1,11 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["maturin>=1.5"]
+build-backend = "maturin"
+
+[tool.maturin]
+module-name = "mujoco_toolbox.core_rs"
+python-source = "mujoco_toolbox"
+features = []
 
 [project]
 name = "mujoco-toolbox"
@@ -13,42 +18,80 @@ packages = [{ include = "mujoco_toolbox" }]
 authors = [
   { name = "MGross21", email = "MGross21@example.com" }
 ]
-keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper"]
+keywords = ["MuJoCo", "mujoco", "robotics", "simulation", "toolbox", "wrapper", "rust"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Rust",
     "Operating System :: OS Independent"
 ]
 dynamic = ["classifiers","dependencies"]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-mujoco = "*"
-numpy = "*"
-scipy = "*"
-matplotlib = "*"
-pyyaml = "*"
-ffmpeg = "*"
-imageio = { version = "*", extras = ["ffmpeg"] }
-trimesh = "*"
-tqdm = "*"
-ipywidgets = "*"
-jinja2 = "*"
-screeninfo = "*"
-colorama = "*"
-rich = "*"
-defusedxml = "^0.7.1"
-gym = { version = "*", optional = true }
+dependencies = [
+  "mujoco",
+  "numpy",
+  "matplotlib",
+  "pyyaml",
+  "ffmpeg",
+  "imageio[ffmpeg]",
+  "trimesh",
+  "tqdm",
+  "ipywidgets",
+  "jinja2",
+  "screeninfo",
+  "colorama",
+  "rich",
+  "defusedxml>=0.7.1",
+]
 
 [project.optional-dependencies]
-# beautified = ["colorama", "rich"]
-gym = ["gym"]
+gym = ["gym", "gymnasium"]  # Optional runtime features
+
+[dependency-groups]
+# Docs: https://packaging.python.org/en/latest/specifications/dependency-groups/
+test = [
+    "pytest>=8.3.5",
+    "pytest-cov>=3.0.0",
+    "pytest-xdist",  # Parallel testing
+]
+
+lint = [
+    "ruff>=0.11.2",
+    "mypy>=1.8.0",
+    "black>=25.1.0",
+]
+
+docs = [
+    "sphinx>=8.2.3; python_version >= '3.11'",
+    "sphinx-rtd-theme>=3.0.2",
+    "myst-parser",       # Markdown support in Sphinx
+]
+
+build = [
+    "maturin>=1.5,<2.0",
+]
+
+release = [
+    "python-semantic-release>=9.21.0",
+    "python-dotenv>=1.1.0",
+]
+
+# Compose groups
+dev = [ 
+    {include-group = "test"},
+    {include-group = "lint"},
+    {include-group = "docs"},
+    {include-group = "build"},
+    {include-group = "release"}
+]
+ci = [
+    {include-group = "test"},
+    {include-group = "lint"}
+]
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
@@ -56,22 +99,6 @@ repository = "https://github.com/MGross21/mujoco-toolbox"
 documentation = "https://mgross21.github.io/mujoco-toolbox/"
 changelog = "https://github.com/MGross21/mujoco-toolbox/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.5"
-ruff = "^0.11.2"
-mypy = "*"
-pytypes = "^1.0b10"
-black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.1.2"
-bandit = "^1.8.3"
-pylint = "^3.3.4"
-python-semantic-release = "^9.21.0"
-python-dotenv = "^1.1.0"
-pytest-cov = "^3.0.0"
-sphinx = "^8.2.3"
-sphinx-rtd-theme = "^3.0.2"
 
 [tool.semantic_release.branches.main]
 match = "main"
@@ -86,11 +113,12 @@ version_variables = [
     "pyproject.toml:version",
     "mujoco_toolbox/__init__.py:__version__",
     "CITATION.cff:version",
+    "Cargo.toml:version"
 
 ]
 changelog_file = "CHANGELOG.md"
-build_command = "poetry build"
-dist_path = "dist/"
+build_command = "maturin build --release"
+dist_path = "target/wheels/"
 upload_to_pypi = true
 upload_to_release = true
 commit_version_number = true
@@ -145,7 +173,7 @@ ignore = ["T20","INP001"]    # Rules to Ignore
 fixable = ["ALL"]   # Enable auto-fixing for all fixable issues
 extend-select = ["I", "B", "Q", "S"]
 exclude = [
-    "*venv/", "*__pycache__", "build/", "dist/",
+    "*venv/", "*__pycache__", "build/", "dist/", "target/",
     ".tox/", ".eggs/", ".git/", ".idea/", ".mypy_cache/"
 ]  # Exclude these directories from linting
 
@@ -154,27 +182,3 @@ ignore_missing_imports = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 strict_optional = true
-
-[tool.isort]
-profile = "black"  # Use black's code style
-known_third_party = [
-    "mujoco", "numpy", "scipy", "matplotlib", "pyyaml",
-    "mediapy", "ffmpeg", "trimesh", "screeninfo", "colorama"
-]
-known_first_party = ["mujoco_toolbox"]
-line_length = 79  # PEP8 line length
-
-# Flake8 settings
-[tool.flake8]
-max-line-length = 79  # PEP8 line length
-extend-ignore = ["E203", "W503"]  # For compatibility with black
-
-# Bandit settings
-[tool.bandit]
-# Enable all checks, you can modify this depending on your project needs
-skips = ["B101", "B102"]  # Ignore certain checks like hardcoded passwords
-
-# Pylint settings
-[tool.pylint]
-max-line-length = 79  # PEP8 line length
-disable = ["C0114", "C0115", "C0116"]  # Disable docstring warnings

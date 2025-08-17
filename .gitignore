@@ -8,6 +8,7 @@
 # Generated Builds
 dist/
 docs/_build/
+target
 
 # Logs
 **/*LOG.txt
@@ -28,6 +29,7 @@ docs/_build/
 # Environment
 .env
 *env/
+.venv*
 *.egg-info
 build/
 .coverage

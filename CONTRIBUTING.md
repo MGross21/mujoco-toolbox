@@ -33,30 +33,22 @@ Please review the [Code of Conduct](https://github.com/MGross21/mujoco-toolbox/b
     cd mujoco-toolbox
     ```
 
-2. **Install Poetry** (if you haven’t already):
+2. **Install `uv`** (if you haven’t already):
 
     ```bash
-    curl -sSL https://install.python-poetry.org | python3 -
+    pip install uv
     ```
 
-    Or see: [Poetry Installation Docs](https://python-poetry.org/docs/#installation)
-
-3. **Install dependencies**:
+3. **Install Code as `Dev`**
 
     ```bash
-    poetry install --with dev
+    uv sync --group dev --color=always
     ```
 
-4. **Activate the shell**:
+4. **Running Rust in Develop Mode**
 
-    ```bash
-    poetry shell
-    ```
-
-    or
-
-    ```bash
-    poetry env activate
+    ```dev
+    uv run maturin develop
     ```
 
 ---
@@ -99,13 +91,10 @@ The following tools are enforced:
 
 ⚠️ **Your pull request must pass all checks before it can be merged.**
 
-Run checks locally using Poetry:
+Run linter locally:
 
 ```bash
-poetry run black mujoco_toolbox
-poetry run ruff check mujoco_toolbox
-poetry run mypy mujoco_toolbox
-poetry run pytest tests/
+uv run ruff format mujoco_toolbox
 ```
 
 ## 📖 Building the Documentation Locally
@@ -113,13 +102,13 @@ poetry run pytest tests/
 To build the documentation locally, run:
 
 ```bash
-poetry run sphinx-build docs docs/_build/html
+uv run sphinx-build docs docs/_build/html
 ```
 
 To automatically open the generated documentation in your default web browser after building, use:
 
 ```bash
-poetry run sphinx-build docs docs/_build/html && start docs/_build/html/index.html
+uv run sphinx-build docs docs/_build/html && start docs/_build/html/index.html
 ```
 
 This will generate the HTML documentation and open the `index.html` page for easy viewing.

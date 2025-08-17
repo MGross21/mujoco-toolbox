@@ -1,0 +1,16 @@
+[package]
+name = "mujoco-toolbox"
+version = "0.6.2"
+edition = "2024"
+authors = ["MGross21 <MGross21@example.com>"]
+description = "Python bindings for MuJoCo Toolbox Rust components"
+license = "MIT"
+repository = "https://github.com/MGross21/mujoco-toolbox"
+
+[lib]
+name = "_mjrs"
+crate-type = ["cdylib"] # "C dynamic library"
+
+[dependencies]
+clippy = "0.0.302"
+pyo3 = { version = "0.22", features = ["extension-module"] }
