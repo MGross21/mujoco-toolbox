@@ -2,11 +2,26 @@
 <img src="https://raw.githubusercontent.com/MGross21/mujoco-toolbox/main/assets/images/mjtb_logo_transparent.png" width="400">
 </h1><br>
 
-![Build](https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue)
-![License](https://img.shields.io/github/license/MGross21/mujoco-toolbox)
-[![PyPI](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml)
-[![Docs](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml/badge.svg)](https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml)
+<div align="center">
+    <!-- Row 1: Package info -->
+    <img src="https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-6e8aff" alt="Python">
+    <img src="https://img.shields.io/github/license/MGross21/mujoco-toolbox?color=6e8aff" alt="License">
+    <a href="https://pypi.org/project/mujoco-toolbox/">
+        <img alt="Downloads"
+             src="https://img.shields.io/pepy/dt/mujoco-toolbox?color=6e8aff&label=downloads">
+    </a>
+</div>
+
+<div align="center">
+    <!-- Row 2: Build/CI status -->
+    <img src="https://github.com/MGross21/mujoco-toolbox/actions/workflows/ci.yml/badge.svg" alt="Build">
+    <a href="https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml">
+        <img src="https://github.com/MGross21/mujoco-toolbox/actions/workflows/publish.yml/badge.svg" alt="PyPI">
+    </a>
+    <a href="https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml">
+        <img src="https://github.com/MGross21/mujoco-toolbox/actions/workflows/docs.yml/badge.svg" alt="Docs">
+    </a>
+</div><br>
 
 A Modern Simulation Wrapper for Google DeepMind’s MuJoCo
 
@@ -19,7 +34,7 @@ A Modern Simulation Wrapper for Google DeepMind’s MuJoCo
 
 ### PyPI Package
 
-[![PyPI version](https://img.shields.io/pypi/v/mujoco-toolbox?labelColor=333333&color=%23800080)](https://pypi.org/project/mujoco-toolbox/)
+[![PyPI version](https://img.shields.io/pypi/v/mujoco-toolbox?labelColor=333333&color=6e8aff)](https://pypi.org/project/mujoco-toolbox/)
 
 ```bash
 pip install mujoco-toolbox
@@ -27,7 +42,7 @@ pip install mujoco-toolbox
 
 ### GitHub Package
 
-[![GitHub release](https://img.shields.io/github/v/release/MGross21/mujoco-toolbox?label=github&labelColor=333333&color=%23800080)](https://github.com/MGross21/mujoco-toolbox/releases)
+[![GitHub release](https://img.shields.io/github/v/release/MGross21/mujoco-toolbox?label=github&labelColor=333333&color=6e8aff)](https://github.com/MGross21/mujoco-toolbox/releases)
 
 ```bash
 pip install git+https://github.com/MGross21/mujoco-toolbox.git@main
