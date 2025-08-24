@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pytest
 
@@ -75,6 +76,8 @@ def test_rendering() -> None:
     """
     wrapper = Simulation(model)
     try:
-        wrapper.run(render=True).save()
+        out = wrapper.run(render=True).save()
+        assert os.path.isfile(out), "Expected video file was not created."
+        os.remove(out)
     except Exception as e:
         pytest.fail(f"Rendering failed with exception: {e}")

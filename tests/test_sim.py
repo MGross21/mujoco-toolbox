@@ -45,7 +45,9 @@ def test_xml1() -> None:
     ).run(render=mjtb.GUI_ENABLED)
 
     if mjtb.GUI_ENABLED:
-        test1.save(title="sine_wave")
+        loc = test1.save(title="sine_wave.mp4")
+        assert os.path.isfile(loc), "Expected video file was not created."
+        os.remove(loc)
 
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), \
         "Simulation data size does not match requested parameters."
