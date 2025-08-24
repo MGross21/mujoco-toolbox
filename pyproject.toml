@@ -1,5 +1,8 @@
 [build-system]
-requires = ["maturin>=1.5"]
+requires = [
+    "maturin>=1.5",
+    "mujoco>=3.0.0",  # Ensures mujoco is available during build process
+]
 build-backend = "maturin"
 
 # TODO: Clean up maturin package handling

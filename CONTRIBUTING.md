@@ -51,6 +51,12 @@ Please review the [Code of Conduct](https://github.com/MGross21/mujoco-toolbox/b
     uv run maturin develop
     ```
 
+    *If `libmujoco.so` isn't found, run*
+
+    ```bash
+    export LD_LIBRARY_PATH=$(python -c "import mujoco; print(mujoco.__path__[0])"):$LD_LIBRARY_PATH
+    ```
+
 ---
 
 ## 🚀 How to Contribute
