@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation &mdash; mujoco_toolbox 0.6.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=561f4211" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b8503983"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            mujoco_toolbox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="submodules.html">Submodules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">mujoco_toolbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="submodules.html">Submodules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sim.html">Sim Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html">Builder Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-mujoco_toolbox">
+<span id="overview"></span><h1>Overview<a class="headerlink" href="#module-mujoco_toolbox" title="Link to this heading"></a></h1>
+<section id="mujoco-toolbox">
+<h2>Mujoco Toolbox<a class="headerlink" href="#mujoco-toolbox" title="Link to this heading"></a></h2>
+<p>A toolbox for working with MuJoCo simulations.</p>
+<p>This package provides various utilities and controllers to facilitate a faster
+simulation process.</p>
+<section id="modules">
+<h3>Modules<a class="headerlink" href="#modules" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>sim</cite>: Contains the Simulation class for interfacing with MuJoCo.</p></li>
+<li><p><cite>controllers</cite>: Includes pre-built functions for controlling simulations.</p></li>
+<li><p><cite>assets</cite>: Contains pre-defined assets for building MuJoCo models.</p></li>
+</ul>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>CAPTURE_PARAMETERS</cite>: List of MjData fields to capture during simulation.</p></li>
+<li><p><cite>MAX_GEOM_SCALAR</cite>: Scalar value for mujoco.Renderer.max_geom.</p></li>
+<li><p><cite>PROGRESS_BAR_ENABLED</cite>: Boolean flag to enable or disable progress bar.</p></li>
+</ul>
+<p>This project is licensed under the <cite>MIT License</cite>. See the <cite>LICENSE</cite> file for
+details.</p>
+</section>
+<section id="id1">
+<h3>Documentation<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p><strong>[See Here](https://MGross21.github.io/mujoco-toolbox/)</strong></p>
+<p class="rubric">Notes</p>
+<p>This package is still under development.
+Some features may not be fully implemented or may change in future releases.
+Please refer to the documentation for the most up-to-date information.
+<strong>[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)</strong>.</p>
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="mujoco_toolbox.Builder">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">Builder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'meshes/'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mujoco_toolbox/builder.html#Builder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Builder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to build and manipulate MuJoCo XML models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Builder.merge">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="builder.html#mujoco_toolbox.builder.Builder" title="mujoco_toolbox.builder.Builder"><span class="pre">Builder</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'meshes/'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="builder.html#mujoco_toolbox.builder.Builder" title="mujoco_toolbox.builder.Builder"><span class="pre">Builder</span></a></span></span><a class="reference internal" href="_modules/mujoco_toolbox/builder.html#Builder.merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Builder.merge" title="Link to this definition"></a></dt>
+<dd><p>Merge multiple Builder objects and/or XML strings into one Builder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – Sequence of Builder objects and/or XML strings or file paths.</p></li>
+<li><p><strong>meshdir</strong> – Mesh directory (default: “meshes/”).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Merged Builder instance.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no inputs are provided.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Builder.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/builder.html#Builder.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Builder.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mujoco_toolbox.CAPTURE_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">CAPTURE_PARAMETERS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'act',</span> <span class="pre">'ctrl',</span> <span class="pre">'qacc',</span> <span class="pre">'qpos',</span> <span class="pre">'qvel',</span> <span class="pre">'sensordata',</span> <span class="pre">'time',</span> <span class="pre">'xmat',</span> <span class="pre">'xpos',</span> <span class="pre">'xquat'}</span></em><a class="headerlink" href="#mujoco_toolbox.CAPTURE_PARAMETERS" title="Link to this definition"></a></dt>
+<dd><p>MjData default fields to capture during simulation.
+For possible types, see
+[MuJoCo API](<a class="reference external" href="https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata">https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata</a>).</p>
+<section id="capture-all">
+<h2>Capture All:<a class="headerlink" href="#capture-all" title="Link to this heading"></a></h2>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">mujoco_toolbox</span><span class="w"> </span><span class="kn">import</span> <span class="n">mjtb</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mjtb</span><span class="o">.</span><span class="n">CAPTURE_PARAMETERS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;all&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="default">
+<h2>Default:<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mjtb</span><span class="o">.</span><span class="n">CAPTURE_PARAMETERS</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;time&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;qpos&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;qvel&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;act&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;qacc&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;xpos&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;xquat&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;xmat&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;ctrl&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;sensordata&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">Simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simulation class for managing MuJoCo simulations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.body_data">
+<span class="sig-name descname"><span class="pre">body_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.body_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.body_data" title="Link to this definition"></a></dt>
+<dd><p>Get the data for a specific body in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body_name</strong> (<em>str</em>) – The name of the body to retrieve data for.</p></li>
+<li><p><strong>data_name</strong> (<em>str</em>) – The name of the data to retrieve.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The data for the specified body.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, np.ndarray] | np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.f2t">
+<span class="sig-name descname"><span class="pre">f2t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.f2t"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.f2t" title="Link to this definition"></a></dt>
+<dd><p>Convert frame index to time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.id2name">
+<span class="sig-name descname"><span class="pre">id2name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.id2name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.id2name" title="Link to this definition"></a></dt>
+<dd><p>Get the name of a body given its ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>id</strong> (<em>int</em>) – The ID of the body.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The name of the body.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.launch">
+<span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_menu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.launch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.launch" title="Link to this definition"></a></dt>
+<dd><p>Open a window to display the simulation in real time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.name2id">
+<span class="sig-name descname"><span class="pre">name2id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.name2id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.name2id" title="Link to this definition"></a></dt>
+<dd><p>Get the name of a body given its index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the body.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The index of the body.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.reload">
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sim.html#mujoco_toolbox.sim.Simulation" title="mujoco_toolbox.sim.Simulation"><span class="pre">Simulation</span></a></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.reload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.reload" title="Link to this definition"></a></dt>
+<dd><p>Reload the model and data objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self for method chaining.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#mujoco_toolbox.Simulation" title="mujoco_toolbox.Simulation">Simulation</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_menu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_thread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sim.html#mujoco_toolbox.sim.Simulation" title="mujoco_toolbox.sim.Simulation"><span class="pre">Simulation</span></a></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.run" title="Link to this definition"></a></dt>
+<dd><p>Run the simulation with optional rendering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>render</strong> (<em>bool</em>) – If True, renders the simulation.</p></li>
+<li><p><strong>camera</strong> (<em>str</em>) – The camera view to render from, defaults to None.</p></li>
+<li><p><strong>data_rate</strong> (<em>int</em>) – How often to capture data, expressed as frames</p></li>
+<li><p><strong>second.</strong> (<em>per</em>)</p></li>
+<li><p><strong>interactive</strong> (<em>bool</em>) – If True, opens an interactive viewer window.</p></li>
+<li><p><strong>show_menu</strong> (<em>bool</em>) – Shows the menu in the interactive viewer.</p></li>
+<li><p><strong>True.</strong> (<em>Interactive must be</em>)</p></li>
+<li><p><strong>multi_thread</strong> (<em>bool</em>) – If True, runs the simulation in multi-threaded</p></li>
+<li><p><strong>mode.</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The current Simulation object for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'output.gif'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.save" title="Link to this definition"></a></dt>
+<dd><p>Save specific frame(s) as a video or GIF to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename for the saved media. Filename
+should end with the desired codec extension (e.g., .mp4, .gif)</p></li>
+<li><p><strong>frame_idx</strong> (<em>int</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – Single frame index or
+(start, stop) frame indices.</p></li>
+<li><p><strong>time_idx</strong> (<em>float</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – Single time or
+(start, end) times in seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Absolute path to the saved file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no frames are captured or invalid input parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.show" title="Link to this definition"></a></dt>
+<dd><p>Render specific frame(s) as a video or GIF in a window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Title for the rendered media.</p></li>
+<li><p><strong>frame_idx</strong> (<em>int</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – Single frame index or
+(start, stop) frame indices.</p></li>
+<li><p><strong>time_idx</strong> (<em>float</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – Single time or
+(start, end) times in seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no frames are captured or invalid input parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.t2f">
+<span class="sig-name descname"><span class="pre">t2f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.t2f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.t2f" title="Link to this definition"></a></dt>
+<dd><p>Convert time to frame index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mujoco_toolbox.Simulation.to_yaml">
+<span class="sig-name descname"><span class="pre">to_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Model'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/sim.html#Simulation.to_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.Simulation.to_yaml" title="Link to this definition"></a></dt>
+<dd><p>Save simulation data to a YAML file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The filename for the YAML file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mujoco_toolbox.cos">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/controllers.html#cos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.cos" title="Link to this definition"></a></dt>
+<dd><p>A simple cosine wave controller for the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>amplitude</strong> (<em>float</em>) – The amplitude of the cosine wave (default=1).</p></li>
+<li><p><strong>frequency</strong> (<em>float</em>) – The frequency of the cosine wave (default=1).</p></li>
+<li><p><strong>phase</strong> (<em>float</em>) – The phase shift of the cosine wave (default=0).</p></li>
+<li><p><strong>joint</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – The joint to apply the cosine wave to (default=all).</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before applying the cosine wave (default=0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mujoco_toolbox.glovebox">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">glovebox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">glass_thickness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/assets.html#glovebox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.glovebox" title="Link to this definition"></a></dt>
+<dd><p>Create a glovebox with the given dimensions (in meters).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mujoco_toolbox.random">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/controllers.html#random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.random" title="Link to this definition"></a></dt>
+<dd><p>A random controller for the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>amplitude</strong> (<em>float</em>) – The maximum amplitude of the random signal (default=1).</p></li>
+<li><p><strong>joint</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – The joints to apply the random signal to (default=all).</p></li>
+<li><p><strong>axis</strong> (<em>int</em>) – The axis to apply the random signal to (default=None).</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before applying the random signal (default=0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mujoco_toolbox.real_time">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">real_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/controllers.html#real_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.real_time" title="Link to this definition"></a></dt>
+<dd><p>A real-time controller for the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>controller_params</strong> (<em>dict</em>) – Dictionary of parameters to pass to the controller.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mujoco_toolbox.sin">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/controllers.html#sin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.sin" title="Link to this definition"></a></dt>
+<dd><p>A simple sine wave controller for the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>amplitude</strong> (<em>float</em>) – The amplitude of the sine wave (default=1).</p></li>
+<li><p><strong>frequency</strong> (<em>float</em>) – The frequency of the sine wave (default=1).</p></li>
+<li><p><strong>phase</strong> (<em>float</em>) – The phase shift of the sine wave (default=0).</p></li>
+<li><p><strong>joint</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – The joint to apply the sine wave to (default=all).</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before applying the sine wave (default=0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mujoco_toolbox.step">
+<span class="sig-prename descclassname"><span class="pre">mujoco_toolbox.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mujoco_toolbox/controllers.html#step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mujoco_toolbox.step" title="Link to this definition"></a></dt>
+<dd><p>A step controller for the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>amplitude</strong> (<em>float</em>) – The amplitude of the step signal (default=1).</p></li>
+<li><p><strong>joint</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – The joints to apply the step signal to (default=all).</p></li>
+<li><p><strong>axis</strong> (<em>int</em>) – The axis to apply the step signal to (default=None).</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before applying the step signal (default=0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
