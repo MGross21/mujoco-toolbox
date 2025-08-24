@@ -1,6 +1,6 @@
 [package]
 name = "mujoco-toolbox"
-version = "0.6.2"
+version = "0.6.3"
 edition = "2024"
 authors = ["MGross21 <MGross21@example.com>"]
 description = "Python bindings for MuJoCo Toolbox Rust components"
@@ -12,5 +12,9 @@ name = "_mjrs"
 crate-type = ["cdylib"] # "C dynamic library"
 
 [dependencies]
+libc = "0.2.175"
 # clippy = "0.0.302"
 pyo3 = { version = "0.22", features = ["extension-module"] }
+
+[build-dependencies]
+bindgen = "0.72.0"
