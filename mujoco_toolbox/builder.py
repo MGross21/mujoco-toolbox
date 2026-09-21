@@ -3,17 +3,21 @@ from __future__ import annotations
 import os
 import sys
 import xml.etree.ElementTree as StdET
-from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
-from xml.etree.ElementTree import Element, ElementTree
 
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
     from typing_extensions import Self
 
+from typing import TYPE_CHECKING
+
 import defusedxml.ElementTree as ET
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from xml.etree.ElementTree import Element, ElementTree
 
 
 class Builder:
