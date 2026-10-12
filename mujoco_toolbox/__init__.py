@@ -49,8 +49,9 @@ from .controllers import (
     sin,
     step,
 )
+from .errors import SimulationError, SimulationWarning
 from .sim import Simulation
-from .utils import _Platform
+from .utils import display_available, logger
 
 __version__ = "0.7.0"
 __author__ = "Michael Gross"
@@ -60,6 +61,8 @@ __all__ = [
     "WORLD_ASSETS",
     "Builder",
     "Simulation",
+    "SimulationError",
+    "SimulationWarning",
     "cos",
     "glovebox",
     "random",
@@ -70,7 +73,7 @@ __all__ = [
 
 MAX_GEOM_SCALAR: int = 2
 """Multiplier on ``model.ngeom`` for the renderer's ``max_geom`` scene buffer."""
-GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
+GUI_ENABLED: bool = display_available()
 """Whether a display was detected at import time."""
 PROGRESS_BAR_ENABLED: bool = GUI_ENABLED
 """Show a progress bar during :meth:`Simulation.run <mujoco_toolbox.sim.Simulation.run>`."""
@@ -97,11 +100,4 @@ See the `MjData reference <https://mujoco.readthedocs.io/en/stable/APIreference/
 for available fields.
 """
 
-# Check if the package is still under development
-if __version__.startswith("0"):
-    from .utils import _print_warning as _warn
-
-    _warn(
-        f"{__package__} (v{__version__}) is still under development. Report any issues to "
-        f"https://github.com/MGross21/mujoco-toolbox/issues",
-    )
+logger.info("%s v%s is pre-1.0; the API may change between minor releases.", __package__, __version__)

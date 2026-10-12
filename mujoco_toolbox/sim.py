@@ -37,6 +37,7 @@ from matplotlib import animation
 from tqdm.auto import tqdm
 
 from .builder import Builder
+from .errors import SimulationError
 from .loader import Loader
 
 if TYPE_CHECKING:
@@ -111,19 +112,16 @@ def _numeric_fields(data: mjData) -> set[str]:
     }
 
 
-def _is_all(spec: CaptureSpec) -> bool:
-    if spec is all:
-        return True
-    if isinstance(spec, str):
-        return spec.lower() == "all"
-    return any(isinstance(k, str) and k.lower() == "all" for k in spec)
-
-
 def _resolve_capture_keys(spec: CaptureSpec, data: mjData) -> tuple[str, ...]:
     available = _numeric_fields(data)
-    if _is_all(spec):
+    if callable(spec):
+        if spec is not all:
+            msg = "capture must be MjData field names or 'all'."
+            raise TypeError(msg)
         return tuple(sorted(available))
     keys = (spec,) if isinstance(spec, str) else tuple(spec)
+    if any(k.lower() == "all" for k in keys):
+        return tuple(sorted(available))
     invalid = sorted(set(keys) - available)
     if invalid:
         msg = f"Cannot capture {', '.join(invalid)}: not numeric MjData fields."
@@ -529,7 +527,7 @@ class Simulation:
             The simulation, for method chaining.
 
         Raises:
-            RuntimeError: If stepping or rendering fails.
+            SimulationError: If stepping or rendering fails.
 
         """
         from . import MAX_GEOM_SCALAR, PROGRESS_BAR_ENABLED
@@ -557,7 +555,12 @@ class Simulation:
                     mujoco.mj_step1(m, d)
                     if step % capture_interval == 0:
                         recorder.capture(d)
-                    if frames is not None and step % render_interval == 0 and frame_count < len(frames):
+                    if (
+                        renderer is not None
+                        and frames is not None
+                        and step % render_interval == 0
+                        and frame_count < len(frames)
+                    ):
                         renderer.update_scene(d, camera or -1)
                         frames[frame_count] = renderer.render()
                         frame_count += 1
@@ -565,7 +568,7 @@ class Simulation:
                     progress.update()
         except Exception as e:
             msg = "An error occurred while running the simulation."
-            raise RuntimeError(msg) from e
+            raise SimulationError(msg) from e
         finally:
             mujoco.set_mjcb_control(None)
             self._captured_data = recorder.to_dict()
@@ -599,8 +602,8 @@ class Simulation:
                 except KeyboardInterrupt:
                     viewer.close()
         except Exception as e:
-            msg = "An error occurred while running the simulation."
-            raise RuntimeError(msg) from e
+            msg = "An error occurred in the viewer."
+            raise SimulationError(msg) from e
         finally:
             mujoco.set_mjcb_control(None)
 
@@ -623,7 +626,7 @@ class Simulation:
         self,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
-    ) -> list[Any]:
+    ) -> np.ndarray:
         if self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render."
             raise ValueError(msg)
@@ -707,13 +710,18 @@ class Simulation:
                 interpolation="nearest",
             )
             ax.set_axis_off()
-            ax.set_title(title)
+            ax.set_title(title or "")
             plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
 
             if is_jupyter():
+
+                def draw(frame: np.ndarray) -> list[Any]:
+                    im.set_data(frame)
+                    return [im]
+
                 ani = animation.FuncAnimation(
                     fig,
-                    lambda frame: (im.set_data(frame), [im])[1],
+                    draw,
                     frames=subset_frames,
                     interval=(1000 / self._fps),
                     blit=True,
@@ -729,7 +737,7 @@ class Simulation:
             plt.close(fig)
         except Exception as e:
             msg = "Error while showing video subset."
-            raise RuntimeError(msg) from e
+            raise SimulationError(msg) from e
         return None
 
     def save(
@@ -762,11 +770,9 @@ class Simulation:
         try:
             iio.imwrite(title, subset_frames, fps=self._fps if len(subset_frames) != 1 else 1)
             return str(Path(title).resolve())
-        except RuntimeError:
-            raise
         except Exception as e:
             msg = "Error while saving video subset."
-            raise RuntimeError(msg) from e
+            raise SimulationError(msg) from e
 
     def t2f(self, t: float) -> int:
         """Convert a time in seconds to a frame index."""

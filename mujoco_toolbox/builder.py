@@ -90,7 +90,11 @@ class Builder:
             if not path.exists():
                 msg = f"File not found: {xml_input}"
                 raise FileNotFoundError(msg)
-            root = ET.parse(path).getroot()
+            parsed = ET.parse(path).getroot()
+            if parsed is None:
+                msg = f"Empty XML document: {xml_input}"
+                raise ValueError(msg)
+            root = parsed
 
         # If root is <robot>, ensure <mujoco> child exists (not as wrapper)
         if root.tag == "robot":

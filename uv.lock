@@ -2065,7 +2065,6 @@ name = "mujoco-toolbox"
 version = "0.7.0"
 source = { editable = "." }
 dependencies = [
-    { name = "colorama" },
     { name = "defusedxml" },
     { name = "imageio", version = "2.38.0", source = { registry = "https://pypi.org/simple" }, extra = ["ffmpeg"], marker = "python_full_version < '3.11'" },
     { name = "imageio", version = "2.38.1", source = { registry = "https://pypi.org/simple" }, extra = ["ffmpeg"], marker = "python_full_version >= '3.11'" },
@@ -2102,6 +2101,9 @@ dev = [
     { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "sphinx-rtd-theme" },
+    { name = "types-defusedxml" },
+    { name = "types-pyyaml" },
+    { name = "types-tqdm" },
     { name = "typing-extensions" },
 ]
 docs = [
@@ -2114,6 +2116,9 @@ lint = [
     { name = "mypy" },
     { name = "pybind11-stubgen" },
     { name = "ruff" },
+    { name = "types-defusedxml" },
+    { name = "types-pyyaml" },
+    { name = "types-tqdm" },
     { name = "typing-extensions" },
 ]
 test = [
@@ -2123,7 +2128,6 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "colorama", specifier = ">=0.4.6" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "imageio", extras = ["ffmpeg"], specifier = ">=2.28" },
     { name = "ipykernel", marker = "extra == 'examples'", specifier = ">=6.25" },
@@ -2149,6 +2153,9 @@ dev = [
     { name = "ruff", specifier = ">=0.17" },
     { name = "sphinx", specifier = ">=8.1.0" },
     { name = "sphinx-rtd-theme", specifier = ">=3.1" },
+    { name = "types-defusedxml" },
+    { name = "types-pyyaml" },
+    { name = "types-tqdm" },
     { name = "typing-extensions", specifier = ">=4.16" },
 ]
 docs = [
@@ -2159,6 +2166,9 @@ lint = [
     { name = "mypy", specifier = ">=2.4" },
     { name = "pybind11-stubgen", specifier = ">=3.0" },
     { name = "ruff", specifier = ">=0.17" },
+    { name = "types-defusedxml" },
+    { name = "types-pyyaml" },
+    { name = "types-tqdm" },
     { name = "typing-extensions", specifier = ">=4.16" },
 ]
 test = [
@@ -3352,6 +3362,33 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/2c/2e/a7fbfe268c8a3b32546930c0297c101d65a4a14c304ad5790a9f478f0e4e/traitlets-5.16.1.tar.gz", hash = "sha256:ed900c2b631aa3a112811139fa97b8d2c3bad5e989656bba4b7e52c7852c18c1", size = 166137, upload-time = "2026-08-03T08:32:36.848Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ad/66/0d785f0bc5e4315a96c989bb476d0fc07ea4f85132550c7b156ca2035d52/traitlets-5.16.1-py3-none-any.whl", hash = "sha256:f775618166caa0396c8e337099240f2bd3e5e917d203b2e6fbe21a58d3cb1f6b", size = 86211, upload-time = "2026-08-03T08:32:34.48Z" },
+]
+
+[[package]]
+name = "types-defusedxml"
+version = "0.7.0.20260504"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/d2/4553c8fa9cdebfe1e84b950cf790a4d2376a97fa016e43f7c65323fa6c7d/types_defusedxml-0.7.0.20260504.tar.gz", hash = "sha256:2ab2828a3f97111ba1c16cee273ad4124a831fc9198c41bf8368ff6ea48ad300", size = 10729, upload-time = "2026-05-04T05:22:50.192Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/2d/8a4b5ba1d732b8bc691f0efbb1c6f77cb5f6f473b2afe181d83d910773c5/types_defusedxml-0.7.0.20260504-py3-none-any.whl", hash = "sha256:a959e3a0a43b93e464bd625d91ec9193a2703ddc10443bdd627792485fae0b10", size = 13467, upload-time = "2026-05-04T05:22:49.319Z" },
+]
+
+[[package]]
+name = "types-pyyaml"
+version = "6.0.12.20260906"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/6e/abec85b9013db5b934b0280a6dd104904d84f7bcbaab2e2f3def87ac7463/types_pyyaml-6.0.12.20260906.tar.gz", hash = "sha256:f59c1cc05010b833d2d72287bbaa72610106b28d42d89a907313117faba85212", size = 18649, upload-time = "2026-09-06T06:35:35.362Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/c0/fc0644b7ddcfb969e95845837143cb5173ddd6e06ee4ba5fc493cd9329b7/types_pyyaml-6.0.12.20260906-py3-none-any.whl", hash = "sha256:bca893ff0d51df5c9053137d5d0e6ccd36e939a196356f1d5c16372422f5137b", size = 21282, upload-time = "2026-09-06T06:35:34.372Z" },
+]
+
+[[package]]
+name = "types-tqdm"
+version = "4.70.0.20260906"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/92/517d71d5a399cd2f8ead3b4328d987262478f22fbbe7f8312360d4c321d0/types_tqdm-4.70.0.20260906.tar.gz", hash = "sha256:6581dc996152a87d51ce2ea169169187ffc0a96dacdb8adbdef29cbee8c1e631", size = 19309, upload-time = "2026-09-06T06:35:31.916Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/81/ea/d12697988ab2c672877796ecaea69666e2379ee7b40f01f4540250d5a97b/types_tqdm-4.70.0.20260906-py3-none-any.whl", hash = "sha256:c3b88c694928515d601f73fa6646aa43adc0ef735bedbeebf0cc543f6a201ae8", size = 25181, upload-time = "2026-09-06T06:35:30.931Z" },
 ]
 
 [[package]]

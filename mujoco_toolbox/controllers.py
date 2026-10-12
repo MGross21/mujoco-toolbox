@@ -10,10 +10,24 @@ parameters are forwarded to the controller on every step:
 Unless ``joint`` or ``axis`` is given, signals drive every actuator's ``ctrl``.
 """
 
+import warnings
+from collections.abc import Iterable
+from typing import Any
+
+import mujoco
 import numpy as np
 
+from .errors import SimulationWarning
 
-def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
+
+def _apply_control(
+    model: mujoco.MjModel,
+    data: mujoco.MjData,
+    value: float,
+    joint: Iterable[int] | None = None,
+    axis: int | None = None,
+    delay: float = 0,
+) -> None:
     # Don't apply control until after delay
     if data.time < delay:
         return
@@ -30,7 +44,7 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
         data.qpos[axis] = value
 
 
-def step(model, data, **kwargs) -> None:
+def step(model: mujoco.MjModel, data: mujoco.MjData, **kwargs: Any) -> None:
     """Apply a constant step signal.
 
     Keyword Args:
@@ -54,7 +68,7 @@ def step(model, data, **kwargs) -> None:
     _apply_control(model, data, amplitude, joint=joint, axis=axis, delay=delay)
 
 
-def sin(model, data, **kwargs) -> None:
+def sin(model: mujoco.MjModel, data: mujoco.MjData, **kwargs: Any) -> None:
     """Apply a sine wave ``amplitude * sin(2π · frequency · t + phase)``.
 
     Keyword Args:
@@ -78,7 +92,7 @@ def sin(model, data, **kwargs) -> None:
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def cos(model, data, **kwargs) -> None:
+def cos(model: mujoco.MjModel, data: mujoco.MjData, **kwargs: Any) -> None:
     """Apply a cosine wave ``amplitude * cos(2π · frequency · t + phase)``.
 
     Keyword Args:
@@ -102,7 +116,7 @@ def cos(model, data, **kwargs) -> None:
     _apply_control(model, data, value, joint=joint, delay=delay)
 
 
-def random(model, data, **kwargs) -> None:
+def random(model: mujoco.MjModel, data: mujoco.MjData, **kwargs: Any) -> None:
     """Apply uniform random noise in ``[0, amplitude)`` each step.
 
     Keyword Args:
@@ -127,12 +141,12 @@ def random(model, data, **kwargs) -> None:
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
 
-def real_time(model, data, *args, **kwargs) -> None:
+def real_time(model: mujoco.MjModel, data: mujoco.MjData, *args: dict[str, Any], **kwargs: Any) -> None:
     """Copy values onto ``data`` on demand, for driving a digital twin.
 
     Call it yourself with a dict of ``MjData`` fields, e.g.
     ``sim.controller(sim.model, sim.data, {"qpos": q})``. Unknown fields are
-    skipped with a warning.
+    skipped with a :class:`~mujoco_toolbox.errors.SimulationWarning`.
 
     Args:
         model: The ``MjModel`` (unused).
@@ -141,13 +155,11 @@ def real_time(model, data, *args, **kwargs) -> None:
         **kwargs: Ignored.
 
     """
-    from .utils import _print_warning
-
     if not args:
-        _print_warning("No arguments provided to real_time controller. Skipping...")
+        warnings.warn("real_time called without values; nothing to apply.", SimulationWarning, stacklevel=2)
         return
     for key, value in args[0].items():
         if hasattr(data, key):
             setattr(data, key, value)
         else:
-            _print_warning(f"'{key}' is not a valid attribute of MjData. Skipping...")
+            warnings.warn(f"'{key}' is not an MjData field; skipped.", SimulationWarning, stacklevel=2)
