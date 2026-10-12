@@ -44,6 +44,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Build distributions
+        run: uv build
+
       - name: Run Semantic Release (tag-based)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

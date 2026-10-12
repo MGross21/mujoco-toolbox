@@ -31,17 +31,17 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Install lint toolchain
-        run: uv sync --group lint --no-install-project
+        run: uv sync --only-group lint
 
       - name: Ruff
         continue-on-error: true
         run: |
-          uv run ruff check . --fix --unsafe-fixes
-          uv run ruff format .
+          uv run --no-sync ruff check . --fix
+          uv run --no-sync ruff format .
 
       - name: MyPy
         continue-on-error: true
-        run: uv run mypy mujoco_toolbox/
+        run: uv run --no-sync mypy mujoco_toolbox/
 
       - name: Commit Fixes if Needed
         if: github.event_name == 'pull_request'

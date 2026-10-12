@@ -97,7 +97,6 @@ version_variables = [
 changelog_file = "CHANGELOG.md"
 build_command = "uv build"
 dist_path = "dist/"
-upload_to_pypi = true
 upload_to_release = true
 commit_version_number = true
 tag_format = "v{version}"

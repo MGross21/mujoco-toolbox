@@ -25,14 +25,14 @@ Documentation
 -------------
 **[See Here](https://MGross21.github.io/mujoco-toolbox/)**
 
-Notes:
+Notes
 -----
 This package is still under development.
 Some features may not be fully implemented or may change in future releases.
 Please refer to the documentation for the most up-to-date information.
 **[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)**.
 
-"""  # noqa: D205, D415
+"""  # noqa: D205, D415, D416
 
 import os
 
