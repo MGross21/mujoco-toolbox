@@ -24,7 +24,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "colorama>=0.4.6",
     "defusedxml>=0.7.1",
     "imageio[ffmpeg]>=2.28",
     "ipython>=8.0",
@@ -66,6 +65,9 @@ lint = [
     "ruff>=0.17",
     "typing-extensions>=4.16",
     "pybind11-stubgen>=3.0",
+    "types-defusedxml",
+    "types-pyyaml",
+    "types-tqdm",
 ]
 docs = [
     "sphinx>=8.1.0",
@@ -95,7 +97,7 @@ addopts = "--import-mode=importlib"
 [tool.ruff]
 line-length = 120
 target-version = "py310"
-extend-exclude = ["docs/_build", "local_testing"]
+extend-exclude = ["docs/_build", "local_testing", "typings"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -125,7 +127,15 @@ convention = "google"
 docstring-code-format = true
 
 [tool.mypy]
-ignore_missing_imports = true
+files = ["mujoco_toolbox"]
+mypy_path = "typings"
+python_version = "3.10"
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 strict_optional = true
+warn_unused_ignores = true
+untyped_calls_exclude = ["IPython"]
+
+[[tool.mypy.overrides]]
+module = ["mujoco.viewer", "screeninfo", "IPython.*"]
+ignore_missing_imports = true

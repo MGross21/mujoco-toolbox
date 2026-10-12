@@ -185,4 +185,4 @@ def progress_over_time() -> None:
 if __name__ == "__main__":
     generate_performance_chart()
     progress_over_time()
-    mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")
+    print(f"{os.path.basename(__file__)} Tests passed!")

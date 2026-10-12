@@ -1,2 +1,3 @@
 *.ipynb filter=strip-notebook-output
 *.ipynb filter=clean_ipynb
+typings/** linguist-generated=true

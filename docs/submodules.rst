@@ -10,3 +10,4 @@ The Mujoco Toolbox contains the following submodules:
     builder
     controllers
     assets
+    errors
