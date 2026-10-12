@@ -16,6 +16,8 @@ import argparse
 import ast
 import filecmp
 import keyword
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -24,6 +26,8 @@ from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "typings"
 PYTHON = (3, 13)
+# Module constants such as HEADERS_DIR hold machine-specific paths; keep only their types.
+CONSTANT = re.compile(r"^(?!__all__)(\w+: [^=]+?) = .+$")
 
 
 def _top_level(text: str) -> list[tuple[int, str]]:
@@ -42,10 +46,13 @@ def _top_level(text: str) -> list[tuple[int, str]]:
 def _fix_line(line: str) -> str:
     """Make one line of pybind11-stubgen output valid Python.
 
+    - Module-level constant values are machine-specific (paths, OS); keep the type.
     - Attributes named after keywords (``global``) cannot be declared; drop them.
     - Stubgen omits C++ defaults it cannot render, leaving required parameters
       after optional ones. Give those ``= ...``.
     """
+    if match := CONSTANT.match(line.rstrip("\n")):
+        return f"{match.group(1)}\n"
     stripped = line.lstrip()
     name = stripped.split(":", 1)[0]
     if ":" in stripped and keyword.iskeyword(name):
@@ -117,6 +124,7 @@ def main() -> int:
         print(f"Run with Python {PYTHON[0]}.{PYTHON[1]}: uv run --python 3.13 python {__file__}", file=sys.stderr)
         return 2
 
+    os.environ["MUJOCO_GL"] = "glfw"  # picks which GLContext mujoco re-exports
     import mujoco
 
     if not args.check:
