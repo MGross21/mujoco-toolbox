@@ -1,19 +1,22 @@
-"""Sim module for managing MuJoCo simulations.
+"""Run MuJoCo simulations, capture per-step data, and render frames.
 
-This module provides a `Simulation` class to handle MuJoCo simulations, including
-loading models, running simulations, capturing data, and rendering frames.
+The :class:`Simulation` class wraps model loading, stepping, data capture,
+offscreen rendering, and an interactive viewer behind a single object.
+
+Example:
+    >>> import mujoco_toolbox as mjtb
+    >>> sim = mjtb.Simulation("robot.xml", duration=5, data_rate=50).run()
+    >>> sim.captured_data["qpos"].shape  # (steps, nq)
 """
 
 from __future__ import annotations
 
-import os
 import sys
 import threading
 import time
-import warnings
-from collections import defaultdict
+from collections.abc import Iterable
 from contextlib import nullcontext
-from multiprocessing import cpu_count
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeAlias
 
@@ -29,7 +32,7 @@ import mujoco
 import mujoco.viewer
 import numpy as np
 import yaml
-from IPython.display import HTML, clear_output
+from IPython.display import HTML
 from matplotlib import animation
 from tqdm.auto import tqdm
 
@@ -39,10 +42,11 @@ from .loader import Loader
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-mjModel: TypeAlias = mujoco.MjModel  # pylint: disable=E1101  # noqa: N816
-mjData: TypeAlias = mujoco.MjData  # pylint: disable=E1101  # noqa: N816
+mjModel: TypeAlias = mujoco.MjModel  # noqa: N816
+mjData: TypeAlias = mujoco.MjData  # noqa: N816
+CaptureSpec: TypeAlias = "Iterable[str] | str | Callable[..., Any]"
+"""Fields to capture: an iterable of ``MjData`` field names, or ``"all"``."""
 
-# pylint: disable=E1101
 _MJ_OBJ_TYPES = [
     mujoco.mjtObj.mjOBJ_BODY,
     mujoco.mjtObj.mjOBJ_JOINT,
@@ -66,101 +70,192 @@ _MJ_OBJ_TYPES = [
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
 
+# MjData fields indexed by body id along their first axis.
+_BODY_FIELDS = frozenset(
+    {
+        "xpos",
+        "xquat",
+        "xmat",
+        "xipos",
+        "ximat",
+        "subtree_com",
+        "cinert",
+        "crb",
+        "cvel",
+        "cacc",
+        "cfrc_int",
+        "cfrc_ext",
+        "xfrc_applied",
+        "subtree_linvel",
+        "subtree_angmom",
+    },
+)
+
+
+def _obj_type(obj_type: str | mujoco.mjtObj) -> mujoco.mjtObj:
+    if isinstance(obj_type, mujoco.mjtObj):
+        return obj_type
+    try:
+        return getattr(mujoco.mjtObj, f"mjOBJ_{obj_type.upper()}")
+    except AttributeError:
+        msg = f"Unknown MuJoCo object type '{obj_type}'."
+        raise ValueError(msg) from None
+
+
+def _numeric_fields(data: mjData) -> set[str]:
+    """Public ``MjData`` fields holding arrays or scalars."""
+    return {
+        name
+        for name in dir(data)
+        if not name.startswith("_") and isinstance(getattr(data, name), (np.ndarray, int, float))
+    }
+
+
+def _is_all(spec: CaptureSpec) -> bool:
+    if spec is all:
+        return True
+    if isinstance(spec, str):
+        return spec.lower() == "all"
+    return any(isinstance(k, str) and k.lower() == "all" for k in spec)
+
+
+def _resolve_capture_keys(spec: CaptureSpec, data: mjData) -> tuple[str, ...]:
+    available = _numeric_fields(data)
+    if _is_all(spec):
+        return tuple(sorted(available))
+    keys = (spec,) if isinstance(spec, str) else tuple(spec)
+    invalid = sorted(set(keys) - available)
+    if invalid:
+        msg = f"Cannot capture {', '.join(invalid)}: not numeric MjData fields."
+        raise ValueError(msg)
+    return keys
+
+
+class _Recorder:
+    """Buffers copies of selected ``MjData`` fields, one entry per capture."""
+
+    __slots__ = ("_buffers",)
+
+    def __init__(self, keys: Iterable[str]) -> None:
+        self._buffers: dict[str, list[np.ndarray]] = {k: [] for k in keys}
+
+    def capture(self, data: mjData) -> None:
+        for key, buf in self._buffers.items():
+            buf.append(np.array(getattr(data, key)))
+
+    def to_dict(self) -> dict[str, np.ndarray | list[np.ndarray]]:
+        out: dict[str, np.ndarray | list[np.ndarray]] = {}
+        for key, buf in self._buffers.items():
+            if not buf:
+                out[key] = np.empty(0)
+                continue
+            try:
+                out[key] = np.stack(buf)
+            except ValueError:
+                out[key] = buf  # size varies per step (e.g. efc_* fields)
+        return out
+
 
 class Simulation:
-    """Simulation class for managing MuJoCo simulations."""
+    """A MuJoCo model plus everything needed to run, record, and render it.
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
-        from . import PROGRESS_BAR_ENABLED  # pylint: disable=E0401
+    Models can be given as file paths (MJCF or URDF), XML strings, or
+    :class:`~mujoco_toolbox.builder.Builder` objects. Several inputs are merged
+    into one model.
 
-        if PROGRESS_BAR_ENABLED and kwargs.get("clear_screen", True):
-            os.system("clear || cls")  # Clear the console
-            clear_output(wait=True)
-        return super().__new__(cls)
+    Example:
+        >>> sim = Simulation("robot.urdf", meshdir="meshes/", duration=5)
+        >>> sim.run(render=True).save("robot.mp4")
+        >>> sim.captured_data["qpos"]
 
-    # pylint: disable=E1101
+    Args:
+        *xml_args: Model sources to load and merge.
+        duration: Simulated time in seconds.
+        data_rate: Data captures per simulated second.
+        fps: Rendered frames per simulated second.
+        resolution: Render size ``(width, height)`` in pixels. Defaults to the
+            model's ``<visual><global offwidth offheight>`` or ``(400, 300)``.
+        initial_conditions: ``MjData`` field values applied before every run,
+            e.g. ``{"qpos": [...]}``.
+        keyframe: Model keyframe to reset to before every run.
+        controller: Control callback ``f(model, data, **controller_kwargs)``
+            called every step.
+        meshdir: Mesh directory for URDF models.
+        capture: ``MjData`` fields to record. ``"all"`` records every numeric
+            field. Defaults to :data:`mujoco_toolbox.CAPTURE_PARAMETERS`.
+        ts: Physics timestep in seconds. Defaults to the model's timestep.
+        gravity: Gravity vector. Defaults to the model's gravity.
+        **controller_kwargs: Passed to ``controller`` on every call.
+
+    Raises:
+        ValueError: If no model is given or a parameter is out of range.
+        TypeError: If ``controller_kwargs`` are given without a controller.
+
+    """
+
     def __init__(
         self,
         *xml_args: str | Builder,
-        duration: int = 10,
+        duration: float = 10,
         data_rate: int = 100,
-        fps: int = 30,
+        fps: float = 30,
         resolution: tuple[int, int] | None = None,
-        initial_conditions: dict[str, list] | None = None,
+        initial_conditions: dict[str, Any] | None = None,
         keyframe: int | None = None,
-        controller: Callable[[mjModel, mjData, Any], None] | None = None,
+        controller: Callable[..., None] | None = None,
         meshdir: str = "meshes/",
-        **kwargs: Any,
+        capture: CaptureSpec | None = None,
+        ts: float | None = None,
+        gravity: Iterable[float] | None = None,
+        **controller_kwargs: Any,
     ) -> None:
-        """Initialize the Simulation class for managing MuJoCo simulations.
-
-        Args:
-            xml_args (str | Builder): One or more XML file paths, XML strings,
-                or Builder objects defining the model.
-            duration (int, optional): Duration of the simulation in seconds. Defaults to 10.
-            data_rate (int, optional): Data capture rate in frames per second. Defaults to 100.
-            fps (int, optional): Frames per second for rendering. Defaults to 30.
-            resolution (tuple[int, int] | None, optional): Resolution of the simulation
-                in pixels (width, height). If None, defaults to values from the XML
-                or (400, 300).
-            initial_conditions (dict[str, list] | None, optional): Initial conditions
-                for the simulation.
-            keyframe (int | None, optional): Keyframe index for resetting the simulation.
-            controller (Callable[[mjModel, mjData, Any], None] | None, optional): Custom
-                controller function for the simulation.
-            meshdir (str, optional): Directory containing mesh files for URDF models. Defaults to "meshes/".
-            **kwargs: Additional keyword arguments for model configuration.
-
-        Raises:
-            ValueError: If no XML arguments are provided.
-
-        """
         if not xml_args:
             msg = "At least one XML file, string, or Builder is required."
             raise ValueError(msg)
+        if controller_kwargs and controller is None:
+            msg = f"Unexpected keyword arguments without a controller: {', '.join(controller_kwargs)}."
+            raise TypeError(msg)
 
         self._builder = Builder.merge(xml_args, meshdir=meshdir)
         self._meshdir = meshdir
         self._loader = Loader(self._builder)
-
-        # Validate meshes after loading
         self._loader.validate_meshes()
 
         self.xml = self._loader.xml
         self._model = self._loader.model
 
-        # Simulation Parameters
         self.duration = duration
         self.fps = fps
-        self.data_rate = data_rate
         self.controller = controller
+        self.controller_kwargs = controller_kwargs
+        self.capture = capture
 
         self.resolution = resolution or self._extract_resolution()
 
-        # Predefined simulation parameters but can be overridden
         # TODO(#8): @MGross21 Currently Causing Bugs when occluded from XML
-        self.ts = kwargs.get("ts", self._model.opt.timestep)
-        self.gravity = kwargs.get("gravity", self._model.opt.gravity)
+        if ts is not None:
+            self.ts = ts
+        if gravity is not None:
+            self.gravity = gravity
+        self.data_rate = data_rate  # validated against ts
 
         self._data = mujoco.MjData(self._model)
         self._keyframe = keyframe
-        self.initial_conditions = initial_conditions or {}  # **after data**
+        self.initial_conditions = initial_conditions or {}
 
-        # Initialize _frames and _captured_data attributes
-        self._frames: list[np.ndarray] | None = None
-        self._captured_data: _SimulationData | None = None
+        self._frames: np.ndarray | None = None
+        self._captured_data: dict[str, np.ndarray | list[np.ndarray]] | None = None
+        self._viewer_thread: threading.Thread | None = None
 
         self._initialize_names()
 
     def _initialize_names(self) -> None:
-        """Populate body, joint, and actuator names."""
         self.body_names = [self._model.body(i).name for i in range(self._model.nbody)]
         self.geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
         self.joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
         self.actuator_names = [self._model.actuator(i).name for i in range(self._model.nu)]
 
     def _extract_resolution(self) -> tuple[int, int]:
-        """Extract resolution from the XML or return default values."""
         try:
             root = ET.fromstring(self.xml)
             global_tag = root.find("visual/global")
@@ -172,79 +267,78 @@ class Simulation:
             pass
         return (400, 300)
 
-    def reload(self: Simulation) -> Simulation:
-        """Reload the model and data objects.
+    def reload(self) -> Self:
+        """Rebuild the model and data from :attr:`xml`.
 
         Returns:
-            Simulation: Self for method chaining.
+            The simulation, for method chaining.
 
         """
-        # Use the Loader to handle model reloading
-        loader = Loader(self.xml, meshdir=self._meshdir)
-        self._model = loader.model
+        self._model = Loader(self.xml).model
         self._data = mujoco.MjData(self._model)
-
-        self._initialize_names()  # Reinitialize names and apply ic's
-
-        # Apply initial conditions
-        for key, value in getattr(self, "init_conditions", {}).items():
-            if hasattr(self._data, key):
-                setattr(self._data, key, value)
-
+        self._initialize_names()
+        self._apply_initial_conditions()
         return self
 
-    def __str__(self) -> str:  # noqa: D105
+    def _apply_initial_conditions(self) -> None:
+        for key, value in self.init_conditions.items():
+            setattr(self._data, key, value)
+
+    def _reset(self) -> None:
+        if self._keyframe is not None:
+            mujoco.mj_resetDataKeyframe(self._model, self._data, self._keyframe)
+        else:
+            mujoco.mj_resetData(self._model, self._data)
+        self._apply_initial_conditions()
+
+    def __str__(self) -> str:
         return self._model.__str__()
 
-    def __repr__(self) -> str:  # noqa: D105
+    def __repr__(self) -> str:
+        max_items = 5
 
-        MAX_LINE_ITEMS = 5  # noqa: N806  # pylint: disable=C0103
-        # Limit the number of items displayed in the string representation
-        body_names = self.body_names[:MAX_LINE_ITEMS] + (["..."] if len(self.body_names) > MAX_LINE_ITEMS else [])
-        joint_names = self.joint_names[:MAX_LINE_ITEMS] + (["..."] if len(self.joint_names) > MAX_LINE_ITEMS else [])
-        actuator_names = self.actuator_names[:MAX_LINE_ITEMS] + (
-            ["..."] if len(self.actuator_names) > MAX_LINE_ITEMS else []
-        )
-        # Format the string representation
+        def head(names: list[str]) -> str:
+            return ", ".join(names[:max_items] + (["..."] if len(names) > max_items else []))
+
         return (
             f"{self.__class__.__name__}(\n"
             f"  Duration: {self.duration}s "
             f"[fps={self.fps}, ts={self.ts:.0e}]\n"
             f"  Gravity: {self.gravity},\n"
             f"  Resolution: {self.resolution[0]}W x {self.resolution[1]}H\n"
-            f"  Bodies ({self.model.nbody}): {', '.join(body_names)}\n"
-            f"  Joints ({self.model.njnt}): {', '.join(joint_names)}\n"
-            f"  Actuators ({self.model.nu}): {', '.join(actuator_names)}\n"
+            f"  Bodies ({self.model.nbody}): {head(self.body_names)}\n"
+            f"  Joints ({self.model.njnt}): {head(self.joint_names)}\n"
+            f"  Actuators ({self.model.nu}): {head(self.actuator_names)}\n"
             f"  Controller: "
             f"{self.controller.__name__ if self.controller else None}\n"
             f")"
         )
 
-    def __enter__(self) -> Self:  # noqa: D105
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self: Simulation, *args, **kwargs) -> None:  # noqa: D105
+    def __exit__(self, *args: object) -> None:
         mujoco.set_mjcb_control(None)
-        for thread in threading.enumerate():
-            if thread is not threading.main_thread():
-                thread.join()
+        if self._viewer_thread is not None:
+            self._viewer_thread.join()
+            self._viewer_thread = None
 
     @property
     def model(self) -> mjModel:
-        """Read-only property to access the MjModel object."""
+        """The underlying ``MjModel`` (read-only)."""
         return self._model
 
     @property
     def data(self) -> mjData:
-        """Read-only property to access the MjData single-step object.
+        """The live ``MjData`` for the current step (read-only).
 
-        Use `captured_data` to access the entire simulation data.
+        Use :attr:`captured_data` for the recorded history of a run.
         """
         return self._data
 
     @property
     def keyframe(self) -> int | None:
-        """Keyframe index for the simulation."""
+        """Model keyframe to reset to before every run, or ``None``."""
         return self._keyframe
 
     @keyframe.setter
@@ -252,68 +346,75 @@ class Simulation:
         if value is not None and not isinstance(value, int):
             msg = "Keyframe must be an integer."
             raise ValueError(msg)
-        if value is not None and (value < 0 or value > self._model.nkey):
-            msg = f"Keyframe must be between 0 and {self._model.nkey}. Got {value}."
+        if value is not None and not 0 <= value < self._model.nkey:
+            msg = f"Keyframe must be between 0 and {self._model.nkey - 1}. Got {value}."
             raise ValueError(msg)
         self._keyframe = value
 
     @property
-    def captured_data(self) -> dict[str, np.ndarray]:
-        """Read-only property to access the entire captured simulation data."""
+    def captured_data(self) -> dict[str, np.ndarray | list[np.ndarray]]:
+        """Data recorded by the last :meth:`run`, keyed by ``MjData`` field.
+
+        Each value is an array of shape ``(captures, *field_shape)``. Fields
+        whose size changes between steps (e.g. ``efc_*``) are lists of arrays.
+
+        Raises:
+            ValueError: If the simulation has not been run.
+
+        """
         if self._captured_data is None:
             msg = "No simulation data captured yet."
             raise ValueError(msg)
-        return self._captured_data.unwrap()
+        return self._captured_data
 
     @captured_data.deleter
     def captured_data(self) -> None:
         self._captured_data = None
 
     @property
-    def frames(self) -> list[np.ndarray]:
-        """Read-only property to access the captured frames."""
-        if not hasattr(self, "_frames") or self._frames is None:
+    def frames(self) -> np.ndarray:
+        """Frames rendered by the last :meth:`run`, shape ``(n, height, width, 3)``.
+
+        Raises:
+            AttributeError: If no frames were rendered.
+
+        """
+        if self._frames is None:
             msg = "No frames captured yet. Run the simulation with render=True to capture frames."
-            raise AttributeError(msg) from None
+            raise AttributeError(msg)
         return self._frames
 
     @frames.deleter
     def frames(self) -> None:
-        # Safely delete frames if they exist
-        if hasattr(self, "_frames") and isinstance(self._frames, list):
-            self._frames.clear()
         self._frames = None
-        import gc
-
-        gc.collect()
 
     @property
     def duration(self) -> float:
-        """Duration of the simulation in seconds."""
+        """Simulated time in seconds."""
         return self._duration
 
     @duration.setter
     def duration(self, value: float) -> None:
         if value < 0:
-            msg = "Duration must be greater than zero."
+            msg = "Duration must be non-negative."
             raise ValueError(msg)
         self._duration = value
 
     @property
     def fps(self) -> float:
-        """Frames per second."""
+        """Rendered frames per simulated second."""
         return self._fps
 
     @fps.setter
     def fps(self, value: float) -> None:
-        if value < 0:
+        if value <= 0:
             msg = "FPS must be greater than zero."
             raise ValueError(msg)
         self._fps = value
 
     @property
     def resolution(self) -> tuple[int, int]:
-        """Resolution of the simulation in pixels (w,h)."""
+        """Render size ``(width, height)`` in pixels."""
         return (
             self._model.vis.global_.offwidth,
             self._model.vis.global_.offheight,
@@ -327,49 +428,37 @@ class Simulation:
         if any(v < 1 for v in values):
             msg = "Resolution must be at least 1x1 pixels."
             raise ValueError(msg)
-
-        # Update the resolution using the correct mujoco attributes
         self._model.vis.global_.offwidth = int(values[0])
         self._model.vis.global_.offheight = int(values[1])
 
     @property
-    def initial_conditions(self) -> dict[str, list]:
-        """Initial conditions for the simulation."""
+    def initial_conditions(self) -> dict[str, Any]:
+        """``MjData`` field values applied before every run."""
         return self.init_conditions
 
     @initial_conditions.setter
-    def initial_conditions(self, values: dict[str, list]) -> None:
+    def initial_conditions(self, values: dict[str, Any]) -> None:
         if not isinstance(values, dict):
             msg = "Initial conditions must be a dictionary."
             raise TypeError(msg)
-
-        # Cache data object and attribute names
-        data = self._data
-        valid_attrs = _SimulationData.get_public_keys(data)
-
-        # Find any invalid keys
-        invalid_keys = [key for key in values if key not in valid_attrs]
-        if invalid_keys:
+        valid = _numeric_fields(self._data)
+        invalid = [key for key in values if key not in valid]
+        if invalid:
             msg = (
-                f"Invalid initial condition attributes: {', '.join(invalid_keys)}.\n"
-                f"Valid attributes include: {', '.join(valid_attrs)}"
+                f"Invalid initial condition attributes: {', '.join(invalid)}.\n"
+                f"Valid attributes include: {', '.join(sorted(valid))}"
             )
-            raise ValueError(
-                msg,
-            )
-
-        # Save and apply
+            raise ValueError(msg)
         self.init_conditions = values
-        for k, v in values.items():
-            setattr(data, k, v)
+        self._apply_initial_conditions()
 
     @property
-    def controller(self) -> Callable[[mjModel, mjData, Any], None] | None:
-        """Controller Function."""
+    def controller(self) -> Callable[..., None] | None:
+        """Control callback ``f(model, data, **controller_kwargs)``, or ``None``."""
         return self._controller
 
     @controller.setter
-    def controller(self, func: Callable[[mjModel, mjData, Any], None]) -> None:
+    def controller(self, func: Callable[..., None] | None) -> None:
         if func is not None and not callable(func):
             msg = "Controller must be a callable function."
             raise ValueError(msg)
@@ -377,11 +466,11 @@ class Simulation:
 
     @property
     def ts(self) -> float:
-        """Timestep of the simulation in seconds."""
+        """Physics timestep in seconds."""
         return self._model.opt.timestep
 
     @ts.setter
-    def ts(self, value: int) -> None:
+    def ts(self, value: float) -> None:
         if value <= 0:
             msg = "Timestep must be greater than 0."
             raise ValueError(msg)
@@ -389,7 +478,7 @@ class Simulation:
 
     @property
     def data_rate(self) -> int:
-        """Data rate of the simulation in frames per second."""
+        """Data captures per simulated second."""
         return self._dr
 
     @data_rate.setter
@@ -408,172 +497,105 @@ class Simulation:
 
     @property
     def gravity(self) -> np.ndarray:
-        """Gravity vector of the simulation."""
-        return self._model.opt.gravity  # pylint: disable=E1101
+        """Gravity vector ``(x, y, z)``."""
+        return self._model.opt.gravity
 
     @gravity.setter
-    def gravity(self, values: list | tuple | np.ndarray) -> None:
-        if not isinstance(values, (list, tuple, np.ndarray)) or len(values) != 3:
+    def gravity(self, values: Iterable[float]) -> None:
+        values = np.asarray(values, dtype=float)
+        if values.shape != (3,):
             msg = "Gravity must be a 3D vector."
             raise ValueError(msg)
-        self._model.opt.gravity = np.array(values)
+        self._model.opt.gravity = values
 
-    def run(
-        self,
-        *,
-        render: bool = False,
-        camera: str | None = None,
-        interactive: bool = False,
-        show_menu: bool = True,  # TODO@MGross21: Implement this with launch
-        multi_thread: bool = False,
-    ) -> Simulation:
-        """Run the simulation with optional rendering.
+    def _capture_keys(self) -> tuple[str, ...]:
+        from . import CAPTURE_PARAMETERS
+
+        spec = CAPTURE_PARAMETERS if self.capture is None else self.capture
+        return _resolve_capture_keys(spec, self._data)
+
+    def run(self, *, render: bool = False, camera: str | None = None) -> Self:
+        """Simulate for :attr:`duration` seconds from a fresh reset.
+
+        Data is recorded :attr:`data_rate` times per second into
+        :attr:`captured_data`. With ``render=True``, frames are rendered
+        offscreen :attr:`fps` times per second into :attr:`frames`.
 
         Args:
-            render (bool): If True, renders the simulation.
-            camera (str): The camera view to render from, defaults to None.
-            data_rate (int): How often to capture data, expressed as frames
-            per second.
-            interactive (bool): If True, opens an interactive viewer window.
-            show_menu (bool): Shows the menu in the interactive viewer.
-            `Interactive` must be True.
-            multi_thread (bool): If True, runs the simulation in multi-threaded
-            mode.
+            render: Render frames while simulating.
+            camera: Camera name to render from. Defaults to the free camera.
 
         Returns:
-            self: The current Simulation object for method chaining.
+            The simulation, for method chaining.
+
+        Raises:
+            RuntimeError: If stepping or rendering fails.
 
         """
-        # TODO: Integrate interactive mujoco.viewer into this method
-        # Eventually rename this to run() and point to sub-methods
+        from . import MAX_GEOM_SCALAR, PROGRESS_BAR_ENABLED
 
-        if interactive:
-            msg = "Interactive mode (w/ menu option) is not yet implemented."
-            raise NotImplementedError(msg)
-        if multi_thread:
-            msg = "Multi-threading is not yet implemented."
-            raise NotImplementedError(msg)
+        m, d = self._model, self._data
+        recorder = _Recorder(self._capture_keys())
+        self._reset()
+
+        total_steps = int(self._duration / self.ts)
+        capture_interval = max(1, int(1.0 / (self._dr * self.ts)))
+        render_interval = max(1, int(1.0 / (self._fps * self.ts)))
+        w, h = self.resolution
+        frames = np.zeros((int(self._duration * self._fps), h, w, 3), dtype=np.uint8) if render else None
+        frame_count = 0
+
+        if self._controller is not None:
+            mujoco.set_mjcb_control(partial(self._controller, **self.controller_kwargs))
         try:
-            mujoco.mj_resetData(self._model, self._data)
-            if self._controller is not None:
-                mujoco.set_mjcb_control(self._controller)
-            if self._keyframe is not None:
-                mujoco.mj_resetDataKeyframe(
-                    self._model,
-                    self._data,
-                    self._keyframe,
-                )
-
-            sim_data = _SimulationData()
-
-            # Cache frequently used functions and objects for performance
-            mj_step1 = mujoco.mj_step1
-            mj_step2 = mujoco.mj_step2
-            m, d = self._model, self._data
-
-            # dur = self._duration
-
-            # Simulation Timing
-            total_steps = int(self._duration / self.ts)
-            # capture_rate = self.data_rate * self.ts
-            capture_interval = max(1, int(1.0 / (self._dr * self.ts)))  # PEMDAS :)
-
-            # RENDERING PREPARATIONS
-            if render:
-                w, h = self.resolution
-                render_interval = max(1, int(1.0 / (self._fps * self.ts)))
-                max_frames = int(self._duration * self._fps)
-                frames = np.zeros((max_frames, h, w, 3), dtype=np.uint8)
-                frame_count = 0
-
-            if multi_thread:
-                cpu_count()
-                # TODO: Implement multi-threading
-
-            # if interactive:
-            #     gui = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})  # noqa: ERA001
-            #     gui.start()
-
-            # Mujoco Renderer
-            from . import (  # pylint: disable=E0405
-                MAX_GEOM_SCALAR,
-                PROGRESS_BAR_ENABLED,
+            renderer_ctx = mujoco.Renderer(m, h, w, m.ngeom * MAX_GEOM_SCALAR) if render else nullcontext()
+            progress = tqdm(
+                total=total_steps, desc="Simulation", unit=" steps", leave=False, disable=not PROGRESS_BAR_ENABLED
             )
-
-            max_geom = m.ngeom * MAX_GEOM_SCALAR
-            _Renderer = (  # noqa: N806, pylint: disable=C0103
-                mujoco.Renderer(m, h, w, max_geom) if render else nullcontext()
-            )
-            _ProgressBar = (
-                tqdm(
-                    total=total_steps,
-                    desc="Simulation",
-                    unit=" steps",
-                    leave=False,
-                )
-                if PROGRESS_BAR_ENABLED
-                else nullcontext()
-            )
-
-            with _Renderer as renderer, _ProgressBar as pbar:
+            with renderer_ctx as renderer, progress:
                 for step in range(total_steps):
-                    mj_step1(m, d)
-
-                    # Capture data at the specified rate
+                    mujoco.mj_step1(m, d)
                     if step % capture_interval == 0:
-                        sim_data.capture(d)
-
-                    if render and renderer and step % render_interval == 0 and frame_count < max_frames:
+                        recorder.capture(d)
+                    if frames is not None and step % render_interval == 0 and frame_count < len(frames):
                         renderer.update_scene(d, camera or -1)
-                        frames[frame_count] = renderer.render()  # no copy
-                        frame_count += 1  # Increment frame count after capturing the frame
-
-                    mj_step2(m, d)
-                    pbar.update(1) if PROGRESS_BAR_ENABLED else None
-
+                        frames[frame_count] = renderer.render()
+                        frame_count += 1
+                    mujoco.mj_step2(m, d)
+                    progress.update()
         except Exception as e:
             msg = "An error occurred while running the simulation."
             raise RuntimeError(msg) from e
         finally:
             mujoco.set_mjcb_control(None)
-            self._captured_data = sim_data
-            self._frames = frames[:frame_count] if render else None
-            # if interactive:
-            #     gui.join()
+            self._captured_data = recorder.to_dict()
+            self._frames = frames[:frame_count] if frames is not None else None
         return self
 
     def _window(self, show_menu: bool = True) -> None:  # noqa: FBT001, FBT002
-        """Open a window to display the simulation in real time."""
         try:
-            m = self._model
-            d = self._data
+            m, d = self._model, self._data
 
             def key_callback(key: int) -> bool:
-                return key in (27, ord("q"))  # 27 = ESC key, 'q' to quit
+                return key in (27, ord("q"))  # ESC or 'q' quits
 
-            # NOTE: launch_passive may blocking
-            _Viewer = mujoco.viewer.launch_passive(  # noqa: N806, pylint: disable=C0103
+            with mujoco.viewer.launch_passive(
                 m,
                 d,
                 show_left_ui=show_menu,
                 show_right_ui=show_menu,
                 key_callback=key_callback,
-            )
-            with _Viewer as viewer:
+            ) as viewer:
                 viewer.sync()
                 start_time = time.time()
-
                 try:
                     while viewer.is_running():
                         current_time = time.time()
                         dt = current_time - start_time
-
-                        mujoco.mj_step(m, d)  # Advance simulation by one step
-                        viewer.sync()  # Sync the viewer
-
-                        start_time = current_time  # Reset reference time
-                        time.sleep(max(0, 1.0 / self.fps - dt))  # self.fps
-
+                        mujoco.mj_step(m, d)
+                        viewer.sync()
+                        start_time = current_time
+                        time.sleep(max(0, 1.0 / self.fps - dt))
                 except KeyboardInterrupt:
                     viewer.close()
         except Exception as e:
@@ -583,48 +605,36 @@ class Simulation:
             mujoco.set_mjcb_control(None)
 
     def launch(self, show_menu: bool = True) -> None:  # noqa: FBT001, FBT002
-        """Open a window to display the simulation in real time."""
-        # Run the window in a separate thread
-        gui = threading.Thread(
-            target=self._window,
-            kwargs={"show_menu": show_menu},
-        )
-        gui.start()
+        """Open an interactive viewer window in a background thread.
+
+        Physics runs in real time against the live :attr:`data`, so changes
+        made from the calling thread (e.g. by a controller) show up
+        immediately. Leaving a ``with Simulation(...)`` block waits for the
+        window to close.
+
+        Args:
+            show_menu: Show the viewer's side panels.
+
+        """
+        self._viewer_thread = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
+        self._viewer_thread.start()
 
     def _get_index(  # noqa: C901
         self,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> list[Any]:
-        """Validate and extract frames based on frame or time indices.
-
-        Args:
-            frame_idx (int or tuple, optional): Single frame index or
-            (start, stop) frame indices.
-            time_idx (float or tuple, optional): Single time or
-            (start, end) times in seconds.
-
-        Returns:
-            List of frames
-
-        Raises:
-            ValueError: For invalid input parameters.
-
-        """
         if self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render."
             raise ValueError(msg)
 
-        # Validate input parameters
         if frame_idx is not None and time_idx is not None:
             msg = "Can only specify either frame_idx or time_idx, not both."
             raise ValueError(msg)
 
-        # If both are None, use all frames
         if frame_idx is None and time_idx is None:
             return self._frames
 
-        # Handle time index conversion
         if time_idx is not None:
             if isinstance(time_idx, (int, float)):
                 frame_idx = self.t2f(time_idx)
@@ -634,11 +644,9 @@ class Simulation:
                 msg = "time_idx must be a number or a tuple of numbers."
                 raise ValueError(msg)
 
-        # Convert single index to tuple range
         if isinstance(frame_idx, (int, float)):
             frame_idx = (frame_idx, frame_idx + 1)
 
-        # Validate frame indices
         if frame_idx is None:
             msg = "frame_idx cannot be None when unpacking."
             raise ValueError(msg)
@@ -655,7 +663,6 @@ class Simulation:
             msg = f"Start index ({start}) must be less than stop index ({stop})."
             raise ValueError(msg)
 
-        # Select subset of frames
         return self._frames[start:stop]
 
     def show(
@@ -664,30 +671,27 @@ class Simulation:
         *,
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
-    ) -> None:
-        """Render specific frame(s) as a video or GIF in a window.
+    ) -> HTML | None:
+        """Play rendered frames in a window, or inline in Jupyter.
 
         Args:
-            title (str, optional): Title for the rendered media.
-            frame_idx (int or tuple, optional): Single frame index or
-                (start, stop) frame indices.
-            time_idx (float or tuple, optional): Single time or
-                (start, end) times in seconds.
+            title: Title shown above the playback.
+            frame_idx: A frame index or ``(start, stop)`` range.
+            time_idx: A time or ``(start, stop)`` range in seconds.
+
+        Returns:
+            An inline HTML animation in Jupyter, otherwise ``None``.
 
         Raises:
-            ValueError: If no frames are captured or invalid input parameters.
+            ValueError: If no frames were rendered or the indices are invalid.
 
         """
-        if not hasattr(self, "_frames") or self._frames is None or self._frames.size == 0:
+        if self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
 
         try:
-            # Extract frames
-            subset_frames = self._get_index(
-                frame_idx=frame_idx,
-                time_idx=time_idx,
-            )
+            subset_frames = self._get_index(frame_idx=frame_idx, time_idx=time_idx)
 
             def is_jupyter() -> bool:
                 try:
@@ -697,7 +701,6 @@ class Simulation:
                 except Exception:
                     return False
 
-            # Set up the figure and image once
             fig, ax = plt.subplots()
             im = ax.imshow(
                 np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8),
@@ -726,7 +729,8 @@ class Simulation:
             plt.close(fig)
         except Exception as e:
             msg = "Error while showing video subset."
-            raise Exception(msg) from e  # noqa: TRY002
+            raise RuntimeError(msg) from e
+        return None
 
     def save(
         self,
@@ -735,74 +739,60 @@ class Simulation:
         frame_idx: int | tuple[int, int] | None = None,
         time_idx: float | tuple[float, float] | None = None,
     ) -> str:
-        """Save specific frame(s) as a video or GIF to a file.
+        """Write rendered frames to a video or GIF.
 
         Args:
-            title (str, optional): Filename for the saved media. Filename
-                should end with the desired codec extension (e.g., .mp4, .gif)
-            frame_idx (int or tuple, optional): Single frame index or
-                (start, stop) frame indices.
-            time_idx (float or tuple, optional): Single time or
-                (start, end) times in seconds.
+            title: Output path. The extension picks the format (``.mp4``, ``.gif``, ...).
+            frame_idx: A frame index or ``(start, stop)`` range.
+            time_idx: A time or ``(start, stop)`` range in seconds.
 
         Returns:
-            str: Absolute path to the saved file.
+            Absolute path of the written file.
 
         Raises:
-            ValueError: If no frames are captured or invalid input parameters.
+            ValueError: If no frames were rendered or the indices are invalid.
 
         """
-        if not hasattr(self, "_frames") or self._frames is None or len(self._frames) == 0:
+        if self._frames is None or len(self._frames) == 0:
             msg = "No frames captured to render. Re-run the simulation with render=True."
             raise ValueError(msg)
 
-        # Extract frames
-        subset_frames = self._get_index(
-            frame_idx=frame_idx,
-            time_idx=time_idx,
-        )
-
-        title_path = Path(title)
+        subset_frames = self._get_index(frame_idx=frame_idx, time_idx=time_idx)
 
         try:
-            # Save the video
-            iio.imwrite(
-                title,
-                subset_frames,
-                fps=self._fps if len(subset_frames) != 1 else 1,
-            )
-
-            return str(title_path.resolve())
+            iio.imwrite(title, subset_frames, fps=self._fps if len(subset_frames) != 1 else 1)
+            return str(Path(title).resolve())
         except RuntimeError:
             raise
         except Exception as e:
             msg = "Error while saving video subset."
-            raise Exception(msg) from e  # noqa: TRY002
+            raise RuntimeError(msg) from e
 
     def t2f(self, t: float) -> int:
-        """Convert time to frame index."""
-        return min(
-            int(t * self._fps),
-            int(self._duration * self._fps) - 1,
-        )  # Subtract 1 to convert to 0-based index
+        """Convert a time in seconds to a frame index."""
+        return min(int(t * self._fps), int(self._duration * self._fps) - 1)
 
     def f2t(self, frame: int) -> float:
-        """Convert frame index to time."""
+        """Convert a frame index to a time in seconds."""
         return frame / self._fps
 
-    def body_data(
-        self,
-        body_name: str,
-        data_name: str | None = None,
-    ) -> dict[str, np.ndarray] | np.ndarray:
-        """Get the data for a specific body in the simulation.
+    def body_data(self, body_name: str, data_name: str | None = None) -> dict[str, np.ndarray] | np.ndarray:
+        """Captured per-body data for one body.
+
+        Per-body fields are ``MjData`` arrays indexed by body, such as
+        ``xpos``, ``xquat`` and ``cvel``. Only captured fields are available.
 
         Args:
-            body_name (str): The name of the body to retrieve data for.
-            data_name (str): The name of the data to retrieve.
+            body_name: Name of the body.
+            data_name: Field to return. If omitted, returns every captured
+                per-body field.
 
         Returns:
-            dict[str, np.ndarray] | np.ndarray: The data for the specified body.
+            An array of shape ``(captures, *field_shape)`` for ``data_name``,
+            or a dict of them keyed by field.
+
+        Raises:
+            ValueError: If the body or field is unknown, or nothing was captured.
 
         """
         if body_name not in self.body_names:
@@ -810,235 +800,82 @@ class Simulation:
             raise ValueError(msg)
         body_id = self._model.body(body_name).id
 
-        if self._captured_data is None:
-            msg = "No simulation data captured yet."
-            raise ValueError(msg)
-
-        unwrapped_data = self._captured_data.unwrap()
-
+        fields = {
+            key: value[:, body_id]
+            for key, value in self.captured_data.items()
+            if key in _BODY_FIELDS and isinstance(value, np.ndarray)
+        }
         if data_name is None:
-            return unwrapped_data.get(body_id, np.array([]))
-
-        if data_name not in unwrapped_data:
-            msg = f"Data '{data_name}' not found for body '{body_name}'."
+            return fields
+        if data_name not in fields:
+            msg = f"'{data_name}' is not a captured per-body field. Captured: {', '.join(sorted(fields)) or 'none'}."
             raise ValueError(msg)
+        return fields[data_name]
 
-        if isinstance(unwrapped_data[body_id], dict):
-            return unwrapped_data[body_id].get(data_name, None)
-        msg = f"Data for body_id '{body_id}' is not a dictionary."
-        raise ValueError(msg)
-
-    def name2id(self, name: str) -> int:
-        """Get the name of a body given its index.
+    def name2id(self, name: str, obj_type: str | mujoco.mjtObj | None = None) -> int:
+        """Look up an object's id by name.
 
         Args:
-            name (str): The name of the body.
+            name: Object name.
+            obj_type: Object type, e.g. ``"body"``, ``"joint"`` or a
+                ``mujoco.mjtObj``. If omitted, returns the first match across
+                all types.
 
         Returns:
-            int: The index of the body.
+            The object's id.
+
+        Raises:
+            ValueError: If no object has that name.
 
         """
-        for obj_type in _MJ_OBJ_TYPES:
-            try:
-                obj_id = mujoco.mj_name2id(self._model, obj_type, name)
-                if obj_id >= 0:
-                    return obj_id
-            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: S112
-                continue
+        types = _MJ_OBJ_TYPES if obj_type is None else [_obj_type(obj_type)]
+        for t in types:
+            obj_id = mujoco.mj_name2id(self._model, t, name)
+            if obj_id >= 0:
+                return obj_id
         msg = f"Object with name '{name}' not found."
         raise ValueError(msg)
 
-    def id2name(self, id: int) -> str:
-        """Get the name of a body given its ID.
+    def id2name(self, obj_id: int, obj_type: str | mujoco.mjtObj) -> str:
+        """Look up an object's name by id.
 
         Args:
-            id (int): The ID of the body.
+            obj_id: Object id.
+            obj_type: Object type, e.g. ``"body"``, ``"joint"`` or a ``mujoco.mjtObj``.
 
         Returns:
-            str: The name of the body.
+            The object's name.
+
+        Raises:
+            ValueError: If there is no named object with that id.
 
         """
-        # BUG: Fix this to work properly
-        msg = "This method is not implemented yet."
-        raise NotImplementedError(msg)
-        for obj_type in _MJ_OBJ_TYPES:
-            try:
-                obj_name = mujoco.mj_id2name(self._model, obj_type, id)
-                if obj_name is None:
-                    continue
-                return obj_name
-            except (mujoco.FatalError, mujoco.UnexpectedError, Exception):  # noqa: S112
-                continue
-        msg = f"ID '{id}' not found."
-        raise ValueError(msg)
+        name = mujoco.mj_id2name(self._model, _obj_type(obj_type), obj_id)
+        if not name:
+            msg = f"No named {obj_type} with id {obj_id}."
+            raise ValueError(msg)
+        return name
 
     def to_yaml(self, name: str = "Model") -> None:
-        """Save simulation data to a YAML file.
+        """Write :attr:`captured_data` to a YAML file.
 
         Args:
-            name (str): The filename for the YAML file.
+            name: Output path. ``.yml`` is appended if missing.
 
-        Returns:
-            None
+        Raises:
+            ValueError: If nothing was captured or the file cannot be written.
 
         """
         if not name.endswith(".yml"):
             name += ".yml"
 
+        def plain(value: np.ndarray | list[np.ndarray]) -> list:
+            return value.tolist() if isinstance(value, np.ndarray) else [v.tolist() for v in value]
+
         try:
-            # Convert simData's NumPy arrays or lists to a YAML-friendly format
-            serialized_data = {
-                k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.captured_data.items()
-            }
-
+            serialized = {k: plain(v) for k, v in self.captured_data.items()}
             with Path(name).open("w", encoding="utf-8") as f:
-                yaml.dump(serialized_data, f, default_flow_style=False)
-
+                yaml.dump(serialized, f, default_flow_style=False)
         except Exception as e:
             msg = f"Failed to save simulation data to '{name}'"
             raise ValueError(msg) from e
-
-
-class _SimulationData:
-    """A class to store and manage simulation data."""
-
-    __slots__ = ["_d"]
-
-    def __init__(self) -> None:
-        self._d: dict[str, list] = defaultdict(list)
-
-    def _is_capture_all(self, params) -> bool:
-        """Check if all data is captured."""
-        if params is all:
-            return True
-        if isinstance(params, set):
-            return "all" in map(str.lower, params)
-        if isinstance(params, str):
-            return params.lower() == "all"
-        return None
-
-    def capture(self, mj_data) -> None:
-        """Capture data from MjData, storing specified or all public attributes."""
-        from . import CAPTURE_PARAMETERS
-
-        if self._is_capture_all(CAPTURE_PARAMETERS):
-            keys = self.get_public_keys(mj_data)  # TODO: Fix this to be more efficient. Is cycling on every sim step.
-        else:
-            keys = CAPTURE_PARAMETERS
-
-        for key in keys:
-            value = getattr(mj_data, key, None)
-            if value is None:
-                continue
-            if isinstance(value, np.ndarray):
-                self._d[key].append(value.copy())
-            elif np.isscalar(value):
-                self._d[key].append(value)
-            elif hasattr(value, "copy") and callable(value.copy):
-                self._d[key].append(value.copy())
-            else:
-                self._d[key].append(value)
-
-    def unwrap(self) -> dict[str, np.ndarray]:
-        """Unwrap simulation data into a structured format with NumPy arrays.
-
-        Returns:
-            dict[str, np.ndarray]: Unwrapped data for each key.
-
-        """
-        unwrapped_data = {}
-
-        for key, value_list in self._d.items():
-            if not value_list:
-                unwrapped_data[key] = np.array([])
-                continue
-
-            first = value_list[0]
-
-            try:
-                if isinstance(first, np.ndarray):
-                    shape = first.shape
-                    if all(v.shape == shape for v in value_list):
-                        unwrapped_data[key] = np.stack(value_list)
-                    else:
-                        unwrapped_data[key] = value_list  # Inconsistent shapes
-                else:
-                    unwrapped_data[key] = np.array(value_list)
-            except (ValueError, TypeError):
-                unwrapped_data[key] = value_list  # Fallback
-
-        return unwrapped_data
-
-    @property
-    def shape(self) -> dict[str, tuple]:
-        """Return the shape of the captured data per key."""
-        if not self._d:
-            return {}
-
-        shapes: dict[str, tuple[Any, ...]] = {}
-        for key, value_list in self._d.items():
-            if not value_list:
-                shapes[key] = ()
-                continue
-
-            first_value = value_list[0]
-            if isinstance(first_value, np.ndarray):
-                shapes[key] = (len(value_list), *first_value.shape)
-            elif isinstance(first_value, list) and all(isinstance(v, list) for v in value_list):
-                shapes[key] = (len(value_list), len(first_value))
-            else:
-                shapes[key] = (len(value_list),)
-
-        return shapes
-
-    def clear(self) -> None:
-        """Clear all captured data."""
-        self._d.clear()
-
-    def keys(self) -> set[str]:
-        """Return a set of all captured data keys."""
-        return set(self._d.keys())
-
-    def items(self) -> dict[str, list]:
-        """Return raw captured data as a dict of lists."""
-        return dict(self._d)
-
-    def __len__(self) -> int:
-        """Return the number of captured steps (based on first key)."""
-        if not self._d:
-            return 0
-        first_key = next(iter(self._d))
-        return len(self._d[first_key])
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}({len(self)} Step(s) Captured)"
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __del__(self) -> None:
-        """Safely clean up resources during object deletion."""
-        if hasattr(self, "_d"):
-            self._d.clear()
-
-    @staticmethod
-    def get_public_keys(obj: object) -> set[str]:
-        """Get all public (non-callable) attributes of an object."""
-        return {name for name in dir(obj) if not name.startswith("_") and not callable(getattr(obj, name))}
-
-
-class Wrapper(Simulation):
-    def __init__(self, *args, **kwargs) -> None:
-        from . import __version__
-
-        if __version__ >= "1.0.0":
-            msg = "Wrapper was removed in v1.0.0. Use Simulation instead."
-            raise RuntimeError(
-                msg,
-            )
-        warnings.warn(
-            f"Wrapper is deprecated and will be removed in v1.0.0 (Current: {__version__}). Use Simulation instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__(*args, **kwargs)

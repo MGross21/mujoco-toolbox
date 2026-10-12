@@ -75,24 +75,13 @@ while data.time < DURATION:
 ```python
 import mujoco_toolbox as mjtb
 
-sim = mjtb.Simulation("path/to/urdf", DURATION, DATA_RATE).run()
+sim = mjtb.Simulation("path/to/urdf", duration=DURATION, data_rate=DATA_RATE).run()
 sim.captured_data  # Dictionary holding data, ie. ["qpos"] = [data]
 ```
 
-Under the hood, certain class variable have the following defaults:
+Choose fields per simulation with `capture=`, or change the default for all simulations:
 
 ```python
-mjtb.CAPTURE_PARAMETERS = {
-    "xpos",
-    "qpos",
-    "qvel",
-    "act",
-    "ctrl",
-    "qacc",
-    "xpos",
-    "xquat",
-    "xmat",
-    "ctrl",
-    "sensordata",
-}
+mjtb.Simulation("path/to/urdf", capture={"time", "qpos", "qvel"}).run()
+mjtb.CAPTURE_PARAMETERS = "all"  # every numeric MjData field
 ```

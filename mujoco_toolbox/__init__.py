@@ -1,38 +1,22 @@
-"""Mujoco Toolbox
-==============
+"""A modern simulation wrapper for Google DeepMind's MuJoCo.
 
-A toolbox for working with MuJoCo simulations.
+Load MJCF or URDF models, run them, record per-step data, and render video in a
+few lines:
 
-This package provides various utilities and controllers to facilitate a faster
-simulation process.
+    >>> import mujoco_toolbox as mjtb
+    >>> sim = mjtb.Simulation("robot.xml", duration=5).run(render=True)
+    >>> sim.save("robot.mp4")
+    >>> sim.captured_data["qpos"]
 
-Modules
---------
-- `sim`: Contains the Simulation class for interfacing with MuJoCo.
-- `controllers`: Includes pre-built functions for controlling simulations.
-- `assets`: Contains pre-defined assets for building MuJoCo models.
+Submodules:
+    - :mod:`~mujoco_toolbox.sim`: :class:`~mujoco_toolbox.sim.Simulation`, the main entry point.
+    - :mod:`~mujoco_toolbox.builder`: Merge MJCF/URDF files and XML strings into one model.
+    - :mod:`~mujoco_toolbox.controllers`: Ready-made control callbacks.
+    - :mod:`~mujoco_toolbox.assets`: Reusable world and scene XML.
 
-Constants
-----------
-- `CAPTURE_PARAMETERS`: List of MjData fields to capture during simulation.
-- `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
-- `PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
-
-This project is licensed under the `MIT License`. See the `LICENSE` file for
-details.
-
-Documentation
--------------
-**[See Here](https://MGross21.github.io/mujoco-toolbox/)**
-
-Notes
------
-This package is still under development.
-Some features may not be fully implemented or may change in future releases.
-Please refer to the documentation for the most up-to-date information.
-**[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)**.
-
-"""  # noqa: D205, D415, D416
+This package is pre-1.0 and its API may change between minor releases. Report
+issues at https://github.com/MGross21/mujoco-toolbox/issues.
+"""
 
 import os
 
@@ -84,10 +68,13 @@ __all__ = [
     "step",
 ]
 
-MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
+MAX_GEOM_SCALAR: int = 2
+"""Multiplier on ``model.ngeom`` for the renderer's ``max_geom`` scene buffer."""
 GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
-PROGRESS_BAR_ENABLED = GUI_ENABLED
-CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulation
+"""Whether a display was detected at import time."""
+PROGRESS_BAR_ENABLED: bool = GUI_ENABLED
+"""Show a progress bar during :meth:`Simulation.run <mujoco_toolbox.sim.Simulation.run>`."""
+CAPTURE_PARAMETERS: set[str] | str = {
     "time",
     "qpos",
     "qvel",
@@ -99,46 +86,16 @@ CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulatio
     "ctrl",
     "sensordata",
 }
+"""Default ``MjData`` fields recorded by :meth:`Simulation.run <mujoco_toolbox.sim.Simulation.run>`.
+
+Applies to every :class:`~mujoco_toolbox.sim.Simulation` created without a
+``capture`` argument. Set to ``"all"`` to record every numeric field:
+
+    >>> mjtb.CAPTURE_PARAMETERS = "all"
+
+See the `MjData reference <https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata>`_
+for available fields.
 """
-MjData default fields to capture during simulation.
-For possible types, see
-[MuJoCo API](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
-
-Capture All:
-------
->>> from mujoco_toolbox import mjtb
->>> mjtb.CAPTURE_PARAMETERS = {"all"}
-
-Default:
---------
->>> mjtb.CAPTURE_PARAMETERS = {
-...     "time",
-...     "qpos",
-...     "qvel",
-...     "act",
-...     "qacc",
-...     "xpos",
-...     "xquat",
-...     "xmat",
-...     "ctrl",
-...     "sensordata",
-... }
-"""
-
-if GUI_ENABLED:
-    try:
-        import subprocess
-
-        subprocess.run(
-            ["ffmpeg", "-version"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True,
-        )
-    except subprocess.CalledProcessError:
-        msg = "ffmpeg is not installed or not functioning correctly."
-        raise RuntimeError(msg)
-
 
 # Check if the package is still under development
 if __version__.startswith("0"):

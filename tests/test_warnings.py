@@ -1,7 +1,3 @@
-import pytest
-
-import mujoco_toolbox as mjtb
-from mujoco_toolbox.sim import Wrapper
 from mujoco_toolbox.warnings import SimulationError, SimulationWarning
 
 
@@ -20,14 +16,3 @@ def test_simulation_error() -> None:
         raise SimulationError(msg)
     except SimulationError as e:
         assert str(e) == msg
-
-
-def test_deprecated_wrapper_warning() -> None:
-    with pytest.warns(DeprecationWarning):
-        Wrapper("<mujoco></mujoco>")
-
-
-def test_deprecated_wrapper_error() -> None:
-    mjtb.__version__ = "1.0.0"  # Set version to trigger deprecation
-    with pytest.raises(RuntimeError):
-        Wrapper("<mujoco></mujoco>")

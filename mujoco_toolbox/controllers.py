@@ -1,35 +1,19 @@
-"""This module provides a set of controllers for the MuJoCo physics engine.
-Each controller applies a specific type of control signal to the simulation,
-such as step signals, sine waves, cosine waves, random signals, or real-time adjustments.
+"""Ready-made control callbacks for :class:`~mujoco_toolbox.sim.Simulation`.
 
-Functions:
-    step(model, data, **kwargs) -> None:
-        Applies a step signal to the simulation.
-    sin(model, data, **kwargs) -> None:
-        Applies a sine wave signal to the simulation.
-    cos(model, data, **kwargs) -> None:
-        Applies a cosine wave signal to the simulation.
-    random(model, data, **kwargs) -> None:
-        Applies a random signal to the simulation.
-    real_time(model, data, **kwargs) -> None:
-        Applies real-time adjustments to the simulation based on provided parameters.
+Every controller has the signature ``f(model, data, **kwargs)``. Keyword
+arguments given to :class:`~mujoco_toolbox.sim.Simulation` beyond its own
+parameters are forwarded to the controller on every step:
+
+    >>> import mujoco_toolbox as mjtb
+    >>> mjtb.Simulation("robot.xml", controller=mjtb.sin, amplitude=0.5, frequency=2).run()
+
+Unless ``joint`` or ``axis`` is given, signals drive every actuator's ``ctrl``.
 """
 
 import numpy as np
 
 
 def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
-    """Common helper function for controller logic to reduce redundancy.
-
-    Args:
-        model: MuJoCo model.
-        data: MuJoCo data.
-        value: Control value to apply.
-        joint (list[int], optional): Joints to apply control to.
-        axis (int, optional): Axis to apply control to.
-        delay (float, optional): Delay before applying control.
-
-    """
     # Don't apply control until after delay
     if data.time < delay:
         return
@@ -47,17 +31,13 @@ def _apply_control(model, data, value, joint=None, axis=None, delay=0) -> None:
 
 
 def step(model, data, **kwargs) -> None:
-    """A step controller for the simulation.
+    """Apply a constant step signal.
 
-    Args:
-        amplitude (float): The amplitude of the step signal (default=1).
-        joint (list[int]): The joints to apply the step signal to (default=all).
-        axis (int): The axis to apply the step signal to (default=None).
-        delay (float): The delay before applying the step signal (default=0).
-
-    Returns:
-        None
-
+    Keyword Args:
+        amplitude (float): Step height. Defaults to 1.
+        joint (list[int]): Actuator indices to drive. Defaults to all.
+        axis (int): ``qpos`` index to set directly, instead of actuators.
+        delay (float): Seconds to wait before stepping. Defaults to 0.
     """
     amplitude = kwargs.get("amplitude", 1)
     joint = kwargs.get("joint")
@@ -75,18 +55,14 @@ def step(model, data, **kwargs) -> None:
 
 
 def sin(model, data, **kwargs) -> None:
-    """A simple sine wave controller for the simulation.
+    """Apply a sine wave ``amplitude * sin(2π · frequency · t + phase)``.
 
-    Args:
-        amplitude (float): The amplitude of the sine wave (default=1).
-        frequency (float): The frequency of the sine wave (default=1).
-        phase (float): The phase shift of the sine wave (default=0).
-        joint (list[int]): The joint to apply the sine wave to (default=all).
-        delay (float): The delay before applying the sine wave (default=0).
-
-    Returns:
-        None
-
+    Keyword Args:
+        amplitude (float): Peak value. Defaults to 1.
+        frequency (float): Frequency in Hz. Defaults to 1.
+        phase (float): Phase shift in radians. Defaults to 0.
+        joint (list[int]): Actuator indices to drive. Defaults to all.
+        delay (float): Seconds to wait before starting. Defaults to 0.
     """
     amplitude = kwargs.get("amplitude", 1)
     frequency = kwargs.get("frequency", 1)
@@ -103,18 +79,14 @@ def sin(model, data, **kwargs) -> None:
 
 
 def cos(model, data, **kwargs) -> None:
-    """A simple cosine wave controller for the simulation.
+    """Apply a cosine wave ``amplitude * cos(2π · frequency · t + phase)``.
 
-    Args:
-        amplitude (float): The amplitude of the cosine wave (default=1).
-        frequency (float): The frequency of the cosine wave (default=1).
-        phase (float): The phase shift of the cosine wave (default=0).
-        joint (list[int]): The joint to apply the cosine wave to (default=all).
-        delay (float): The delay before applying the cosine wave (default=0).
-
-    Returns:
-        None
-
+    Keyword Args:
+        amplitude (float): Peak value. Defaults to 1.
+        frequency (float): Frequency in Hz. Defaults to 1.
+        phase (float): Phase shift in radians. Defaults to 0.
+        joint (list[int]): Actuator indices to drive. Defaults to all.
+        delay (float): Seconds to wait before starting. Defaults to 0.
     """
     amplitude = kwargs.get("amplitude", 1)
     frequency = kwargs.get("frequency", 1)
@@ -131,17 +103,13 @@ def cos(model, data, **kwargs) -> None:
 
 
 def random(model, data, **kwargs) -> None:
-    """A random controller for the simulation.
+    """Apply uniform random noise in ``[0, amplitude)`` each step.
 
-    Args:
-        amplitude (float): The maximum amplitude of the random signal (default=1).
-        joint (list[int]): The joints to apply the random signal to (default=all).
-        axis (int): The axis to apply the random signal to (default=None).
-        delay (float): The delay before applying the random signal (default=0).
-
-    Returns:
-        None
-
+    Keyword Args:
+        amplitude (float): Upper bound of the noise. Defaults to 1.
+        joint (list[int]): Actuator indices to drive. Defaults to all.
+        axis (int): ``qpos`` index to set directly, instead of actuators.
+        delay (float): Seconds to wait before starting. Defaults to 0.
     """
     amplitude = kwargs.get("amplitude", 1)
     joint = kwargs.get("joint")
@@ -160,13 +128,17 @@ def random(model, data, **kwargs) -> None:
 
 
 def real_time(model, data, *args, **kwargs) -> None:
-    """A real-time controller for the simulation.
+    """Copy values onto ``data`` on demand, for driving a digital twin.
+
+    Call it yourself with a dict of ``MjData`` fields, e.g.
+    ``sim.controller(sim.model, sim.data, {"qpos": q})``. Unknown fields are
+    skipped with a warning.
 
     Args:
-        controller_params (dict): Dictionary of parameters to pass to the controller.
-
-    Returns:
-        None
+        model: The ``MjModel`` (unused).
+        data: The ``MjData`` to update.
+        *args: A single dict mapping ``MjData`` field names to values.
+        **kwargs: Ignored.
 
     """
     from .utils import _print_warning
@@ -179,7 +151,3 @@ def real_time(model, data, *args, **kwargs) -> None:
             setattr(data, key, value)
         else:
             _print_warning(f"'{key}' is not a valid attribute of MjData. Skipping...")
-
-    # untested
-    # if hasattr(data, 'control'):
-    #     data.control = kwargs.get("control", data.control)

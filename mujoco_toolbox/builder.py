@@ -21,7 +21,25 @@ if TYPE_CHECKING:
 
 
 class Builder:
-    """A class to build and manipulate MuJoCo XML models."""
+    """Combine MJCF and URDF sources into a single MuJoCo model.
+
+    Sources can be file paths or XML strings, either full documents
+    (``<mujoco>``/``<robot>``) or bare sub-trees. Builders combine with ``+``,
+    appending the second model's assets, bodies, actuators, sensors, etc.
+
+    Example:
+        >>> model = Builder("robot.urdf", meshdir="meshes/") + "<worldbody>...</worldbody>"
+        >>> model.save("combined.xml")
+
+    Args:
+        *inputs: XML file paths or strings, merged in order.
+        meshdir: Mesh directory written to ``<compiler meshdir>`` for URDF inputs.
+
+    Raises:
+        ValueError: If no input is given.
+        TypeError: If an input is not a string.
+
+    """
 
     def __init__(self, *inputs: str, meshdir: str = "meshes/") -> None:
         if not inputs:
@@ -203,6 +221,15 @@ class Builder:
                 s1.append(el)
 
     def save(self, file_path: str) -> str:
+        """Write the model as indented XML.
+
+        Args:
+            file_path: Output path.
+
+        Returns:
+            Absolute path of the written file.
+
+        """
         if self.tree is not None:
             self._indent_xml(self.root)
             self.tree.write(file_path, encoding="utf-8", xml_declaration=True)

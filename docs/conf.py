@@ -18,9 +18,27 @@ release = mjtb.__version__
 # General configuration
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
 ]
+
+autodoc_default_options = {
+    "members": True,
+    "member-order": "bysource",
+    "show-inheritance": True,
+}
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented_params"
+autodoc_type_aliases = {"CaptureSpec": "mujoco_toolbox.sim.CaptureSpec"}
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
+napoleon_use_rtype = False
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+}
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -33,14 +51,6 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 
-def skip_properties(app, what, name, obj, skip, options):
-    """Skip all @property decorated functions."""
-    if isinstance(obj, property):
-        return True  # skip this property
-    return skip
-
-
 def setup(app: "Sphinx") -> None:
     """Custom Sphinx setup function."""
     app.add_css_file("custom.css")
-    app.connect("autodoc-skip-member", skip_properties)
