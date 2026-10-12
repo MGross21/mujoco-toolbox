@@ -15,11 +15,11 @@ from __future__ import annotations
 import argparse
 import ast
 import filecmp
-import tempfile
 import keyword
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "typings"
