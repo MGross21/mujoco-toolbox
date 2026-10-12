@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -1827,7 +1827,7 @@ wheels = [
 
 [[package]]
 name = "mujoco-toolbox"
-version = "0.6.3"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "colorama" },
