@@ -555,45 +555,45 @@ def to_zip(spec: _specs.MjSpec, file: str | typing.IO[bytes]) -> None:
       spec: The mjSpec to save to a file.
       file: The path to the file to save to or the file object to write to.
     """
-HEADERS_DIR: str = '/home/mgross/Documents/github/packages/mujoco-toolbox/.venv/lib/python3.13/site-packages/mujoco/include/mujoco'
-MJTNUM_BYTES: int = 8
+HEADERS_DIR: str
+MJTNUM_BYTES: int
 MjStruct: typing._UnionGenericAlias
-PLUGINS_DIR: str = '/home/mgross/Documents/github/packages/mujoco-toolbox/.venv/lib/python3.13/site-packages/mujoco/plugin'
+PLUGINS_DIR: str
 PLUGIN_HANDLES: list
-_SYSTEM: str = 'Linux'
-__version__: str = '3.15.0'
-mjDISABLESTRING: tuple = ('Constraint', 'Equality', 'Frictionloss', 'Limit', 'Contact', 'Spring', 'Damper', 'Gravity', 'Clampctrl', 'Warmstart', 'Filterparent', 'Actuation', 'Refsafe', 'Sensor', 'Midphase', 'Eulerdamp', 'AutoReset', 'NativeCCD', 'Island', 'MultiCCD')
-mjENABLESTRING: tuple = ('Override', 'Energy', 'Fwdinv', 'InvDiscrete', 'Sleep', 'DiagExact', 'IPC')
-mjFRAMESTRING: tuple = ('None', 'Body', 'Geom', 'Site', 'Camera', 'Light', 'Contact', 'World')
-mjLABELSTRING: tuple = ('None', 'Body', 'Joint', 'Geom', 'Site', 'Camera', 'Light', 'Tendon', 'Actuator', 'Constraint', 'Flex', 'Skin', 'Selection', 'SelPoint', 'Contact', 'ContactForce', 'Island')
-mjMAXCONPAIR: int = 50
-mjMAXFLEXNODES: int = 27
-mjMAXIMP: float = 0.9999
-mjMAXLIGHT: int = 100
-mjMAXLINE: int = 100
-mjMAXLINEPNT: int = 1001
-mjMAXOVERLAY: int = 500
-mjMAXPLANEGRID: int = 200
-mjMAXTREEDEPTH: int = 50
-mjMAXVAL: float = 10000000000.0
-mjMINAWAKE: int = 10
-mjMINIMP: float = 0.0001
-mjMINMU: float = 1e-05
-mjMINVAL: float = 1e-15
-mjNBIAS: int = 10
-mjNDYN: int = 10
-mjNEQDATA: int = 11
-mjNFLUID: int = 12
-mjNGAIN: int = 10
-mjNGROUP: int = 6
-mjNIMP: int = 5
-mjNISLAND: int = 20
-mjNPOLY: int = 2
-mjNREF: int = 2
-mjNSENS: int = 3
-mjNSOLVER: int = 200
-mjPI: float = 3.141592653589793
-mjRNDSTRING: tuple = (('Shadow', '1', 'S'), ('Wireframe', '0', 'W'), ('Reflection', '1', 'R'), ('Additive', '0', 'L'), ('Skybox', '1', 'K'), ('Fog', '0', 'G'), ('Haze', '1', '/'), ('Depth', '0', ''), ('Segment', '0', ','), ('Id Color', '0', ''), ('Cull Face', '1', ''))
-mjTIMERSTRING: tuple = ('step', 'forward', 'inverse', 'position', 'velocity', 'actuation', 'constraint', 'advance', 'pos_kinematics', 'pos_inertia', 'pos_collision', 'pos_make', 'pos_project', 'col_broadphase', 'col_narrowphase')
-mjVERSION_HEADER: int = 3015000
-mjVISSTRING: tuple = (('Convex Hull', '0', 'H'), ('Texture', '1', 'X'), ('Joint', '0', 'J'), ('Camera', '0', 'Q'), ('Actuator', '0', 'U'), ('Activation', '0', ','), ('Light', '0', 'Z'), ('Tendon', '1', 'V'), ('Range Finder', '1', 'Y'), ('Equality', '0', 'E'), ('Inertia', '0', 'I'), ('Scale Inertia', '0', "'"), ('Perturb Force', '0', 'B'), ('Perturb Object', '1', 'O'), ('Contact Point', '0', 'C'), ('Island', '0', 'N'), ('Contact Force', '0', 'F'), ('Contact Split', '0', 'P'), ('Transparent', '0', 'T'), ('Auto Connect', '0', 'A'), ('Center of Mass', '0', 'M'), ('Select Point', '0', ''), ('Static Body', '1', 'D'), ('Skin', '1', ';'), ('Flex Vert', '0', ''), ('Flex Edge', '1', ''), ('Flex Face', '0', ''), ('Flex Skin', '1', ''), ('Body Tree', '0', '`'), ('Mesh Tree', '0', '\\'), ('SDF iters', '0', ''))
+_SYSTEM: str
+__version__: str
+mjDISABLESTRING: tuple
+mjENABLESTRING: tuple
+mjFRAMESTRING: tuple
+mjLABELSTRING: tuple
+mjMAXCONPAIR: int
+mjMAXFLEXNODES: int
+mjMAXIMP: float
+mjMAXLIGHT: int
+mjMAXLINE: int
+mjMAXLINEPNT: int
+mjMAXOVERLAY: int
+mjMAXPLANEGRID: int
+mjMAXTREEDEPTH: int
+mjMAXVAL: float
+mjMINAWAKE: int
+mjMINIMP: float
+mjMINMU: float
+mjMINVAL: float
+mjNBIAS: int
+mjNDYN: int
+mjNEQDATA: int
+mjNFLUID: int
+mjNGAIN: int
+mjNGROUP: int
+mjNIMP: int
+mjNISLAND: int
+mjNPOLY: int
+mjNREF: int
+mjNSENS: int
+mjNSOLVER: int
+mjPI: float
+mjRNDSTRING: tuple
+mjTIMERSTRING: tuple
+mjVERSION_HEADER: int
+mjVISSTRING: tuple
