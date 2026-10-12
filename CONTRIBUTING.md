@@ -33,31 +33,42 @@ Please review the [Code of Conduct](https://github.com/MGross21/mujoco-toolbox/b
     cd mujoco-toolbox
     ```
 
-2. **Install Poetry** (if you haven’t already):
+2. **Install [uv](https://docs.astral.sh/uv/)** (if you haven't already):
 
     ```bash
-    curl -sSL https://install.python-poetry.org | python3 -
+    curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
 
-    Or see: [Poetry Installation Docs](https://python-poetry.org/docs/#installation)
+    Or see the [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/).
 
-3. **Install dependencies**:
+3. **Create the environment and install everything**:
 
     ```bash
-    poetry install --with dev
+    uv sync
     ```
 
-4. **Activate the shell**:
+    This creates `.venv/`, installs the project in editable mode, and installs
+    the `dev` dependency group (which pulls in `test`, `lint`, and `docs`),
+    all pinned exactly by `uv.lock`. There is no separate "activate" step —
+    prefix commands with `uv run`:
 
     ```bash
-    poetry shell
+    uv run pytest
     ```
 
-    or
+    If you prefer an activated shell, `source .venv/bin/activate` still works.
+
+4. **Optional installs**:
 
     ```bash
-    poetry env activate
+    uv sync --extra examples   # Jupyter kernel + widgets for examples/
+    uv sync --group lint       # linters only, without the project
     ```
+
+5. **Changing dependencies**: edit `pyproject.toml`, then run `uv lock` and
+    commit the updated `uv.lock`. `uv add <pkg>` / `uv remove <pkg>` do both
+    steps for you. **`uv.lock` is committed and must stay in sync** — CI runs
+    with `UV_FROZEN=1` and fails if it drifts from `pyproject.toml`.
 
 ---
 
@@ -90,22 +101,24 @@ For significant changes, please [open an issue](https://github.com/MGross21/mujo
 
 All pull requests are automatically checked using **GitHub Actions**.
 
-The following tools are enforced:
+Two tools are enforced:
 
-- [`black`](https://black.readthedocs.io/) – formatting
-- [`ruff`](https://docs.astral.sh/ruff/) – linting
-- [`mypy`](http://mypy-lang.org/) – type checking
-- [`pytest`](https://docs.pytest.org/) – test runner
+- [`ruff`](https://docs.astral.sh/ruff/) — linting **and** formatting. Replaces
+  black, isort, flake8, bandit, and pylint; all of its config lives in
+  `[tool.ruff]` in `pyproject.toml`.
+- [`mypy`](https://mypy-lang.org/) — static type checking (ruff does not type-check).
+
+Tests run with [`pytest`](https://docs.pytest.org/).
 
 ⚠️ **Your pull request must pass all checks before it can be merged.**
 
-Run checks locally using Poetry:
+Run everything locally:
 
 ```bash
-poetry run black mujoco_toolbox
-poetry run ruff check mujoco_toolbox
-poetry run mypy mujoco_toolbox
-poetry run pytest tests/
+uv run ruff check --fix .     # lint, with autofixes applied
+uv run ruff format .          # format
+uv run mypy mujoco_toolbox/   # type check
+uv run pytest tests/          # tests
 ```
 
 ## 📖 Building the Documentation Locally
@@ -113,13 +126,13 @@ poetry run pytest tests/
 To build the documentation locally, run:
 
 ```bash
-poetry run sphinx-build docs docs/_build/html
+uv run make -C docs html
 ```
 
 To automatically open the generated documentation in your default web browser after building, use:
 
 ```bash
-poetry run sphinx-build docs docs/_build/html && start docs/_build/html/index.html
+uv run make -C docs html && xdg-open docs/_build/html/index.html
 ```
 
 This will generate the HTML documentation and open the `index.html` page for easy viewing.

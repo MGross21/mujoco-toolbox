@@ -42,6 +42,7 @@ def test_resolution() -> None:
     assert wrapper.resolution == (800, 600), "Resolution does not match expected value."
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
+
 # Test to ensure gravity is enabled and matches expected value
 def test_gravity() -> None:
     model = """
@@ -58,6 +59,7 @@ def test_gravity() -> None:
     """
     wrapper = Simulation(model)
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
+
 
 # Test to ensure rendering works without errors
 def test_rendering() -> None:

@@ -19,6 +19,7 @@ NUM_STEPS = 1000
 # Interpolate joint positions
 qpos_trajectory = np.linspace(QPOS_INIT, QPOS_FINAL, NUM_STEPS)
 
+
 def main() -> None:
     # Create and launch the digital twin
     with mjtb.Simulation(
@@ -34,6 +35,7 @@ def main() -> None:
         for qpos in qpos_trajectory:
             ur5.controller(ur5.model, ur5.data, {"qpos": qpos})
             time.sleep(5.0 / NUM_STEPS)
+
 
 if __name__ == "__main__":
     main()

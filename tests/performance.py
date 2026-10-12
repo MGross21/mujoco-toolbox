@@ -14,6 +14,7 @@ NUM_TESTS = 25
 
 MODEL = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "humanoid.xml"))
 
+
 def mujoco_standard() -> float:
     start_time = time.time()
     model = mujoco.MjModel.from_xml_path(MODEL)
@@ -51,11 +52,13 @@ def mujoco_standard() -> float:
     end_time = time.time()
     return end_time - start_time
 
+
 def mujoco_tbx() -> float:
     start_time = time.time()
     mjtb.Simulation(MODEL, duration=DURATION, data_rate=DATA_RATE).run(multi_thread=False)
     end_time = time.time()
     return end_time - start_time
+
 
 def performance_comparison() -> tuple[float, float]:
     mujoco_time = average([mujoco_standard() for _ in range(NUM_TESTS)])
@@ -63,13 +66,17 @@ def performance_comparison() -> tuple[float, float]:
 
     return (mujoco_time, mjtb_time)
 
+
 def generate_performance_chart() -> None:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)
 
     times = performance_comparison()
 
-    labels = [f"MuJoCo v{mujoco.__version__}", f"MuJoCo Toolbox v{mjtb.__version__}"]
+    labels = [
+        f"MuJoCo v{mujoco.__version__}",
+        f"MuJoCo Toolbox v{mjtb.__version__}",
+    ]
 
     plt.bar(labels, times, color=["blue", "green"])
     plt.ylabel("Time (seconds)")
@@ -89,9 +96,18 @@ def generate_performance_chart() -> None:
     with open(csv_file, mode="a" if file_exists else "w", newline="") as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(["Library", "MAJOR", "MINOR", "PATCH", "Average Performance (seconds)"])
+            writer.writerow(
+                [
+                    "Library",
+                    "MAJOR",
+                    "MINOR",
+                    "PATCH",
+                    "Average Performance (seconds)",
+                ]
+            )
         writer.writerow(["MuJoCo", *mujoco_version, times[0]])
         writer.writerow(["MuJoCo Toolbox", *mjtb_version, times[1]])
+
 
 def progress_over_time() -> None:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -108,7 +124,8 @@ def progress_over_time() -> None:
     mujoco_data = [float(row["Average Performance (seconds)"]) for row in data if row["Library"] == "MuJoCo"]
     toolbox_data = {
         f"{row['MAJOR']}.{row['MINOR']}": float(row["Average Performance (seconds)"])
-        for row in data if row["Library"] == "MuJoCo Toolbox"
+        for row in data
+        if row["Library"] == "MuJoCo Toolbox"
     }
 
     # Ensure equal number of tests
@@ -117,7 +134,11 @@ def progress_over_time() -> None:
 
     # Sort toolbox data by version
     toolbox_versions, toolbox_performances = zip(
-        *sorted(toolbox_data.items(), key=lambda x: tuple(map(int, x[0].split(".")))), strict=False,
+        *sorted(
+            toolbox_data.items(),
+            key=lambda x: tuple(map(int, x[0].split("."))),
+        ),
+        strict=False,
     )
 
     # Plot data
@@ -159,6 +180,7 @@ def progress_over_time() -> None:
 
     if mjtb.GUI_ENABLED:
         plt.show()
+
 
 if __name__ == "__main__":
     generate_performance_chart()

@@ -158,6 +158,7 @@ def random(model, data, **kwargs) -> None:
     value = amplitude * np.random.rand()
     _apply_control(model, data, value, joint=joint, axis=axis, delay=delay)
 
+
 def real_time(model, data, *args, **kwargs) -> None:
     """A real-time controller for the simulation.
 
@@ -169,6 +170,7 @@ def real_time(model, data, *args, **kwargs) -> None:
 
     """
     from .utils import _print_warning
+
     if not args:
         _print_warning("No arguments provided to real_time controller. Skipping...")
         return
@@ -181,4 +183,3 @@ def real_time(model, data, *args, **kwargs) -> None:
     # untested
     # if hasattr(data, 'control'):
     #     data.control = kwargs.get("control", data.control)
-

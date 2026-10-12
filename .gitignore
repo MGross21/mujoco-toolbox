@@ -4,6 +4,7 @@
 # Ignore Caches
 **/__pycache__/
 .*_cache/
+.ruff_cache/
 
 # Generated Builds
 dist/
@@ -28,6 +29,7 @@ docs/_build/
 # Environment
 .env
 *env/
+.venv/
 *.egg-info
 build/
 .coverage

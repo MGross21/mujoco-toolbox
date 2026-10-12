@@ -11,6 +11,7 @@ import mujoco_toolbox as mjtb
 def _mjLazyLoad():
     import mujoco.bindings_test as bt
     import mujoco.rollout_test as rt
+
     return bt, rt
 
 
@@ -47,10 +48,12 @@ def test_xml1() -> None:
     if mjtb.GUI_ENABLED:
         test1.save(title="sine_wave")
 
-    assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), \
+    assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
         "Simulation data size does not match requested parameters."
-    assert len(test1._captured_data) == (test1.duration * test1.data_rate), \
+    )
+    assert len(test1._captured_data) == (test1.duration * test1.data_rate), (
         "Captured data length does not match simulation parameters."
+    )
 
 
 def test_urdf1() -> None:
@@ -79,8 +82,7 @@ def test_urdf1() -> None:
     # print([sim._model.joint(i).name for i in range(sim._model.njnt)])
 
     assert len(sim.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
-        f"Expected {len(mjtb.CAPTURE_PARAMETERS)} data fields, "
-        f"but got {len(sim.captured_data)}"
+        f"Expected {len(mjtb.CAPTURE_PARAMETERS)} data fields, but got {len(sim.captured_data)}"
     )
 
 
@@ -89,10 +91,13 @@ def test_mujoco_core_array() -> None:
     for model in map(str, TESTING_MODELS):
         with mjtb.Simulation(model) as m:
             m.run(render=mjtb.GUI_ENABLED)
-            assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), \
+            assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
                 f"Simulation data size does not match requested parameters for model {model}."
-            assert len(m._captured_data) == (m.duration * m.data_rate) + 1, \
+            )
+            assert len(m._captured_data) == (m.duration * m.data_rate) + 1, (
                 f"Captured data length does not match simulation parameters for model {model}."
+            )
+
 
 def test_invalid_xml_path() -> None:
     """Test 4: Attempt to load a non-existent XML file."""
@@ -137,15 +142,16 @@ def test_invalid_controller() -> None:
         mjtb.Simulation(model, controller="not_a_function")
 
 
-
 def test_large_duration_and_high_fps() -> None:
     """Test 10: Run a simulation with a very large duration and high FPS."""
     model = os.path.join(os.getcwd(), "tests", "models", "box_and_leg.xml")
     test = mjtb.Simulation(model, duration=100, fps=100).run(render=False)
-    assert len(test.captured_data) == len(mjtb.CAPTURE_PARAMETERS), \
+    assert len(test.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
         "Captured data size does not match the expected parameters for large duration and high FPS."
-    assert len(test._captured_data) == (test.duration * test.data_rate), \
+    )
+    assert len(test._captured_data) == (test.duration * test.data_rate), (
         "Captured data length does not match the expected simulation parameters for large duration and high FPS."
+    )
 
 
 def test_zero_gravity() -> None:
@@ -169,7 +175,9 @@ def test_invalid_gravity() -> None:
     try:
         mjtb.Simulation(model, gravity=[0, 0])  # Invalid gravity vector
     except ValueError as e:
-        assert "Gravity must be a 3D vector." in str(e) or "Invalid gravity vector" in str(e), "Unexpected error message for invalid gravity vector."
+        assert "Gravity must be a 3D vector." in str(e) or "Invalid gravity vector" in str(e), (
+            "Unexpected error message for invalid gravity vector."
+        )
     else:
         msg = "Expected ValueError was not raised."
         raise AssertionError(msg)

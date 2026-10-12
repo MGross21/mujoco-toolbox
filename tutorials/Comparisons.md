@@ -76,11 +76,23 @@ while data.time < DURATION:
 import mujoco_toolbox as mjtb
 
 sim = mjtb.Simulation("path/to/urdf", DURATION, DATA_RATE).run()
-sim.captured_data # Dictionary holding data, ie. ["qpos"] = [data]
+sim.captured_data  # Dictionary holding data, ie. ["qpos"] = [data]
 ```
 
 Under the hood, certain class variable have the following defaults:
 
 ```python
-mjtb.CAPTURE_PARAMETERS = {"xpos","qpos","qvel","act","ctrl","qacc","xpos","xquat","xmat","ctrl","sensordata"}
+mjtb.CAPTURE_PARAMETERS = {
+    "xpos",
+    "qpos",
+    "qvel",
+    "act",
+    "ctrl",
+    "qacc",
+    "xpos",
+    "xquat",
+    "xmat",
+    "ctrl",
+    "sensordata",
+}
 ```

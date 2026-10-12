@@ -1,10 +1,10 @@
-
 import pytest
 
 import mujoco_toolbox as mjtb
 
 # Initialize the model
 test = mjtb.Simulation("tests/models/box_and_leg.xml")
+
 
 # Test name2id for joints
 def test_name2id_joints() -> None:
@@ -13,6 +13,7 @@ def test_name2id_joints() -> None:
     assert test.name2id("joint_2") == 2
     with pytest.raises(ValueError):
         test.name2id("nonexistent_joint")
+
 
 # Test name2id for bodies
 def test_name2id_bodies() -> None:
@@ -23,6 +24,7 @@ def test_name2id_bodies() -> None:
     with pytest.raises(ValueError):
         test.name2id("nonexistent_body")
 
+
 # Test name2id for geoms
 def test_name2id_geoms() -> None:
     with pytest.raises(ValueError):
@@ -30,11 +32,13 @@ def test_name2id_geoms() -> None:
     with pytest.raises(ValueError):
         test.name2id("nonexistent_geom")
 
+
 # Test name2id for actuators
 def test_name2id_actuators() -> None:
     assert test.name2id("motor_1") == 0
     with pytest.raises(ValueError):
         test.name2id("nonexistent_motor")
+
 
 # Test name2id for sensors
 def test_name2id_sensors() -> None:
@@ -42,12 +46,12 @@ def test_name2id_sensors() -> None:
     with pytest.raises(ValueError):
         test.name2id("nonexistent_sensor")
 
+
 def test_name2id_lights() -> None:
     assert test.name2id("top") == 0
     with pytest.raises(ValueError):
         test.name2id("nonexistent_light")
 
+
 # Test id2name for joints
 # TODO: Implement this test
-
-

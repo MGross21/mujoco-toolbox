@@ -1,5 +1,13 @@
 """Additional tests for mujoco_toolbox to maximize pytest coverage."""
-from typing import Never
+
+from __future__ import annotations
+
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
 
 import numpy as np
 import pytest
@@ -16,11 +24,13 @@ def test_simulation_reload_and_str() -> None:
     assert isinstance(str(sim), str)
     assert isinstance(repr(sim), str)
 
+
 def test_simulation_launch(monkeypatch) -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
     monkeypatch.setattr("threading.Thread.start", lambda self: None)
     sim.launch()
+
 
 def test_simulation_show_save_errors() -> None:
     model = "tests/models/box_and_leg.xml"
@@ -29,6 +39,7 @@ def test_simulation_show_save_errors() -> None:
         sim.show()
     with pytest.raises(ValueError):
         sim.save()
+
 
 def test_simulation_get_index_errors() -> None:
     model = "tests/models/box_and_leg.xml"
@@ -47,17 +58,21 @@ def test_simulation_get_index_errors() -> None:
     result2 = sim._get_index(time_idx=0)
     assert isinstance(result2, list)
 
+
 # --- Loader direct coverage ---
 def test_loader_str_repr() -> None:
     from mujoco_toolbox.loader import Loader
+
     loader = Loader("tests/models/box_and_leg.xml")
     assert isinstance(str(loader), str)
     assert isinstance(repr(loader), str)
+
 
 # --- Controllers direct coverage ---
 def test_controllers_all() -> None:
     """Test all controller functions with dummy model/data objects."""
     import mujoco_toolbox.controllers as ctrl
+
     class Dummy:
         def __init__(self) -> None:
             self.time = 0
@@ -65,18 +80,23 @@ def test_controllers_all() -> None:
             self.qvel = np.zeros(1)
             self.ctrl = np.zeros(1)
             self.nu = 1  # Add nu attribute to mimic MuJoCo model
+
     m, d = Dummy(), Dummy()
     for fn in [ctrl.sin, ctrl.cos, ctrl.step, ctrl.random, ctrl.real_time]:
         fn(m, d)
 
+
 # --- Warnings direct coverage (example) ---
 def test_custom_warning() -> Never:
     """Test raising and catching a custom warning."""
+
     class CustomWarning(Warning):
         pass
+
     with pytest.raises(CustomWarning):
         msg = "test"
         raise CustomWarning(msg)
+
 
 # --- Simulation captured_data deleter ---
 def test_captured_data_deleter() -> None:

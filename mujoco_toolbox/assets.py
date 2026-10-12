@@ -6,6 +6,7 @@ WORLD_ASSETS = Path(__file__).parent.joinpath("templates", "world.xml").read_tex
 """Pre-made world assets for MuJoCo simulation:
 `skybox`, `grid`, `body`, and `background` textures."""
 
+
 def glovebox(
     *,
     width: float = 1.25,

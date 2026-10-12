@@ -3,16 +3,19 @@ name: build
 on:
   push:
     branches: [main]
-    paths: ['**.py', 'pyproject.toml', '.github/workflows/**']
+    paths: ['**.py', 'pyproject.toml', 'uv.lock', '.github/workflows/**']
   pull_request:
     branches: [main]
-    paths: ['**.py', 'pyproject.toml', '.github/workflows/**']
+    paths: ['**.py', 'pyproject.toml', 'uv.lock', '.github/workflows/**']
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
+
+env:
+  UV_FROZEN: "1"
 
 jobs:
   lint:
@@ -21,89 +24,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.10"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: python-3.10-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            python-3.10-pip-
+      - name: Install lint toolchain
+        run: uv sync --only-group lint
 
-      - name: Install Poetry and Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction
-
-      - name: Run Linters
+      - name: Ruff
         continue-on-error: true
         run: |
-          poetry run ruff check . --fix --unsafe-fixes
-          poetry run ruff format .
-          poetry run black .
-          poetry run isort .
-          poetry run flake8 .
-          poetry run bandit -r . --quiet
-          poetry run pylint mujoco_toolbox/
+          uv run --no-sync ruff check . --fix
+          uv run --no-sync ruff format .
 
-      - name: Run Type Checking with MyPy
+      - name: MyPy
         continue-on-error: true
-        run: |
-          poetry run mypy .
+        run: uv run --no-sync mypy mujoco_toolbox/
 
       - name: Commit Fixes if Needed
         if: github.event_name == 'pull_request'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           git fetch origin
           git checkout "${{ github.head_ref }}"
-          
+
           git add .
-      
+
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
             git commit -m "chore: auto-fix code quality issues [skip ci]"
-      
+
             # Rebase to avoid merge conflicts
             git pull --rebase origin "${{ github.head_ref }}"
-            
-            # Push with token
+
             git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" HEAD:"${{ github.head_ref }}"
           fi
-    
+
   test:
     name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
       fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
           python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: python-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            python-${{ matrix.python-version }}-pip-
 
       - name: Install system dependencies
         run: |
@@ -115,23 +93,16 @@ jobs:
             patchelf \
             ffmpeg
 
-      - name: Set Mujoco environment variables
+      - name: Set MuJoCo environment variables
         run: |
           echo "MUJOCO_GL=osmesa" >> $GITHUB_ENV
           echo "PYOPENGL_PLATFORM=osmesa" >> $GITHUB_ENV
 
-      - name: Install Poetry and Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction
+      - name: Install project and test dependencies
+        run: uv sync --group test
 
       - name: Run Tests
-        run: |
-          poetry run pip install pytest pytest-cov
-          poetry run pytest tests/ --cov=mujoco_toolbox --cov-report=xml --maxfail=3 -v
+        run: uv run pytest tests/ --cov=mujoco_toolbox --cov-report=xml --maxfail=3 -v
 
       # Uncomment below if using codecov
       # - name: Upload Coverage Report

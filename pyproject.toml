@@ -1,15 +1,14 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "mujoco-toolbox"
 version = "0.6.3"
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10"
 description = "A Modern Simulation Wrapper for Google DeepMind's MuJoCo"
 readme = "README.md"
 license = { file = "LICENSE" }
-packages = [{ include = "mujoco_toolbox" }]
 authors = [
   { name = "MGross21", email = "MGross21@example.com" }
 ]
@@ -18,37 +17,32 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Operating System :: OS Independent"
+    "Operating System :: OS Independent",
 ]
-dynamic = ["classifiers","dependencies"]
-
-[tool.poetry.dependencies]
-python = "^3.11"
-mujoco = "*"
-numpy = "*"
-scipy = "*"
-matplotlib = "*"
-pyyaml = "*"
-ffmpeg = "*"
-imageio = { version = "*", extras = ["ffmpeg"] }
-trimesh = "*"
-tqdm = "*"
-ipywidgets = "*"
-jinja2 = "*"
-screeninfo = "*"
-colorama = "*"
-rich = "*"
-defusedxml = "^0.7.1"
-gym = { version = "*", optional = true }
+dependencies = [
+    "colorama>=0.4.6",
+    "defusedxml>=0.7.1",
+    "imageio[ffmpeg]>=2.28",
+    "ipython>=8.0",
+    "jinja2>=3.1",
+    "matplotlib>=3.7",
+    "mujoco>=3.0",
+    "numpy>=1.25",
+    "pyyaml>=6.0",
+    "screeninfo>=0.8.1",
+    "tqdm>=4.65",
+    "typing-extensions>=4.12; python_version < '3.11'",
+]
 
 [project.optional-dependencies]
-# beautified = ["colorama", "rich"]
-gym = ["gym"]
+examples = [
+    "ipykernel>=6.25",
+    "ipywidgets>=8.0",
+]
 
 [project.urls]
 homepage = "https://github.com/MGross21/mujoco-toolbox"
@@ -57,21 +51,56 @@ documentation = "https://mgross21.github.io/mujoco-toolbox/"
 changelog = "https://github.com/MGross21/mujoco-toolbox/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/MGross21/mujoco-toolbox/issues"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.5"
-ruff = "^0.11.2"
-mypy = "*"
-pytypes = "^1.0b10"
-black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.1.2"
-bandit = "^1.8.3"
-pylint = "^3.3.4"
-python-semantic-release = "^9.21.0"
-python-dotenv = "^1.1.0"
-pytest-cov = "^3.0.0"
-sphinx = "^8.2.3"
-sphinx-rtd-theme = "^3.0.2"
+[dependency-groups]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    { include-group = "docs" },
+    "python-dotenv>=1.1.0",
+    "python-semantic-release>=9.21.0",
+]
+test = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.0.0",
+]
+lint = [
+    "mypy>=1.15.0",
+    "ruff>=0.11.2",
+    "typing-extensions>=4.12",
+]
+docs = [
+    "sphinx>=8.1.0",
+    "sphinx-rtd-theme>=3.0.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["mujoco_toolbox"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/mujoco_toolbox",
+    "/tests",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.semantic_release]
+version_variables = [
+    "pyproject.toml:version",
+    "mujoco_toolbox/__init__.py:__version__",
+    "CITATION.cff:version",
+]
+changelog_file = "CHANGELOG.md"
+build_command = "uv build"
+dist_path = "dist/"
+upload_to_release = true
+commit_version_number = true
+tag_format = "v{version}"
+commit_message = "chore(release): {version} [skip ci]"
 
 [tool.semantic_release.branches.main]
 match = "main"
@@ -80,22 +109,6 @@ prerelease = false
 [tool.semantic_release.branches.dev]
 match = "dev"
 prerelease = true
-
-[tool.semantic_release]
-version_variables = [
-    "pyproject.toml:version",
-    "mujoco_toolbox/__init__.py:__version__",
-    "CITATION.cff:version",
-
-]
-changelog_file = "CHANGELOG.md"
-build_command = "poetry build"
-dist_path = "dist/"
-upload_to_pypi = true
-upload_to_release = true
-commit_version_number = true
-tag_format = "v{version}"
-commit_message = "chore(release): {version} [skip ci]"
 
 [tool.semantic_release.commit_analyzer]
 preset = "angular"
@@ -109,72 +122,69 @@ release_rules = [
     { type = "chore", release = false },
     { type = "build", release = false },
     { type = "ci", release = false },
-    { type = "test", release = false }
+    { type = "test", release = false },
 ]
-parser_opts = {allowed_tags = [
-        "build",
-        "chore",
-        "ci",
-        "docs",
-        "feat",
-        "fix",
-        "perf",
-        "style",
-        "refactor",
-        "test"]}
+parser_opts = { allowed_tags = [
+    "build",
+    "chore",
+    "ci",
+    "docs",
+    "feat",
+    "fix",
+    "perf",
+    "style",
+    "refactor",
+    "test",
+] }
 
 [tool.semantic_release.release_notes_generator]
 preset = "angular"
-preset_config = {types = [
-        { type = "feat", section = "Features", hidden = false },
-        { type = "fix", section = "Bug Fixes", hidden = false },
-        { type = "perf", section = "Performance Improvements", hidden = false },
-        { type = "refactor", section = "Refactors", hidden = false }
-    ]}
+preset_config = { types = [
+    { type = "feat", section = "Features", hidden = false },
+    { type = "fix", section = "Bug Fixes", hidden = false },
+    { type = "perf", section = "Performance Improvements", hidden = false },
+    { type = "refactor", section = "Refactors", hidden = false },
+] }
 
-[tool.black]
-line-length = 79 # PEP8 line length
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--import-mode=importlib"
 
 [tool.ruff]
-line-length = 79 # PEP8 line length
+line-length = 120
+target-version = "py310"
+extend-exclude = ["docs/_build", "local_testing"]
 
 [tool.ruff.lint]
-# select = ["E", "F", "W", "C90"]  # Select error, warning, and flake8 rules
-select = ["ALL"]    # Enable all rules
-ignore = ["T20","INP001"]    # Rules to Ignore
-fixable = ["ALL"]   # Enable auto-fixing for all fixable issues
-extend-select = ["I", "B", "Q", "S"]
-exclude = [
-    "*venv/", "*__pycache__", "build/", "dist/",
-    ".tox/", ".eggs/", ".git/", ".idea/", ".mypy_cache/"
-]  # Exclude these directories from linting
+select = ["ALL"]
+ignore = [
+    "T20",
+    "INP001",
+    "COM812",
+    "ISC001",
+]
+fixable = ["ALL"]
+unfixable = ["ERA001"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mujoco_toolbox"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",
+    "D",
+    "PLR2004",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.mypy]
 ignore_missing_imports = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 strict_optional = true
-
-[tool.isort]
-profile = "black"  # Use black's code style
-known_third_party = [
-    "mujoco", "numpy", "scipy", "matplotlib", "pyyaml",
-    "mediapy", "ffmpeg", "trimesh", "screeninfo", "colorama"
-]
-known_first_party = ["mujoco_toolbox"]
-line_length = 79  # PEP8 line length
-
-# Flake8 settings
-[tool.flake8]
-max-line-length = 79  # PEP8 line length
-extend-ignore = ["E203", "W503"]  # For compatibility with black
-
-# Bandit settings
-[tool.bandit]
-# Enable all checks, you can modify this depending on your project needs
-skips = ["B101", "B102"]  # Ignore certain checks like hardcoded passwords
-
-# Pylint settings
-[tool.pylint]
-max-line-length = 79  # PEP8 line length
-disable = ["C0114", "C0115", "C0116"]  # Disable docstring warnings

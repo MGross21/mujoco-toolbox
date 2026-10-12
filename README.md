@@ -4,7 +4,7 @@
 
 <div align="center">
     <!-- Row 1: Package info -->
-    <img src="https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-6e8aff" alt="Python">
+    <img src="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-6e8aff" alt="Python">
     <img src="https://img.shields.io/github/license/MGross21/mujoco-toolbox?color=6e8aff" alt="License">
     <a href="https://pypi.org/project/mujoco-toolbox/">
         <img alt="Downloads"
@@ -169,7 +169,7 @@ import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 
 with mjtb.Simulation("path/to/xml", controller=real_time) as digitaltwin:
-    digitaltwin.launch(show_menu=False) # Open the simulation window
+    digitaltwin.launch(show_menu=False)  # Open the simulation window
     while True:
         digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"mjdata_kwargs": value})
 ```
@@ -207,7 +207,6 @@ import mujoco_toolbox as mjtb
 
 # Merges: XML & URDF Files, XML & URDF Strings, Sub Tree Structures
 mjtb.Simulation("path/to/xml_1", string_xml_var, ..., "path/to/xml_n").show()
-
 ```
 
 > **⚠️ WARNING**  

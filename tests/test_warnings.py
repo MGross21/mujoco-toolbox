@@ -13,6 +13,7 @@ def test_simulation_warning() -> None:
     except SimulationWarning as e:
         assert str(e) == msg
 
+
 def test_simulation_error() -> None:
     msg = "This is a test error"
     try:
@@ -20,9 +21,11 @@ def test_simulation_error() -> None:
     except SimulationError as e:
         assert str(e) == msg
 
+
 def test_deprecated_wrapper_warning() -> None:
     with pytest.warns(DeprecationWarning):
         Wrapper("<mujoco></mujoco>")
+
 
 def test_deprecated_wrapper_error() -> None:
     mjtb.__version__ = "1.0.0"  # Set version to trigger deprecation

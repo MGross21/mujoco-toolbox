@@ -3,6 +3,7 @@
 This module provides a `Simulation` class to handle MuJoCo simulations, including
 loading models, running simulations, capturing data, and rendering frames.
 """
+
 from __future__ import annotations
 
 import os
@@ -14,7 +15,12 @@ from collections import defaultdict
 from contextlib import nullcontext
 from multiprocessing import cpu_count
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 import defusedxml.ElementTree as ET
 import imageio.v3 as iio
@@ -60,13 +66,15 @@ _MJ_OBJ_TYPES = [
     mujoco.mjtObj.mjOBJ_PLUGIN,
 ]
 
+
 class Simulation:
     """Simulation class for managing MuJoCo simulations."""
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         from . import PROGRESS_BAR_ENABLED  # pylint: disable=E0401
+
         if PROGRESS_BAR_ENABLED and kwargs.get("clear_screen", True):
-            os.system("clear || cls") # Clear the console
+            os.system("clear || cls")  # Clear the console
             clear_output(wait=True)
         return super().__new__(cls)
 
@@ -146,18 +154,10 @@ class Simulation:
 
     def _initialize_names(self) -> None:
         """Populate body, joint, and actuator names."""
-        self.body_names = [
-            self._model.body(i).name for i in range(self._model.nbody)
-        ]
-        self.geom_names = [
-            self._model.geom(i).name for i in range(self._model.ngeom)
-        ]
-        self.joint_names = [
-            self._model.joint(i).name for i in range(self._model.njnt)
-        ]
-        self.actuator_names = [
-            self._model.actuator(i).name for i in range(self._model.nu)
-        ]
+        self.body_names = [self._model.body(i).name for i in range(self._model.nbody)]
+        self.geom_names = [self._model.geom(i).name for i in range(self._model.ngeom)]
+        self.joint_names = [self._model.joint(i).name for i in range(self._model.njnt)]
+        self.actuator_names = [self._model.actuator(i).name for i in range(self._model.nu)]
 
     def _extract_resolution(self) -> tuple[int, int]:
         """Extract resolution from the XML or return default values."""
@@ -200,12 +200,8 @@ class Simulation:
 
         MAX_LINE_ITEMS = 5  # noqa: N806  # pylint: disable=C0103
         # Limit the number of items displayed in the string representation
-        body_names = self.body_names[:MAX_LINE_ITEMS] + (
-            ["..."] if len(self.body_names) > MAX_LINE_ITEMS else []
-        )
-        joint_names = self.joint_names[:MAX_LINE_ITEMS] + (
-            ["..."] if len(self.joint_names) > MAX_LINE_ITEMS else []
-        )
+        body_names = self.body_names[:MAX_LINE_ITEMS] + (["..."] if len(self.body_names) > MAX_LINE_ITEMS else [])
+        joint_names = self.joint_names[:MAX_LINE_ITEMS] + (["..."] if len(self.joint_names) > MAX_LINE_ITEMS else [])
         actuator_names = self.actuator_names[:MAX_LINE_ITEMS] + (
             ["..."] if len(self.actuator_names) > MAX_LINE_ITEMS else []
         )
@@ -257,10 +253,7 @@ class Simulation:
             msg = "Keyframe must be an integer."
             raise ValueError(msg)
         if value is not None and (value < 0 or value > self._model.nkey):
-            msg = (
-                f"Keyframe must be between 0 and {self._model.nkey}."
-                f" Got {value}."
-            )
+            msg = f"Keyframe must be between 0 and {self._model.nkey}. Got {value}."
             raise ValueError(msg)
         self._keyframe = value
 
@@ -280,10 +273,7 @@ class Simulation:
     def frames(self) -> list[np.ndarray]:
         """Read-only property to access the captured frames."""
         if not hasattr(self, "_frames") or self._frames is None:
-            msg = (
-                "No frames captured yet. "
-                "Run the simulation with render=True to capture frames."
-            )
+            msg = "No frames captured yet. Run the simulation with render=True to capture frames."
             raise AttributeError(msg) from None
         return self._frames
 
@@ -419,14 +409,11 @@ class Simulation:
     @property
     def gravity(self) -> np.ndarray:
         """Gravity vector of the simulation."""
-        return self._model.opt.gravity # pylint: disable=E1101
+        return self._model.opt.gravity  # pylint: disable=E1101
 
     @gravity.setter
     def gravity(self, values: list | tuple | np.ndarray) -> None:
-        if (
-            not isinstance(values, (list, tuple, np.ndarray))
-            or len(values) != 3
-        ):
+        if not isinstance(values, (list, tuple, np.ndarray)) or len(values) != 3:
             msg = "Gravity must be a 3D vector."
             raise ValueError(msg)
         self._model.opt.gravity = np.array(values)
@@ -472,7 +459,9 @@ class Simulation:
                 mujoco.set_mjcb_control(self._controller)
             if self._keyframe is not None:
                 mujoco.mj_resetDataKeyframe(
-                    self._model, self._data, self._keyframe,
+                    self._model,
+                    self._data,
+                    self._keyframe,
                 )
 
             sim_data = _SimulationData()
@@ -487,8 +476,7 @@ class Simulation:
             # Simulation Timing
             total_steps = int(self._duration / self.ts)
             # capture_rate = self.data_rate * self.ts
-            capture_interval = max(1, int(1.0 / (self._dr * self.ts))) # PEMDAS :)
-
+            capture_interval = max(1, int(1.0 / (self._dr * self.ts)))  # PEMDAS :)
 
             # RENDERING PREPARATIONS
             if render:
@@ -536,7 +524,7 @@ class Simulation:
                         sim_data.capture(d)
 
                     if render and renderer and step % render_interval == 0 and frame_count < max_frames:
-                        renderer.update_scene(d, camera if camera else -1)
+                        renderer.update_scene(d, camera or -1)
                         frames[frame_count] = renderer.render()  # no copy
                         frame_count += 1  # Increment frame count after capturing the frame
 
@@ -661,15 +649,10 @@ class Simulation:
             msg = f"Start index must be non-negative. Got {start}."
             raise ValueError(msg)
         if stop > max_frames:
-            msg = (
-                f"Stop index must not exceed total frames ({max_frames}). "
-                f"Got {stop}."
-            )
+            msg = f"Stop index must not exceed total frames ({max_frames}). Got {stop}."
             raise ValueError(msg)
         if start >= stop:
-            msg = (
-                f"Start index ({start}) must be less than stop index ({stop})."
-            )
+            msg = f"Start index ({start}) must be less than stop index ({stop})."
             raise ValueError(msg)
 
         # Select subset of frames
@@ -709,13 +692,17 @@ class Simulation:
             def is_jupyter() -> bool:
                 try:
                     from IPython import get_ipython
+
                     return "ipykernel" in sys.modules or "IPKernelApp" in get_ipython().config
                 except Exception:
                     return False
 
             # Set up the figure and image once
             fig, ax = plt.subplots()
-            im = ax.imshow(np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8), interpolation="nearest")
+            im = ax.imshow(
+                np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8),
+                interpolation="nearest",
+            )
             ax.set_axis_off()
             ax.set_title(title)
             plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
@@ -804,7 +791,9 @@ class Simulation:
         return frame / self._fps
 
     def body_data(
-        self, body_name: str, data_name: str | None = None,
+        self,
+        body_name: str,
+        data_name: str | None = None,
     ) -> dict[str, np.ndarray] | np.ndarray:
         """Get the data for a specific body in the simulation.
 
@@ -899,8 +888,7 @@ class Simulation:
         try:
             # Convert simData's NumPy arrays or lists to a YAML-friendly format
             serialized_data = {
-                k: (v.tolist() if isinstance(v, np.ndarray) else v)
-                for k, v in self.captured_data.items()
+                k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in self.captured_data.items()
             }
 
             with Path(name).open("w", encoding="utf-8") as f:
@@ -924,7 +912,7 @@ class _SimulationData:
         if params is all:
             return True
         if isinstance(params, set):
-            return ("all" in map(str.lower, params))
+            return "all" in map(str.lower, params)
         if isinstance(params, str):
             return params.lower() == "all"
         return None
@@ -933,8 +921,8 @@ class _SimulationData:
         """Capture data from MjData, storing specified or all public attributes."""
         from . import CAPTURE_PARAMETERS
 
-        if (self._is_capture_all(CAPTURE_PARAMETERS)):
-            keys = self.get_public_keys(mj_data) # TODO: Fix this to be more efficient. Is cycling on every sim step.
+        if self._is_capture_all(CAPTURE_PARAMETERS):
+            keys = self.get_public_keys(mj_data)  # TODO: Fix this to be more efficient. Is cycling on every sim step.
         else:
             keys = CAPTURE_PARAMETERS
 
@@ -1036,15 +1024,13 @@ class _SimulationData:
     @staticmethod
     def get_public_keys(obj: object) -> set[str]:
         """Get all public (non-callable) attributes of an object."""
-        return {
-            name
-            for name in dir(obj)
-            if not name.startswith("_") and not callable(getattr(obj, name))
-        }
+        return {name for name in dir(obj) if not name.startswith("_") and not callable(getattr(obj, name))}
+
 
 class Wrapper(Simulation):
     def __init__(self, *args, **kwargs) -> None:
         from . import __version__
+
         if __version__ >= "1.0.0":
             msg = "Wrapper was removed in v1.0.0. Use Simulation instead."
             raise RuntimeError(

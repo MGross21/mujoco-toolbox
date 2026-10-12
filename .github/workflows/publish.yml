@@ -1,21 +1,19 @@
 name: publish
-description: |
-  This workflow is triggered on version tag pushes and handles the release process.
-  It uses Semantic Release to automatically determine the next version based on commit messages.
-  It also publishes the package to PyPI and creates a changelog.
-  The workflow is designed to be triggered only on version tags (e.g., v1.2.3).
 
 on:
   push:
     tags:
-      - "v*.*.*"  # Only run on version tags (e.g., v1.2.3)
+      - "v*.*.*"  # Only run on version tags (e.g. v1.2.3)
   workflow_dispatch:
 
 permissions:
-  contents: write      # Needed for changelog commit and tag creation
-  id-token: write      # Needed for trusted publishing to PyPI
+  contents: write
+  id-token: write
   packages: write
   pull-requests: write
+
+env:
+  UV_FROZEN: "1"
 
 jobs:
   release:
@@ -26,42 +24,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensure all history and tags are available
-          ref: ${{ github.ref }}  # Use the tag ref for the checkout
-        
-      - name: Debug Git State
-        run: |
-          git status
-          git tag
-          echo "Current ref: ${{ github.ref }}"
-          
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
       - name: Create branch from tag
         run: |
           git branch main-release
           git checkout main-release
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.10"
-
-      - name: Install Poetry & project dependencies
-        run: |
-          pip install --upgrade pip
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction
-          pip install python-semantic-release
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          python-version: "3.12"
 
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Build distributions
+        run: uv build
+
       - name: Run Semantic Release (tag-based)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry run semantic-release publish
+        run: uv run --group dev semantic-release publish
+
+      - name: Publish to PyPI
+        run: uv publish

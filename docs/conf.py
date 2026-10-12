@@ -32,11 +32,13 @@ pygments_style = "none"
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
+
 def skip_properties(app, what, name, obj, skip, options):
     """Skip all @property decorated functions."""
     if isinstance(obj, property):
         return True  # skip this property
     return skip
+
 
 def setup(app: "Sphinx") -> None:
     """Custom Sphinx setup function."""

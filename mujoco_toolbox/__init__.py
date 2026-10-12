@@ -3,7 +3,7 @@
 
 A toolbox for working with MuJoCo simulations.
 
-This package provides various utilities and controllers to facilitate a faster 
+This package provides various utilities and controllers to facilitate a faster
 simulation process.
 
 Modules
@@ -18,7 +18,7 @@ Constants
 - `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
 - `PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
 
-This project is licensed under the `MIT License`. See the `LICENSE` file for 
+This project is licensed under the `MIT License`. See the `LICENSE` file for
 details.
 
 Documentation
@@ -27,12 +27,12 @@ Documentation
 
 Notes
 -----
-This package is still under development. 
-Some features may not be fully implemented or may change in future releases. 
-Please refer to the documentation for the most up-to-date information. 
+This package is still under development.
+Some features may not be fully implemented or may change in future releases.
+Please refer to the documentation for the most up-to-date information.
 **[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)**.
 
-"""  # noqa: D205, D400, D415, W291
+"""  # noqa: D205, D415, D416
 
 import os
 
@@ -42,6 +42,7 @@ if "WAYLAND_DISPLAY" in os.environ:
     # https://github.com/glfw/glfw/blob/master/src/wl_window.c#L2246-L2253
     # Reduces stdout clutter when using MuJoCo with Wayland
     from warnings import filterwarnings
+
     filterwarnings(
         "ignore",
         category=UserWarning,
@@ -50,6 +51,7 @@ if "WAYLAND_DISPLAY" in os.environ:
     )
     try:
         from ctypes import CDLL
+
         CDLL("libfontconfig.so.1").FcInit()
     except Exception:
         pass
@@ -126,7 +128,13 @@ Default:
 if GUI_ENABLED:
     try:
         import subprocess
-        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+
+        subprocess.run(
+            ["ffmpeg", "-version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
     except subprocess.CalledProcessError:
         msg = "ffmpeg is not installed or not functioning correctly."
         raise RuntimeError(msg)
@@ -135,6 +143,7 @@ if GUI_ENABLED:
 # Check if the package is still under development
 if __version__.startswith("0"):
     from .utils import _print_warning as _warn
+
     _warn(
         f"{__package__} (v{__version__}) is still under development. Report any issues to "
         f"https://github.com/MGross21/mujoco-toolbox/issues",

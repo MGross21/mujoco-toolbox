@@ -1,12 +1,23 @@
+from __future__ import annotations
+
 import os
+import sys
 import xml.etree.ElementTree as StdET
-from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import Union
-from xml.etree.ElementTree import Element, ElementTree
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from xml.etree.ElementTree import Element, ElementTree
 
 
 class Builder:
@@ -25,7 +36,7 @@ class Builder:
             self += Builder(other, meshdir=meshdir)
 
     @staticmethod
-    def merge(inputs: Sequence[Union[str, "Builder"]], meshdir: str = "meshes/") -> "Builder":
+    def merge(inputs: Sequence[str | Builder], meshdir: str = "meshes/") -> Builder:
         """Merge multiple Builder objects and/or XML strings into one Builder.
 
         Args:
@@ -79,12 +90,15 @@ class Builder:
             # Ensure <compiler> exists under <mujoco>
             compiler_tag = mujoco_tag.find("compiler")
             if compiler_tag is None:
-                compiler_tag = StdET.Element("compiler", {
-                    "angle": "radian",
-                    "meshdir": self.meshdir,
-                    "balanceinertia": "true",
-                    "discardvisual": "true",
-                })
+                compiler_tag = StdET.Element(
+                    "compiler",
+                    {
+                        "angle": "radian",
+                        "meshdir": self.meshdir,
+                        "balanceinertia": "true",
+                        "discardvisual": "true",
+                    },
+                )
                 mujoco_tag.insert(0, compiler_tag)
             return self._to_safe_tree(root), root
 
@@ -92,12 +106,15 @@ class Builder:
         if root.tag == "mujoco":
             compiler_tag = root.find("compiler")
             if compiler_tag is None:
-                compiler_tag = StdET.Element("compiler", {
-                    "angle": "radian",
-                    "meshdir": self.meshdir,
-                    "balanceinertia": "true",
-                    "discardvisual": "true",
-                })
+                compiler_tag = StdET.Element(
+                    "compiler",
+                    {
+                        "angle": "radian",
+                        "meshdir": self.meshdir,
+                        "balanceinertia": "true",
+                        "discardvisual": "true",
+                    },
+                )
                 root.insert(0, compiler_tag)
             return self._to_safe_tree(root), root
 
@@ -106,12 +123,15 @@ class Builder:
         mujoco_tag.append(root)
         compiler_tag = mujoco_tag.find("compiler")
         if compiler_tag is None:
-            compiler_tag = StdET.Element("compiler", {
-                "angle": "radian",
-                "meshdir": self.meshdir,
-                "balanceinertia": "true",
-                "discardvisual": "true",
-            })
+            compiler_tag = StdET.Element(
+                "compiler",
+                {
+                    "angle": "radian",
+                    "meshdir": self.meshdir,
+                    "balanceinertia": "true",
+                    "discardvisual": "true",
+                },
+            )
             mujoco_tag.insert(0, compiler_tag)
         return self._to_safe_tree(mujoco_tag), mujoco_tag
 
@@ -119,7 +139,7 @@ class Builder:
         xml_string = StdET.tostring(root)
         return ET.parse(BytesIO(xml_string))
 
-    def __add__(self, other: Union[str, "Builder"]) -> "Builder":
+    def __add__(self, other: str | Builder) -> Self:
         if isinstance(other, str):
             _, other_root = Builder(other, meshdir=self.meshdir)._parse_input(other)
         elif isinstance(other, Builder):
@@ -131,12 +151,24 @@ class Builder:
         # Determine merge context: MJCF or URDF
         if self.root.tag == "robot":
             mujoco_self = self.root.find("mujoco")
-            mujoco_other = other_root.find("mujoco") if other_root.tag == "robot" else other_root if other_root.tag == "mujoco" else None
+            mujoco_other = (
+                other_root.find("mujoco")
+                if other_root.tag == "robot"
+                else other_root
+                if other_root.tag == "mujoco"
+                else None
+            )
             if mujoco_self is not None and mujoco_other is not None:
                 self._merge_mujoco_tags(mujoco_self, mujoco_other)
         elif self.root.tag == "mujoco":
             mujoco_self = self.root
-            mujoco_other = other_root.find("mujoco") if other_root.tag == "robot" else other_root if other_root.tag == "mujoco" else None
+            mujoco_other = (
+                other_root.find("mujoco")
+                if other_root.tag == "robot"
+                else other_root
+                if other_root.tag == "mujoco"
+                else None
+            )
             if mujoco_other is not None:
                 self._merge_mujoco_tags(mujoco_self, mujoco_other)
         else:
@@ -148,8 +180,17 @@ class Builder:
     def _merge_mujoco_tags(self, mujoco_self: Element, mujoco_other: Element) -> None:
         # Merge all relevant tags under <mujoco>
         for tag in [
-            "asset", "worldbody", "camera", "light", "contact", "equality",
-            "sensor", "actuator", "default", "tendon", "include",
+            "asset",
+            "worldbody",
+            "camera",
+            "light",
+            "contact",
+            "equality",
+            "sensor",
+            "actuator",
+            "default",
+            "tendon",
+            "include",
         ]:
             self._merge_tag(tag, mujoco_self, mujoco_other)
 
@@ -193,5 +234,5 @@ class Builder:
     def __len__(self) -> int:
         return len(self.root) if self.root is not None else 0
 
-    def __radd__(self, other: Union[str, "Builder"]) -> "Builder":
+    def __radd__(self, other: str | Builder) -> Self:
         return self.__add__(other)
