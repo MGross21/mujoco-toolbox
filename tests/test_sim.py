@@ -51,7 +51,7 @@ def test_xml1() -> None:
     assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
         "Simulation data size does not match requested parameters."
     )
-    assert len(test1._captured_data) == (test1.duration * test1.data_rate), (
+    assert len(test1.captured_data["time"]) == (test1.duration * test1.data_rate), (
         "Captured data length does not match simulation parameters."
     )
 
@@ -94,7 +94,7 @@ def test_mujoco_core_array() -> None:
             assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
                 f"Simulation data size does not match requested parameters for model {model}."
             )
-            assert len(m._captured_data) == (m.duration * m.data_rate) + 1, (
+            assert len(m.captured_data["time"]) == (m.duration * m.data_rate) + 1, (
                 f"Captured data length does not match simulation parameters for model {model}."
             )
 
@@ -149,7 +149,7 @@ def test_large_duration_and_high_fps() -> None:
     assert len(test.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
         "Captured data size does not match the expected parameters for large duration and high FPS."
     )
-    assert len(test._captured_data) == (test.duration * test.data_rate), (
+    assert len(test.captured_data["time"]) == (test.duration * test.data_rate), (
         "Captured data length does not match the expected simulation parameters for large duration and high FPS."
     )
 

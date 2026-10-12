@@ -135,6 +135,20 @@ import mujoco_toolbox as mjtb
 mjtb.Simulation("path/to/your/xml").run(render=True).save()
 ```
 
+## Data Capture
+
+`run()` records `MjData` fields at `data_rate` captures per second. Each field is an array of shape `(captures, *field_shape)`.
+
+```python
+import mujoco_toolbox as mjtb
+
+sim = mjtb.Simulation("path/to/xml", duration=5, data_rate=100, capture={"time", "qpos", "xpos"}).run()
+sim.captured_data["qpos"]  # (500, nq)
+sim.body_data("arm", "xpos")  # (500, 3)
+```
+
+Omit `capture` to use `mjtb.CAPTURE_PARAMETERS`, or pass `capture="all"` to record every numeric field.
+
 ## Controllers
 
 ### Pre-Made Controllers
@@ -160,6 +174,12 @@ import mujoco_toolbox.controllers as ctrl
 def foo(model: MjModel, data: MjData,**kwargs):
     # Perform logic based on model/data objects
     # ie. PID Controller
+```
+
+Extra keyword arguments to `Simulation` are passed to the controller on every step:
+
+```python
+mjtb.Simulation("path/to/xml", controller=mjtb.sin, amplitude=0.5, frequency=2).run()
 ```
 
 ## Instantiating a Digital Twin

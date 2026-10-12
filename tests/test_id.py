@@ -53,5 +53,17 @@ def test_name2id_lights() -> None:
         test.name2id("nonexistent_light")
 
 
-# Test id2name for joints
-# TODO: Implement this test
+def test_name2id_typed() -> None:
+    assert test.name2id("leg_1", "body") == 2
+    with pytest.raises(ValueError):
+        test.name2id("leg_1", "joint")
+    with pytest.raises(ValueError):
+        test.name2id("leg_1", "not_a_type")
+
+
+def test_id2name() -> None:
+    assert test.id2name(1, "joint") == "joint_1"
+    assert test.id2name(2, "body") == "leg_1"
+    assert test.id2name(0, "actuator") == "motor_1"
+    with pytest.raises(ValueError):
+        test.id2name(99, "body")
