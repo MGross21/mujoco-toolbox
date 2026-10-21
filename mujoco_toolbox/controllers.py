@@ -146,7 +146,8 @@ def real_time(model: mujoco.MjModel, data: mujoco.MjData, *args: dict[str, Any],
 
     Call it yourself with a dict of ``MjData`` fields, e.g.
     ``sim.controller(sim.model, sim.data, {"qpos": q})``. Unknown fields are
-    skipped with a :class:`~mujoco_toolbox.errors.SimulationWarning`.
+    skipped with a :class:`~mujoco_toolbox.errors.SimulationWarning`. Called
+    without values, as the per-step callback is, it does nothing.
 
     Args:
         model: The ``MjModel`` (unused).
@@ -156,7 +157,6 @@ def real_time(model: mujoco.MjModel, data: mujoco.MjData, *args: dict[str, Any],
 
     """
     if not args:
-        warnings.warn("real_time called without values; nothing to apply.", SimulationWarning, stacklevel=2)
         return
     for key, value in args[0].items():
         if hasattr(data, key):

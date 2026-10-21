@@ -84,8 +84,7 @@ def test_controllers_all() -> None:
     m, d = Dummy(), Dummy()
     for fn in [ctrl.sin, ctrl.cos, ctrl.step, ctrl.random]:
         fn(m, d)
-    with pytest.warns(mjtb.SimulationWarning):
-        ctrl.real_time(m, d)
+    ctrl.real_time(m, d)
     with pytest.warns(mjtb.SimulationWarning, match="not_a_field"):
         ctrl.real_time(m, d, {"qpos": np.ones(1), "not_a_field": 1})
     assert d.qpos[0] == 1
