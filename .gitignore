@@ -12,7 +12,7 @@ docs/_build/
 typings/
 
 # Logs
-**/*LOG.txt
+MUJOCO_LOG.TXT
 .coverage*
 
 # Jupyter Notebook Output
