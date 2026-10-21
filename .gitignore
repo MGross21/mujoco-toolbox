@@ -9,6 +9,7 @@
 # Generated Builds
 dist/
 docs/_build/
+typings/
 
 # Logs
 **/*LOG.txt

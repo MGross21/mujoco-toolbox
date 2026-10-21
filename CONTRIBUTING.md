@@ -124,12 +124,12 @@ uv run pytest tests/          # tests
 
 ### MuJoCo type stubs
 
-MuJoCo's wheels have no type information, so stubs generated from the installed
-package live in `typings/` and mypy reads them via `mypy_path`. CI fails if they
-are stale. After changing the `mujoco` version in `uv.lock`, regenerate them:
+MuJoCo's wheels have no type information, so mypy reads stubs from `typings/`
+(gitignored) via `mypy_path`. Generate them before the first `uv run mypy`, and
+again after changing the `mujoco` version in `uv.lock`:
 
 ```bash
-uv run --python 3.13 python scripts/generate_stubs.py
+uv run python scripts/generate_stubs.py
 ```
 
 ## 📖 Building the Documentation Locally

@@ -4,28 +4,21 @@ MuJoCo's wheels ship compiled pybind11 bindings without ``.pyi`` files, so
 mypy sees every ``mujoco`` call as ``Any``. Rerun after changing the mujoco
 version:
 
-    uv run --python 3.13 python scripts/generate_stubs.py
-
-Python 3.13 is required because docstring indentation in the output differs
-between interpreter versions. ``--check`` exits non-zero if ``typings/`` is stale.
+    uv run python scripts/generate_stubs.py
 """
 
 from __future__ import annotations
 
-import argparse
 import ast
-import filecmp
 import keyword
 import os
 import re
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "typings"
-PYTHON = (3, 13)
 # Module constants such as HEADERS_DIR hold machine-specific paths; keep only their types.
 CONSTANT = re.compile(r"^(?!__all__)(\w+: [^=]+?) = .+$")
 
@@ -108,38 +101,12 @@ def generate(out: Path) -> None:
         path.write_text(text)
 
 
-def _stale(expected: Path, actual: Path) -> list[str]:
-    exp = {p.relative_to(expected) for p in expected.rglob("*.pyi")}
-    act = {p.relative_to(actual) for p in actual.rglob("*.pyi")}
-    changed = [str(p) for p in exp & act if not filecmp.cmp(expected / p, actual / p, shallow=False)]
-    return sorted(changed + [str(p) for p in exp ^ act])
-
-
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="fail if typings/ is out of date")
-    args = parser.parse_args()
-
-    if sys.version_info[:2] != PYTHON:
-        print(f"Run with Python {PYTHON[0]}.{PYTHON[1]}: uv run --python 3.13 python {__file__}", file=sys.stderr)
-        return 2
-
     os.environ["MUJOCO_GL"] = "glfw"  # picks which GLContext mujoco re-exports
     import mujoco
 
-    if not args.check:
-        generate(OUT)
-        print(f"Generated stubs for mujoco {mujoco.__version__} in {OUT}")
-        return 0
-
-    with tempfile.TemporaryDirectory() as tmp:
-        generate(Path(tmp))
-        stale = _stale(Path(tmp), OUT)
-    if stale:
-        print(f"typings/ is out of date for mujoco {mujoco.__version__}:", *stale, sep="\n  ", file=sys.stderr)
-        print("Regenerate: uv run --python 3.13 python scripts/generate_stubs.py", file=sys.stderr)
-        return 1
-    print(f"typings/ is up to date for mujoco {mujoco.__version__}")
+    generate(OUT)
+    print(f"Generated stubs for mujoco {mujoco.__version__} in {OUT}")
     return 0
 
 
