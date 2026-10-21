@@ -33,12 +33,11 @@ if "WAYLAND_DISPLAY" in os.environ:
         module="glfw",
         message=".*window position.*",
     )
-    try:
-        from ctypes import CDLL
+    from contextlib import suppress
+    from ctypes import CDLL
 
+    with suppress(OSError, AttributeError):
         CDLL("libfontconfig.so.1").FcInit()
-    except Exception:
-        pass
 
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder

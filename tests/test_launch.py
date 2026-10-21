@@ -4,13 +4,16 @@ import math
 import queue
 import time
 from contextlib import nullcontext
-from typing import Any
+from typing import TYPE_CHECKING
 
 import glfw
 import mujoco.viewer
 import pytest
 
 import mujoco_toolbox as mjtb
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 MODEL = "tests/models/box_and_leg.xml"
 
@@ -20,16 +23,10 @@ class FakeViewer:
 
     lock = staticmethod(nullcontext)
 
-    def __init__(self, key_callback: Any, frames: float) -> None:
+    def __init__(self, key_callback: Callable[[int], None], frames: float) -> None:
         self.key_callback = key_callback
         self.frames = frames
         self.syncs = 0
-
-    def __enter__(self) -> FakeViewer:
-        return self
-
-    def __exit__(self, *args: object) -> None:
-        self.close()
 
     def is_running(self) -> bool:
         return self.syncs < self.frames
@@ -44,9 +41,11 @@ class FakeViewer:
 def patch_viewer(monkeypatch: pytest.MonkeyPatch, frames: float = math.inf) -> queue.Queue[FakeViewer]:
     opened: queue.Queue[FakeViewer] = queue.Queue()
 
-    def launch_passive(_model: object, _data: object, *, key_callback: Any, **_: object) -> FakeViewer:
+    def launch_passive(
+        _model: object, _data: object, *, key_callback: Callable[[int], None], **_: object
+    ) -> nullcontext[FakeViewer]:
         opened.put(FakeViewer(key_callback, frames))
-        return opened.queue[-1]
+        return nullcontext(opened.queue[-1])
 
     monkeypatch.setattr(mujoco.viewer, "launch_passive", launch_passive)
     return opened
@@ -91,7 +90,7 @@ def test_open_viewer_blocks_launch_and_run(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 def test_viewer_error_reaches_caller(monkeypatch: pytest.MonkeyPatch) -> None:
-    def launch_passive(*_args: object, **_kwargs: object) -> FakeViewer:
+    def launch_passive(*_args: object, **_kwargs: object) -> nullcontext[FakeViewer]:
         msg = "no display"
         raise RuntimeError(msg)
 

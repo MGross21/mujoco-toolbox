@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import sys
-
-if sys.version_info >= (3, 11):
-    from typing import Never
-else:
-    from typing_extensions import Never
-
 import numpy as np
 import pytest
 
 import mujoco_toolbox as mjtb
+import mujoco_toolbox.controllers as ctrl
 
 
 # --- Simulation utility and error branch coverage ---
@@ -28,9 +22,9 @@ def test_simulation_reload_and_str() -> None:
 def test_simulation_show_save_errors() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No frames captured"):
         sim.show()
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No frames captured"):
         sim.save()
 
 
@@ -38,11 +32,11 @@ def test_simulation_get_index_errors() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)
     sim._frames = []
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No frames captured"):
         sim._get_index()
     sim._frames = [1, 2, 3]
     # Start index >= stop index should raise
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid frame range"):
         sim._get_index(frame_idx=(2, 1))
     # Valid single index (should not raise)
     result = sim._get_index(frame_idx=1)
@@ -55,7 +49,6 @@ def test_simulation_get_index_errors() -> None:
 # --- Controllers direct coverage ---
 def test_controllers_all() -> None:
     """Test all controller functions with dummy model/data objects."""
-    import mujoco_toolbox.controllers as ctrl
 
     class Dummy:
         def __init__(self) -> None:
@@ -74,24 +67,12 @@ def test_controllers_all() -> None:
     assert d.qpos[0] == 1
 
 
-# --- Warnings direct coverage (example) ---
-def test_custom_warning() -> Never:
-    """Test raising and catching a custom warning."""
-
-    class CustomWarning(Warning):
-        pass
-
-    with pytest.raises(CustomWarning):
-        msg = "test"
-        raise CustomWarning(msg)
-
-
 # --- Simulation captured_data deleter ---
 def test_captured_data_deleter() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model).run(render=False)
     del sim.captured_data
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No simulation data captured"):
         _ = sim.captured_data
 
 
@@ -122,9 +103,9 @@ def test_body_data() -> None:
     assert xpos.shape == (10, 3)
     np.testing.assert_array_equal(xpos, sim.captured_data["xpos"][:, sim.name2id("leg_1", "body")])
     assert {"xpos", "xquat", "xmat"} <= set(sim.body_data("leg_1"))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="not a captured per-body field"):
         sim.body_data("leg_1", "qpos")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="not found in the model"):
         sim.body_data("no_such_body")
 
 
@@ -136,10 +117,10 @@ def test_initial_conditions_applied_on_run() -> None:
 def test_controller_kwargs_forwarded() -> None:
     seen = {}
 
-    def ctrl(model, data, **kwargs) -> None:
+    def record(_model: object, _data: object, **kwargs: object) -> None:
         seen.update(kwargs)
 
-    mjtb.Simulation(MODEL, duration=0.01, data_rate=100, controller=ctrl, gain=3).run()
+    mjtb.Simulation(MODEL, duration=0.01, data_rate=100, controller=record, gain=3).run()
     assert seen == {"gain": 3}
 
 

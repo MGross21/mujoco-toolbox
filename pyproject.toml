@@ -106,6 +106,13 @@ ignore = [
     "INP001",
     "COM812",
     "ISC001",
+    "CPY001",
+    "D105",
+    "D107",
+    "PLR0913",
+    "PLR0917",
+    "FIX002",
+    "N817",
 ]
 fixable = ["ALL"]
 unfixable = ["ERA001"]
@@ -121,6 +128,7 @@ convention = "google"
     "S101",
     "D",
     "PLR2004",
+    "SLF001",
 ]
 
 [tool.ruff.format]

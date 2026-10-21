@@ -1,3 +1,5 @@
+"""Reusable world and scene XML for building models."""
+
 from pathlib import Path
 
 from jinja2 import Template

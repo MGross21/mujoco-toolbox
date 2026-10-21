@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+from importlib.metadata import version
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "typings"
@@ -62,7 +63,7 @@ def _fix_line(line: str) -> str:
 
     params = line[start:end]
     cuts = [i for i, ch in _top_level(params) if ch == ","]
-    parts = [params[i + 1 : j] for i, j in zip([-1, *cuts], [*cuts, len(params)])]
+    parts = [params[i + 1 : j] for i, j in zip([-1, *cuts], [*cuts, len(params)], strict=True)]
     seen_default = False
     for k, part in enumerate(parts):
         if part.strip().startswith("*"):
@@ -75,8 +76,9 @@ def _fix_line(line: str) -> str:
 
 
 def generate(out: Path) -> None:
+    """Write fixed-up ``mujoco`` stubs into ``out``."""
     shutil.rmtree(out / "mujoco", ignore_errors=True)
-    subprocess.run(
+    subprocess.run(  # noqa: S603
         [
             sys.executable,
             "-m",
@@ -91,6 +93,7 @@ def generate(out: Path) -> None:
             "--exit-code",
         ],
         check=True,
+        env={**os.environ, "MUJOCO_GL": "glfw"},  # picks which GLContext mujoco re-exports
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -102,11 +105,9 @@ def generate(out: Path) -> None:
 
 
 def main() -> int:
-    os.environ["MUJOCO_GL"] = "glfw"  # picks which GLContext mujoco re-exports
-    import mujoco
-
+    """Regenerate ``typings/``."""
     generate(OUT)
-    print(f"Generated stubs for mujoco {mujoco.__version__} in {OUT}")
+    print(f"Generated stubs for mujoco {version('mujoco')} in {OUT}")
     return 0
 
 

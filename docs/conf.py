@@ -1,3 +1,5 @@
+"""Sphinx configuration for the mujoco-toolbox docs."""
+
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING

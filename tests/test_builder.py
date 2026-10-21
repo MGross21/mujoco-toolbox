@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from mujoco_toolbox.builder import Builder
@@ -20,7 +22,8 @@ string1 = """
 string2 = """
 <mujoco>
   <asset>
-    <texture name="body_texture" type="cube" builtin="flat" width="128" height="128" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4"/>
+    <texture name="body_texture" type="cube" builtin="flat" width="128" height="128"
+             rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4"/>
     <material name="body_material" texture="body_texture" texuniform="true" rgba="0.8 0.6 .4 1"/>
   </asset>
   <worldbody>
@@ -51,21 +54,21 @@ string4 = """
 
 
 @pytest.fixture
-def builder():
+def builder() -> Builder:
     return Builder(string1) + Builder(string2) + Builder(string3) + Builder(string4)
 
 
 @pytest.fixture
-def builder_with_args():
+def builder_with_args() -> Builder:
     return Builder(string1, string2, string3, string4)
 
 
-def test_builder_creation(builder) -> None:
+def test_builder_creation(builder: Builder) -> None:
     assert builder is not None, "Builder object is empty"
     assert len(builder) > 0, "Builder object has no elements"
 
 
-def test_builder_with_args_creation(builder_with_args) -> None:
+def test_builder_with_args_creation(builder_with_args: Builder) -> None:
     assert builder_with_args is not None, "Builder2 object is empty"
     assert len(builder_with_args) > 0, "Builder2 object has no elements"
 
@@ -78,14 +81,14 @@ def test_builder_merge() -> None:
     assert len(merged_builder) >= len(builder1), "Merged builder did not increase in size"
 
 
-def test_builder_save(tmp_path) -> None:
+def test_builder_save(tmp_path: Path) -> None:
     builder = Builder(string1)
     save_path = tmp_path / "test_model.xml"
     builder.save(str(save_path))
     assert save_path.exists(), "Saved file does not exist"
 
 
-def test_builder_str_representation(builder) -> None:
+def test_builder_str_representation(builder: Builder) -> None:
     xml_str = str(builder)
     assert xml_str.startswith("<mujoco>"), "String representation does not start with <mujoco>"
     assert "</mujoco>" in xml_str, "String representation does not end with </mujoco>"

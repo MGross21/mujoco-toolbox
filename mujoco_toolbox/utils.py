@@ -1,3 +1,5 @@
+"""Package logger and display detection."""
+
 import logging
 
 import screeninfo

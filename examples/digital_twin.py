@@ -1,3 +1,5 @@
+"""Drive a UR5 digital twin through a joint trajectory in the viewer."""
+
 import time
 from pathlib import Path
 
@@ -21,19 +23,19 @@ qpos_trajectory = np.linspace(QPOS_INIT, QPOS_FINAL, NUM_STEPS)
 
 
 def main() -> None:
-    # Create and launch the digital twin
+    """Open the viewer and stream the trajectory into it."""
     with mjtb.Simulation(
         str(URDF_PATH),
         meshdir=str(MESH_DIR),
         initial_conditions={"qpos": QPOS_INIT},
         controller=real_time,
     ) as ur5:
-        ur5.launch(show_menu=False)
         ur5.gravity = [0, 0, 0]
+        ur5.launch(show_menu=False)
 
-        # Move through the trajectory
         for qpos in qpos_trajectory:
-            ur5.controller(ur5.model, ur5.data, {"qpos": qpos})
+            with ur5.data_lock:
+                ur5.controller(ur5.model, ur5.data, {"qpos": qpos})
             time.sleep(5.0 / NUM_STEPS)
 
 
