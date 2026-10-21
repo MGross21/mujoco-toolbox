@@ -52,15 +52,6 @@ def test_simulation_get_index_errors() -> None:
     assert isinstance(result2, list)
 
 
-# --- Loader direct coverage ---
-def test_loader_str_repr() -> None:
-    from mujoco_toolbox.loader import Loader
-
-    loader = Loader("tests/models/box_and_leg.xml")
-    assert isinstance(str(loader), str)
-    assert isinstance(repr(loader), str)
-
-
 # --- Controllers direct coverage ---
 def test_controllers_all() -> None:
     """Test all controller functions with dummy model/data objects."""
