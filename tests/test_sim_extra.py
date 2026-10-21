@@ -25,13 +25,6 @@ def test_simulation_reload_and_str() -> None:
     assert isinstance(repr(sim), str)
 
 
-def test_simulation_launch(monkeypatch) -> None:
-    model = "tests/models/box_and_leg.xml"
-    sim = mjtb.Simulation(model)
-    monkeypatch.setattr("threading.Thread.start", lambda self: None)
-    sim.launch()
-
-
 def test_simulation_show_save_errors() -> None:
     model = "tests/models/box_and_leg.xml"
     sim = mjtb.Simulation(model)

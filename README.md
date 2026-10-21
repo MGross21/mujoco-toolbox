@@ -189,9 +189,10 @@ import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 
 with mjtb.Simulation("path/to/xml", controller=real_time) as digitaltwin:
-    digitaltwin.launch(show_menu=False)  # Open the simulation window
-    while True:
-        digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"mjdata_kwargs": value})
+    viewer = digitaltwin.launch(show_menu=False)  # Open the simulation window
+    while not viewer.done():  # until the window is closed (or ESC/Q)
+        with digitaltwin.data_lock:
+            digitaltwin.controller(digitaltwin.model, digitaltwin.data, {"mjdata_kwargs": value})
 ```
 
 See `MjData` objects [here](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata)

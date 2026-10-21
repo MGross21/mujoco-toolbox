@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 from collections.abc import Iterable
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import nullcontext
 from functools import partial
 from pathlib import Path
@@ -26,6 +27,7 @@ else:
     from typing_extensions import Self
 
 import defusedxml.ElementTree as ET
+import glfw
 import imageio.v3 as iio
 import matplotlib.pyplot as plt
 import mujoco
@@ -243,7 +245,9 @@ class Simulation:
 
         self._frames: np.ndarray | None = None
         self._captured_data: dict[str, np.ndarray | list[np.ndarray]] | None = None
-        self._viewer_thread: threading.Thread | None = None
+        self._viewer: Future[None] | None = None
+        #: Held by the :meth:`launch` viewer while it steps :attr:`data`.
+        self.data_lock = threading.Lock()
 
         self._initialize_names()
 
@@ -315,11 +319,12 @@ class Simulation:
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, *args: object) -> None:
+    def __exit__(self, exc_type: type[BaseException] | None, *args: object) -> None:
+        viewer, self._viewer = self._viewer, None
+        error = viewer.exception() if viewer is not None else None  # waits for the window to close
         mujoco.set_mjcb_control(None)
-        if self._viewer_thread is not None:
-            self._viewer_thread.join()
-            self._viewer_thread = None
+        if error is not None and exc_type is None:
+            raise error
 
     @property
     def model(self) -> mjModel:
@@ -527,10 +532,14 @@ class Simulation:
             The simulation, for method chaining.
 
         Raises:
-            SimulationError: If stepping or rendering fails.
+            SimulationError: If stepping or rendering fails, or a viewer is open.
 
         """
         from . import MAX_GEOM_SCALAR, PROGRESS_BAR_ENABLED
+
+        if self._viewer_open:
+            msg = "Close the viewer before calling run(); both step the same data."
+            raise SimulationError(msg)
 
         m, d = self._model, self._data
         recorder = _Recorder(self._capture_keys())
@@ -575,13 +584,23 @@ class Simulation:
             self._frames = frames[:frame_count] if frames is not None else None
         return self
 
-    def _window(self, show_menu: bool = True) -> None:  # noqa: FBT001, FBT002
+    @property
+    def _viewer_open(self) -> bool:
+        return self._viewer is not None and not self._viewer.done()
+
+    def _window(self, show_menu: bool) -> None:  # noqa: FBT001
+        m, d = self._model, self._data
+        quit_requested = threading.Event()
+
+        def key_callback(key: int) -> None:
+            if key in (glfw.KEY_ESCAPE, glfw.KEY_Q):
+                quit_requested.set()
+
+        frame = 1.0 / self.fps
+        steps_per_frame = max(1, round(frame / self.ts))
+        if self._controller is not None:
+            mujoco.set_mjcb_control(partial(self._controller, **self.controller_kwargs))
         try:
-            m, d = self._model, self._data
-
-            def key_callback(key: int) -> bool:
-                return key in (27, ord("q"))  # ESC or 'q' quits
-
             with mujoco.viewer.launch_passive(
                 m,
                 d,
@@ -589,38 +608,45 @@ class Simulation:
                 show_right_ui=show_menu,
                 key_callback=key_callback,
             ) as viewer:
-                viewer.sync()
-                start_time = time.time()
-                try:
-                    while viewer.is_running():
-                        current_time = time.time()
-                        dt = current_time - start_time
-                        mujoco.mj_step(m, d)
-                        viewer.sync()
-                        start_time = current_time
-                        time.sleep(max(0, 1.0 / self.fps - dt))
-                except KeyboardInterrupt:
-                    viewer.close()
+                while viewer.is_running() and not quit_requested.is_set():
+                    tick = time.perf_counter()
+                    with self.data_lock, viewer.lock():
+                        mujoco.mj_step(m, d, steps_per_frame)
+                    viewer.sync()
+                    time.sleep(max(0.0, frame - (time.perf_counter() - tick)))
         except Exception as e:
             msg = "An error occurred in the viewer."
             raise SimulationError(msg) from e
         finally:
             mujoco.set_mjcb_control(None)
 
-    def launch(self, show_menu: bool = True) -> None:  # noqa: FBT001, FBT002
+    def launch(self, show_menu: bool = True) -> Future[None]:  # noqa: FBT001, FBT002
         """Open an interactive viewer window in a background thread.
 
-        Physics runs in real time against the live :attr:`data`, so changes
-        made from the calling thread (e.g. by a controller) show up
-        immediately. Leaving a ``with Simulation(...)`` block waits for the
-        window to close.
+        Physics runs in real time against the live :attr:`data`, calling
+        :attr:`controller` every step. Hold :attr:`data_lock` while changing
+        :attr:`data` from another thread. Close the window, or press ESC or Q,
+        to stop. Leaving a ``with Simulation(...)`` block waits for the window
+        to close and re-raises viewer errors.
 
         Args:
             show_menu: Show the viewer's side panels.
 
+        Returns:
+            A future that completes when the window closes; ``result()``
+            re-raises viewer errors.
+
+        Raises:
+            SimulationError: If a viewer is already open.
+
         """
-        self._viewer_thread = threading.Thread(target=self._window, kwargs={"show_menu": show_menu})
-        self._viewer_thread.start()
+        if self._viewer_open:
+            msg = "A viewer is already open."
+            raise SimulationError(msg)
+        executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mujoco-toolbox-viewer")
+        self._viewer = executor.submit(self._window, show_menu)
+        executor.shutdown(wait=False)
+        return self._viewer
 
     def _get_index(  # noqa: C901
         self,
