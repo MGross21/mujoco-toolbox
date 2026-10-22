@@ -30,6 +30,8 @@ A Modern Simulation Wrapper for Google DeepMind’s MuJoCo
 
 ## Installation
 
+<!-- docs-install-start -->
+
 *Add `-U` flag to upgrade pre-existing library*
 
 ### PyPI Package
@@ -125,6 +127,8 @@ ffmpeg -version
 
 </details>
 
+<!-- docs-install-end -->
+<!-- docs-usage-start -->
 ## Example Script
 
 *Bare minimum to run MuJoCo simulation and display result*

@@ -2,10 +2,6 @@
 
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from sphinx.application import Sphinx
 
 # Add the parent directory (repo root) to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -23,6 +19,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    "myst_parser",
+    "sphinx_copybutton",
 ]
 
 autodoc_default_options = {
@@ -42,17 +40,11 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable", None),
 }
 
-templates_path = ["_templates"]
-exclude_patterns = []
+myst_heading_anchors = 3
+suppress_warnings = ["myst.header"]  # README sections skip heading levels
+copybutton_prompt_text = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp = True
 
-# Disable built-in Pygments styles to fully override via CSS
-pygments_style = "none"
-
-# Options for HTML output
-html_theme = "sphinx_rtd_theme"
-html_static_path = ["_static"]
-
-
-def setup(app: "Sphinx") -> None:
-    """Custom Sphinx setup function."""
-    app.add_css_file("custom.css")
+html_theme = "furo"
+html_title = "MuJoCo Toolbox"
+html_logo = "../assets/images/mjtb_logo_transparent.png"
