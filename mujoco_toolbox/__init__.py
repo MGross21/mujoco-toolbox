@@ -52,7 +52,7 @@ from .errors import SimulationError, SimulationWarning
 from .sim import Simulation
 from .utils import display_available, logger
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 __author__ = "Michael Gross"
 __license__ = "MIT"
 __all__ = [
