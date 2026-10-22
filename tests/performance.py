@@ -1,6 +1,6 @@
 import csv
-import os
 import time
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import mujoco
@@ -12,7 +12,8 @@ DURATION = 60
 DATA_RATE = 1000
 NUM_TESTS = 25
 
-MODEL = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "humanoid.xml"))
+DATA_DIR = Path(__file__).resolve().parent / "data"
+MODEL = str(Path(__file__).resolve().parent / "models" / "humanoid.xml")
 
 
 def mujoco_standard() -> float:
@@ -55,7 +56,7 @@ def mujoco_standard() -> float:
 
 def mujoco_tbx() -> float:
     start_time = time.time()
-    mjtb.Simulation(MODEL, duration=DURATION, data_rate=DATA_RATE).run(multi_thread=False)
+    mjtb.Simulation(MODEL, duration=DURATION, data_rate=DATA_RATE).run()
     end_time = time.time()
     return end_time - start_time
 
@@ -68,8 +69,7 @@ def performance_comparison() -> tuple[float, float]:
 
 
 def generate_performance_chart() -> None:
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    os.makedirs(data_dir, exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     times = performance_comparison()
 
@@ -81,7 +81,7 @@ def generate_performance_chart() -> None:
     plt.bar(labels, times, color=["blue", "green"])
     plt.ylabel("Time (seconds)")
     plt.title("Performance Comparison")
-    plt.savefig(os.path.join(data_dir, "performance_comparison.png"))
+    plt.savefig(DATA_DIR / "performance_comparison.png")
 
     if mjtb.GUI_ENABLED:
         plt.show()
@@ -90,10 +90,10 @@ def generate_performance_chart() -> None:
     mujoco_version = mujoco.__version__.split(".")
     mjtb_version = mjtb.__version__.split("-")[0].split(".")
 
-    csv_file = os.path.join(data_dir, "performance_data.csv")
-    file_exists = os.path.isfile(csv_file)
+    csv_file = DATA_DIR / "performance_data.csv"
+    file_exists = csv_file.is_file()
 
-    with open(csv_file, mode="a" if file_exists else "w", newline="") as file:
+    with csv_file.open(mode="a" if file_exists else "w", newline="") as file:
         writer = csv.writer(file)
         if not file_exists:
             writer.writerow(
@@ -110,14 +110,13 @@ def generate_performance_chart() -> None:
 
 
 def progress_over_time() -> None:
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    csv_file = os.path.join(data_dir, "performance_data.csv")
+    csv_file = DATA_DIR / "performance_data.csv"
 
-    if not os.path.isfile(csv_file):
+    if not csv_file.is_file():
         print(f"No data found at {csv_file}")
         return
 
-    with open(csv_file) as file:
+    with csv_file.open() as file:
         data = list(csv.DictReader(file))
 
     # Separate and process data
@@ -167,7 +166,7 @@ def progress_over_time() -> None:
     plt.ylabel("Average Performance (seconds)", fontsize=14)
     plt.title("Performance Over Time", fontsize=16, fontweight="bold")
     plt.legend(fontsize=12)
-    plt.grid(True, linestyle="--", alpha=0.7)
+    plt.grid(visible=True, linestyle="--", alpha=0.7)
     plt.xticks(
         list(range(len(mujoco_data))) + list(range(len(toolbox_versions))),
         labels=[str(i) for i in range(len(mujoco_data))] + list(toolbox_versions),
@@ -176,7 +175,7 @@ def progress_over_time() -> None:
     )
     plt.yticks(fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(data_dir, "performance_over_time.png"), dpi=300)
+    plt.savefig(DATA_DIR / "performance_over_time.png", dpi=300)
 
     if mjtb.GUI_ENABLED:
         plt.show()
@@ -185,4 +184,4 @@ def progress_over_time() -> None:
 if __name__ == "__main__":
     generate_performance_chart()
     progress_over_time()
-    mjtb.utils._print_success(f"{os.path.basename(__file__)} Tests passed!\n")
+    print(f"{Path(__file__).name} Tests passed!")

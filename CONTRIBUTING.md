@@ -107,6 +107,7 @@ Two tools are enforced:
   black, isort, flake8, bandit, and pylint; all of its config lives in
   `[tool.ruff]` in `pyproject.toml`.
 - [`mypy`](https://mypy-lang.org/) — static type checking (ruff does not type-check).
+  Must pass with zero errors.
 
 Tests run with [`pytest`](https://docs.pytest.org/).
 
@@ -117,8 +118,18 @@ Run everything locally:
 ```bash
 uv run ruff check --fix .     # lint, with autofixes applied
 uv run ruff format .          # format
-uv run mypy mujoco_toolbox/   # type check
+uv run mypy                   # type check
 uv run pytest tests/          # tests
+```
+
+### MuJoCo type stubs
+
+MuJoCo's wheels have no type information, so mypy reads stubs from `typings/`
+(gitignored) via `mypy_path`. Generate them before the first `uv run mypy`, and
+again after changing the `mujoco` version in `uv.lock`:
+
+```bash
+uv run python scripts/generate_stubs.py
 ```
 
 ## 📖 Building the Documentation Locally
@@ -126,8 +137,10 @@ uv run pytest tests/          # tests
 To build the documentation locally, run:
 
 ```bash
-uv run make -C docs html
+uv run make -C docs html SPHINXOPTS="-W --keep-going"
 ```
+
+CI builds with `-W`, so any Sphinx warning (for example a malformed docstring) fails the build.
 
 To automatically open the generated documentation in your default web browser after building, use:
 

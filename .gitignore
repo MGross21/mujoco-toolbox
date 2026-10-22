@@ -9,9 +9,10 @@
 # Generated Builds
 dist/
 docs/_build/
+typings/
 
 # Logs
-**/*LOG.txt
+MUJOCO_LOG.TXT
 .coverage*
 
 # Jupyter Notebook Output
@@ -33,11 +34,6 @@ docs/_build/
 *.egg-info
 build/
 .coverage
-
-# Bindings
-mujoco/
-CMake*
-_deps/
 
 # Local Testing
 local_test*/

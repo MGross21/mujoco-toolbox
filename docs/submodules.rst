@@ -8,4 +8,6 @@ The Mujoco Toolbox contains the following submodules:
 
     sim
     builder
+    controllers
     assets
+    errors

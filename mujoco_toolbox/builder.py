@@ -1,10 +1,10 @@
+"""Merge MJCF and URDF sources into one MuJoCo model."""
+
 from __future__ import annotations
 
-import os
 import sys
-import xml.etree.ElementTree as StdET
-from io import BytesIO
 from pathlib import Path
+from xml.etree.ElementTree import Element, ElementTree, SubElement, indent, tostring
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -17,11 +17,42 @@ import defusedxml.ElementTree as ET
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from xml.etree.ElementTree import Element, ElementTree
+
+_MERGED_TAGS = (
+    "asset",
+    "worldbody",
+    "camera",
+    "light",
+    "contact",
+    "equality",
+    "sensor",
+    "actuator",
+    "default",
+    "tendon",
+    "include",
+)
 
 
 class Builder:
-    """A class to build and manipulate MuJoCo XML models."""
+    """Combine MJCF and URDF sources into a single MuJoCo model.
+
+    Sources can be file paths or XML strings, either full documents
+    (``<mujoco>``/``<robot>``) or bare sub-trees. Builders combine with ``+``,
+    appending the second model's assets, bodies, actuators, sensors, etc.
+
+    Example:
+        >>> model = Builder("robot.urdf", meshdir="meshes/") + "<worldbody>...</worldbody>"
+        >>> model.save("combined.xml")
+
+    Args:
+        *inputs: XML file paths or strings, merged in order.
+        meshdir: Mesh directory written to ``<compiler meshdir>`` for URDF inputs.
+
+    Raises:
+        ValueError: If no input is given.
+        TypeError: If an input is not a string.
+
+    """
 
     def __init__(self, *inputs: str, meshdir: str = "meshes/") -> None:
         if not inputs:
@@ -31,20 +62,22 @@ class Builder:
             msg = "Input must be an XML string or a file path"
             raise TypeError(msg)
         self.meshdir = meshdir
-        self.tree, self.root = self._parse_input(inputs[0])
+        self.root, self._mujoco = self._parse_input(inputs[0])
         for other in inputs[1:]:
             self += Builder(other, meshdir=meshdir)
 
     @staticmethod
     def merge(inputs: Sequence[str | Builder], meshdir: str = "meshes/") -> Builder:
-        """Merge multiple Builder objects and/or XML strings into one Builder.
+        """Merge Builders and XML strings or file paths into one Builder.
+
+        Builders are merged first, in order, followed by all strings.
 
         Args:
-            inputs: Sequence of Builder objects and/or XML strings or file paths.
-            meshdir: Mesh directory (default: "meshes/").
+            inputs: Builders and/or XML strings or file paths.
+            meshdir: Mesh directory for URDF inputs.
 
         Returns:
-            Merged Builder instance.
+            The first Builder, extended with the rest.
 
         Raises:
             ValueError: If no inputs are provided.
@@ -55,184 +88,70 @@ class Builder:
             raise ValueError(msg)
         builders = [i for i in inputs if isinstance(i, Builder)]
         strings = [i for i in inputs if isinstance(i, str)]
-        if builders:
-            builder = sum(builders[1:], builders[0])
-            if strings:
-                builder += Builder(*strings, meshdir=meshdir)
-        else:
-            builder = Builder(*strings, meshdir=meshdir)
-        return builder
+        if strings:
+            builders.append(Builder(*strings, meshdir=meshdir))
+        return sum(builders[1:], builders[0])
 
-    def _parse_input(self, xml_input: str) -> tuple[ElementTree, Element]:
-        # Parse XML from string or file
-        if xml_input.strip().startswith("<"):
-            root = ET.fromstring(xml_input)
-        else:
-            path = Path(xml_input)
-            if not path.exists():
-                msg = f"File not found: {xml_input}"
-                raise FileNotFoundError(msg)
-            root = ET.parse(path).getroot()
+    def _parse_input(self, xml_input: str) -> tuple[Element, Element]:
+        is_xml = xml_input.strip().startswith("<")
+        if not is_xml and not Path(xml_input).exists():
+            msg = f"File not found: {xml_input}"
+            raise FileNotFoundError(msg)
+        root = ET.fromstring(xml_input if is_xml else Path(xml_input).read_bytes())
 
-        # If root is <robot>, ensure <mujoco> child exists (not as wrapper)
-        if root.tag == "robot":
-            mujoco_tag = root.find("mujoco")
-            if mujoco_tag is None:
-                mujoco_tag = StdET.Element("mujoco")
-                # Insert <mujoco> as first child (after comments, if any)
-                insert_idx = 0
-                for idx, child in enumerate(list(root)):
-                    if not isinstance(child.tag, str) or child.tag.startswith("#"):
-                        insert_idx = idx + 1
-                    else:
-                        break
-                root.insert(insert_idx, mujoco_tag)
-            # Ensure <compiler> exists under <mujoco>
-            compiler_tag = mujoco_tag.find("compiler")
-            if compiler_tag is None:
-                compiler_tag = StdET.Element(
-                    "compiler",
-                    {
-                        "angle": "radian",
-                        "meshdir": self.meshdir,
-                        "balanceinertia": "true",
-                        "discardvisual": "true",
-                    },
-                )
-                mujoco_tag.insert(0, compiler_tag)
-            return self._to_safe_tree(root), root
-
-        # If root is <mujoco>, ensure <compiler> exists
-        if root.tag == "mujoco":
-            compiler_tag = root.find("compiler")
-            if compiler_tag is None:
-                compiler_tag = StdET.Element(
-                    "compiler",
-                    {
-                        "angle": "radian",
-                        "meshdir": self.meshdir,
-                        "balanceinertia": "true",
-                        "discardvisual": "true",
-                    },
-                )
-                root.insert(0, compiler_tag)
-            return self._to_safe_tree(root), root
-
-        # If root is neither <robot> nor <mujoco>, wrap in <mujoco> and inject <compiler>
-        mujoco_tag = StdET.Element("mujoco")
-        mujoco_tag.append(root)
-        compiler_tag = mujoco_tag.find("compiler")
-        if compiler_tag is None:
-            compiler_tag = StdET.Element(
-                "compiler",
-                {
-                    "angle": "radian",
-                    "meshdir": self.meshdir,
-                    "balanceinertia": "true",
-                    "discardvisual": "true",
-                },
+        if root.tag not in ("robot", "mujoco"):
+            wrapper = Element("mujoco")
+            wrapper.append(root)
+            root = wrapper
+        mujoco_tag = root.find("mujoco") if root.tag == "robot" else root
+        if mujoco_tag is None:
+            mujoco_tag = Element("mujoco")
+            root.insert(0, mujoco_tag)
+        if mujoco_tag.find("compiler") is None:
+            compiler = Element(
+                "compiler", angle="radian", meshdir=self.meshdir, balanceinertia="true", discardvisual="true"
             )
-            mujoco_tag.insert(0, compiler_tag)
-        return self._to_safe_tree(mujoco_tag), mujoco_tag
-
-    def _to_safe_tree(self, root: Element) -> ElementTree:
-        xml_string = StdET.tostring(root)
-        return ET.parse(BytesIO(xml_string))
+            mujoco_tag.insert(0, compiler)
+        return root, mujoco_tag
 
     def __add__(self, other: str | Builder) -> Self:
         if isinstance(other, str):
-            _, other_root = Builder(other, meshdir=self.meshdir)._parse_input(other)
-        elif isinstance(other, Builder):
-            other_root = other.root
-        else:
+            other = Builder(other, meshdir=self.meshdir)
+        elif not isinstance(other, Builder):
             msg = "Can only merge with str or Builder"
             raise TypeError(msg)
 
-        # Determine merge context: MJCF or URDF
-        if self.root.tag == "robot":
-            mujoco_self = self.root.find("mujoco")
-            mujoco_other = (
-                other_root.find("mujoco")
-                if other_root.tag == "robot"
-                else other_root
-                if other_root.tag == "mujoco"
-                else None
-            )
-            if mujoco_self is not None and mujoco_other is not None:
-                self._merge_mujoco_tags(mujoco_self, mujoco_other)
-        elif self.root.tag == "mujoco":
-            mujoco_self = self.root
-            mujoco_other = (
-                other_root.find("mujoco")
-                if other_root.tag == "robot"
-                else other_root
-                if other_root.tag == "mujoco"
-                else None
-            )
-            if mujoco_other is not None:
-                self._merge_mujoco_tags(mujoco_self, mujoco_other)
-        else:
-            # Fallback: merge at root
-            self._merge_tag("asset", self.root, other_root)
-            self._merge_tag("worldbody", self.root, other_root)
+        for tag in _MERGED_TAGS:
+            src = other._mujoco.find(tag)
+            if src is None:
+                continue
+            dst = self._mujoco.find(tag)
+            if dst is None:
+                dst = SubElement(self._mujoco, tag)
+            dst.extend(list(src))
         return self
 
-    def _merge_mujoco_tags(self, mujoco_self: Element, mujoco_other: Element) -> None:
-        # Merge all relevant tags under <mujoco>
-        for tag in [
-            "asset",
-            "worldbody",
-            "camera",
-            "light",
-            "contact",
-            "equality",
-            "sensor",
-            "actuator",
-            "default",
-            "tendon",
-            "include",
-        ]:
-            self._merge_tag(tag, mujoco_self, mujoco_other)
-
-    def _merge_tag(self, tag: str, root1: Element, root2: Element) -> None:
-        s1, s2 = root1.find(tag), root2.find(tag)
-        if s1 is None and s2 is not None:
-            s1 = StdET.SubElement(root1, tag)
-        if s1 is not None and s2 is not None:
-            for el in list(s2):
-                s1.append(el)
-
     def save(self, file_path: str) -> str:
-        if self.tree is not None:
-            self._indent_xml(self.root)
-            self.tree.write(file_path, encoding="utf-8", xml_declaration=True)
-        else:
-            msg = "No model loaded. Cannot save."
-            raise ValueError(msg)
-        return os.path.abspath(file_path)
+        """Write the model as indented XML.
 
-    def _indent_xml(self, elem: Element, level: int = 0) -> None:
-        i = "\n" + level * "  "
-        if len(elem):
-            if not elem.text or not elem.text.strip():
-                elem.text = i + "  "
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = i
-            for sub_elem in elem:
-                self._indent_xml(sub_elem, level + 1)
-            if not elem[-1].tail or not elem[-1].tail.strip():
-                elem[-1].tail = i
-        elif level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
+        Args:
+            file_path: Output path.
+
+        Returns:
+            Absolute path of the written file.
+
+        """
+        indent(self.root)
+        ElementTree(self.root).write(file_path, encoding="utf-8", xml_declaration=True)
+        return str(Path(file_path).resolve())
 
     def __str__(self) -> str:
-        return StdET.tostring(self.root, encoding="unicode", method="xml")
+        return tostring(self.root, encoding="unicode")
 
-    def __repr__(self) -> str:
-        return self.__str__()
+    __repr__ = __str__
 
     def __len__(self) -> int:
-        return len(self.root) if self.root is not None else 0
+        return len(self.root)
 
     def __radd__(self, other: str | Builder) -> Self:
         return self.__add__(other)

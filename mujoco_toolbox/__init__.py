@@ -1,38 +1,22 @@
-"""Mujoco Toolbox
-==============
+"""A modern simulation wrapper for Google DeepMind's MuJoCo.
 
-A toolbox for working with MuJoCo simulations.
+Load MJCF or URDF models, run them, record per-step data, and render video in a
+few lines:
 
-This package provides various utilities and controllers to facilitate a faster
-simulation process.
+    >>> import mujoco_toolbox as mjtb
+    >>> sim = mjtb.Simulation("robot.xml", duration=5).run(render=True)
+    >>> sim.save("robot.mp4")
+    >>> sim.captured_data["qpos"]
 
-Modules
---------
-- `sim`: Contains the Simulation class for interfacing with MuJoCo.
-- `controllers`: Includes pre-built functions for controlling simulations.
-- `assets`: Contains pre-defined assets for building MuJoCo models.
+Submodules:
+    - :mod:`~mujoco_toolbox.sim`: :class:`~mujoco_toolbox.sim.Simulation`, the main entry point.
+    - :mod:`~mujoco_toolbox.builder`: Merge MJCF/URDF files and XML strings into one model.
+    - :mod:`~mujoco_toolbox.controllers`: Ready-made control callbacks.
+    - :mod:`~mujoco_toolbox.assets`: Reusable world and scene XML.
 
-Constants
-----------
-- `CAPTURE_PARAMETERS`: List of MjData fields to capture during simulation.
-- `MAX_GEOM_SCALAR`: Scalar value for mujoco.Renderer.max_geom.
-- `PROGRESS_BAR_ENABLED`: Boolean flag to enable or disable progress bar.
-
-This project is licensed under the `MIT License`. See the `LICENSE` file for
-details.
-
-Documentation
--------------
-**[See Here](https://MGross21.github.io/mujoco-toolbox/)**
-
-Notes
------
-This package is still under development.
-Some features may not be fully implemented or may change in future releases.
-Please refer to the documentation for the most up-to-date information.
-**[Report any issues here](https://github.com/MGross21/mujoco-toolbox/issues)**.
-
-"""  # noqa: D205, D415, D416
+This package is pre-1.0 and its API may change between minor releases. Report
+issues at https://github.com/MGross21/mujoco-toolbox/issues.
+"""
 
 import os
 
@@ -49,12 +33,11 @@ if "WAYLAND_DISPLAY" in os.environ:
         module="glfw",
         message=".*window position.*",
     )
-    try:
-        from ctypes import CDLL
+    from contextlib import suppress
+    from ctypes import CDLL
 
+    with suppress(OSError, AttributeError):
         CDLL("libfontconfig.so.1").FcInit()
-    except Exception:
-        pass
 
 from .assets import WORLD_ASSETS, glovebox
 from .builder import Builder
@@ -65,8 +48,9 @@ from .controllers import (
     sin,
     step,
 )
+from .errors import SimulationError, SimulationWarning
 from .sim import Simulation
-from .utils import _Platform
+from .utils import display_available, logger
 
 __version__ = "0.7.0"
 __author__ = "Michael Gross"
@@ -76,6 +60,8 @@ __all__ = [
     "WORLD_ASSETS",
     "Builder",
     "Simulation",
+    "SimulationError",
+    "SimulationWarning",
     "cos",
     "glovebox",
     "random",
@@ -84,10 +70,13 @@ __all__ = [
     "step",
 ]
 
-MAX_GEOM_SCALAR: int = 2  # Scalar value for mujoco.Renderer.max_geom
-GUI_ENABLED: bool = _Platform().NUM_MONITORS != []
-PROGRESS_BAR_ENABLED = GUI_ENABLED
-CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulation
+MAX_GEOM_SCALAR: int = 2
+"""Multiplier on ``model.ngeom`` for the renderer's ``max_geom`` scene buffer."""
+GUI_ENABLED: bool = display_available()
+"""Whether a display was detected at import time."""
+PROGRESS_BAR_ENABLED: bool = GUI_ENABLED
+"""Show a progress bar during :meth:`Simulation.run <mujoco_toolbox.sim.Simulation.run>`."""
+CAPTURE_PARAMETERS: set[str] | str = {
     "time",
     "qpos",
     "qvel",
@@ -99,52 +88,15 @@ CAPTURE_PARAMETERS: set = {  # MjData default fields to capture during simulatio
     "ctrl",
     "sensordata",
 }
-"""
-MjData default fields to capture during simulation.
-For possible types, see
-[MuJoCo API](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
+"""Default ``MjData`` fields recorded by :meth:`Simulation.run <mujoco_toolbox.sim.Simulation.run>`.
 
-Capture All:
-------
->>> from mujoco_toolbox import mjtb
->>> mjtb.CAPTURE_PARAMETERS = {"all"}
+Applies to every :class:`~mujoco_toolbox.sim.Simulation` created without a
+``capture`` argument. Set to ``"all"`` to record every numeric field:
 
-Default:
---------
->>> mjtb.CAPTURE_PARAMETERS = {
-...     "time",
-...     "qpos",
-...     "qvel",
-...     "act",
-...     "qacc",
-...     "xpos",
-...     "xquat",
-...     "xmat",
-...     "ctrl",
-...     "sensordata",
-... }
+    >>> mjtb.CAPTURE_PARAMETERS = "all"
+
+See the `MjData reference <https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata>`_
+for available fields.
 """
 
-if GUI_ENABLED:
-    try:
-        import subprocess
-
-        subprocess.run(
-            ["ffmpeg", "-version"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True,
-        )
-    except subprocess.CalledProcessError:
-        msg = "ffmpeg is not installed or not functioning correctly."
-        raise RuntimeError(msg)
-
-
-# Check if the package is still under development
-if __version__.startswith("0"):
-    from .utils import _print_warning as _warn
-
-    _warn(
-        f"{__package__} (v{__version__}) is still under development. Report any issues to "
-        f"https://github.com/MGross21/mujoco-toolbox/issues",
-    )
+logger.info("%s v%s is pre-1.0; the API may change between minor releases.", __package__, __version__)

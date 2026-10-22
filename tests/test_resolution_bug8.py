@@ -1,5 +1,6 @@
+from pathlib import Path
+
 import numpy as np
-import pytest
 
 from mujoco_toolbox import Simulation
 
@@ -62,7 +63,7 @@ def test_gravity() -> None:
 
 
 # Test to ensure rendering works without errors
-def test_rendering() -> None:
+def test_rendering(tmp_path: Path) -> None:
     model = """
     <mujoco>
         <visual>
@@ -75,8 +76,4 @@ def test_rendering() -> None:
         </worldbody>
     </mujoco>
     """
-    wrapper = Simulation(model)
-    try:
-        wrapper.run(render=True).save()
-    except Exception as e:
-        pytest.fail(f"Rendering failed with exception: {e}")
+    Simulation(model).run(render=True).save(str(tmp_path / "output.gif"))
