@@ -4,7 +4,7 @@
 
 <div align="center">
     <!-- Row 1: Package info -->
-    <img src="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-6e8aff" alt="Python">
+    <img src="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14%20|%203.15-6e8aff" alt="Python">
     <img src="https://img.shields.io/github/license/MGross21/mujoco-toolbox?color=6e8aff" alt="License">
     <a href="https://pypi.org/project/mujoco-toolbox/">
         <img alt="Downloads"
