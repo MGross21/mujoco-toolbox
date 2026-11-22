@@ -30,7 +30,10 @@ autodoc_default_options = {
 }
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "documented_params"
-autodoc_type_aliases = {"CaptureSpec": "mujoco_toolbox.sim.CaptureSpec"}
+autodoc_type_aliases = {
+    "CaptureSpec": "mujoco_toolbox.sim.CaptureSpec",
+    "Controller": "mujoco_toolbox.controllers.Controller",
+}
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 napoleon_use_rtype = False

@@ -61,8 +61,8 @@ Please review the [Code of Conduct](https://github.com/MGross21/mujoco-toolbox/b
 4. **Optional installs**:
 
     ```bash
-    uv sync --extra examples   # Jupyter kernel + widgets for examples/
-    uv sync --group lint       # linters only, without the project
+    uv sync --no-default-groups --group examples   # Jupyter kernel, widgets, matplotlib for examples/
+    uv sync --group lint                           # linters only, without the project
     ```
 
 5. **Changing dependencies**: edit `pyproject.toml`, then run `uv lock` and

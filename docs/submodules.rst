@@ -7,7 +7,8 @@ The Mujoco Toolbox contains the following submodules:
     :maxdepth: 1
 
     sim
-    builder
+    recording
+    viewer
     controllers
     assets
     errors
