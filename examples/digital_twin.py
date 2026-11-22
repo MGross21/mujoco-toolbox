@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 
 import mujoco_toolbox as mjtb
-from mujoco_toolbox.controllers import real_time
 
 # Paths to URDF and mesh directory
 MODEL_DIR = Path(__file__).resolve().parent.parent / "tests" / "models" / "ur5"
@@ -24,18 +23,17 @@ qpos_trajectory = np.linspace(QPOS_INIT, QPOS_FINAL, NUM_STEPS)
 
 def main() -> None:
     """Open the viewer and stream the trajectory into it."""
-    with mjtb.Simulation(
+    ur5 = mjtb.Simulation(
         str(URDF_PATH),
         meshdir=str(MESH_DIR),
         initial_conditions={"qpos": QPOS_INIT},
-        controller=real_time,
-    ) as ur5:
-        ur5.gravity = [0, 0, 0]
-        ur5.launch(show_menu=False)
-
+        gravity=[0, 0, 0],
+    )
+    with ur5.launch(show_menu=False) as viewer:
         for qpos in qpos_trajectory:
-            with ur5.data_lock:
-                ur5.controller(ur5.model, ur5.data, {"qpos": qpos})
+            if not viewer.running:
+                break
+            viewer.set(qpos=qpos)
             time.sleep(5.0 / NUM_STEPS)
 
 
