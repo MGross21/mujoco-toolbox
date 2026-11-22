@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 
 from mujoco_toolbox import Simulation
@@ -40,7 +38,7 @@ def test_resolution() -> None:
     </mujoco>
     """
     wrapper = Simulation(model)
-    assert wrapper.resolution == (800, 600), "Resolution does not match expected value."
+    assert (wrapper.model.vis.global_.offwidth, wrapper.model.vis.global_.offheight) == (800, 600)
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
 
 
@@ -60,20 +58,3 @@ def test_gravity() -> None:
     """
     wrapper = Simulation(model)
     assert np.array_equal(wrapper.gravity, np.array([0, 0, -9.81])), "Gravity does not match expected value."
-
-
-# Test to ensure rendering works without errors
-def test_rendering(tmp_path: Path) -> None:
-    model = """
-    <mujoco>
-        <visual>
-            <global offwidth="800" offheight="600" />
-        </visual>
-        <worldbody>
-            <body name="floor" pos="0 0 0">
-                <geom name="floor" type="plane" size="1 1 .1" />
-            </body>
-        </worldbody>
-    </mujoco>
-    """
-    Simulation(model).run(render=True).save(str(tmp_path / "output.gif"))

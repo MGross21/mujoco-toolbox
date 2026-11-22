@@ -1,142 +1,185 @@
-from pathlib import Path
+import math
 
-import mujoco.bindings_test as bt
-import mujoco.rollout_test as rt
+import mujoco
 import numpy as np
 import pytest
+from helpers import BOX_AND_LEG, DROPPED_BOX, MODELS
 
 import mujoco_toolbox as mjtb
 
-MODELS = Path(__file__).parent / "models"
-BOX_AND_LEG = str(MODELS / "box_and_leg.xml")
 
-TESTING_MODELS = [
-    model
-    for model in [bt.TEST_XML, bt.TEST_XML_PLUGIN, bt.TEST_XML_SENSOR, bt.TEST_XML_TEXTURE, *rt.ALL_MODELS]
-    if Path(model).exists()
-]
-
-mjtb.PROGRESS_BAR_ENABLED = False
+@pytest.mark.parametrize("model", sorted(MODELS.glob("*.xml")), ids=lambda p: p.stem)
+def test_local_models_run(model: object) -> None:
+    rec = mjtb.Simulation(model).run(1)
+    assert set(rec.data) == mjtb.DEFAULT_CAPTURE
+    assert len(rec.time) == 100
 
 
-def test_xml1() -> None:
-    """Test 1: Create a simulation with a box and a leg, and run it with a sine controller."""
-    test1 = mjtb.Simulation(
-        BOX_AND_LEG,
-        duration=10,
-        fps=20,
-        resolution=(800, 600),
-        controller=mjtb.sin,
-        amplitude=1e-5,
-        frequency=1e-5,
-    ).run(render=mjtb.GUI_ENABLED)
-
-    if mjtb.GUI_ENABLED:
-        test1.save(title="sine_wave")
-
-    assert len(test1.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
-        "Simulation data size does not match requested parameters."
-    )
-    assert len(test1.captured_data["time"]) == (test1.duration * test1.data_rate), (
-        "Captured data length does not match simulation parameters."
-    )
+def test_urdf_with_meshes() -> None:
+    ur5 = MODELS / "ur5"
+    sim = mjtb.Simulation(ur5 / "ur5.urdf", meshdir=str(ur5 / "meshes" / "collision"))
+    rec = sim.run(0.5, capture={"qpos"})
+    assert rec.data["qpos"].shape == (50, sim.model.nq)
 
 
-def test_urdf1() -> None:
-    """Test 2: Run UR5 URDF simulation."""
-    ur = MODELS / "ur5"
-    ic = {"qpos": np.array([np.pi / 2, np.pi, 0, 0, -np.pi / 2, 0])}
-
-    sim = mjtb.Simulation(
-        str(ur / "ur5.urdf"),
-        meshdir=str(ur / "meshes" / "collision"),
-        duration=10,
-        fps=30,
-        initial_conditions=ic,
-    ).run(render=mjtb.GUI_ENABLED)
-
-    if mjtb.GUI_ENABLED:
-        sim.show(frame_idx=0)
-
-    assert len(sim.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
-        f"Expected {len(mjtb.CAPTURE_PARAMETERS)} data fields, but got {len(sim.captured_data)}"
-    )
+def test_settings_applied() -> None:
+    sim = mjtb.Simulation(DROPPED_BOX, timestep=1e-3, gravity=[0, 0, -1])
+    assert sim.timestep == 1e-3
+    np.testing.assert_array_equal(sim.gravity, [0, 0, -1])
+    assert "timestep=0.001" in repr(sim)
 
 
-def test_mujoco_core_array() -> None:
-    """Test 3: Run simulations for all models in TESTING_MODELS."""
-    for model in map(str, TESTING_MODELS):
-        with mjtb.Simulation(model) as m:
-            m.run(render=mjtb.GUI_ENABLED)
-            assert len(m.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
-                f"Simulation data size does not match requested parameters for model {model}."
-            )
-            assert len(m.captured_data["time"]) == (m.duration * m.data_rate) + 1, (
-                f"Captured data length does not match simulation parameters for model {model}."
-            )
+@pytest.mark.parametrize(
+    ("kwargs", "error", "match"),
+    [
+        ({"timestep": 0}, ValueError, "timestep"),
+        ({"gravity": [0, 0]}, ValueError, "3D vector"),
+        ({"controller": "nope"}, TypeError, "callable"),
+        ({"initial_conditions": {"nope": 1}}, ValueError, "nope"),
+        ({"keyframe": "nope"}, KeyError, "nope"),
+        ({"gain": 3}, TypeError, "gain"),
+    ],
+)
+def test_invalid_settings(kwargs: dict, error: type[Exception], match: str) -> None:
+    with pytest.raises(error, match=match):
+        mjtb.Simulation(DROPPED_BOX, **kwargs)
 
 
-def test_invalid_xml_path() -> None:
-    """Test 4: Attempt to load a non-existent XML file."""
+@pytest.mark.parametrize("path", [MODELS / "missing.xml", MODELS / "missing.urdf"])
+def test_missing_file(path: object) -> None:
     with pytest.raises(FileNotFoundError):
-        mjtb.Simulation(str(MODELS / "non_existent.xml"))
+        mjtb.Simulation(path)
 
 
-def test_invalid_urdf_path() -> None:
-    """Test 5: Attempt to load a non-existent URDF file."""
-    with pytest.raises(FileNotFoundError):
-        mjtb.Simulation(str(MODELS / "non_existent.urdf"))
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"duration": -1}, "duration"),
+        ({"capture_rate": 0}, "capture_rate"),
+        ({"capture_rate": 501}, "one capture per timestep"),
+        ({"capture": {"qpos", "nope"}}, "nope"),
+        ({"fps": 0}, "fps"),
+    ],
+)
+def test_invalid_run(kwargs: dict, match: str) -> None:
+    with pytest.raises(ValueError, match=match):
+        mjtb.Simulation(DROPPED_BOX).run(**kwargs)
 
 
-def test_negative_duration() -> None:
-    """Test 6: Attempt to set a negative simulation duration."""
-    with pytest.raises(ValueError, match="Duration must be non-negative"):
-        mjtb.Simulation(BOX_AND_LEG, duration=-10)
+def test_short_run_keeps_default_rate() -> None:
+    assert len(mjtb.Simulation(BOX_AND_LEG).run(0.1).time) == 10
 
 
-def test_invalid_resolution() -> None:
-    """Test 7: Attempt to set an invalid resolution."""
-    with pytest.raises(ValueError, match="at least 1x1"):
-        mjtb.Simulation(BOX_AND_LEG, resolution=(-800, 600))
+def test_capture_all() -> None:
+    rec = mjtb.Simulation(BOX_AND_LEG).run(0.1, capture="all")
+    assert {"qpos", "xpos", "cvel", "efc_force"} <= set(rec.data)
 
 
-def test_invalid_initial_conditions() -> None:
-    """Test 8: Attempt to set invalid initial conditions."""
-    with pytest.raises(ValueError, match="Invalid initial condition attributes: invalid_key"):
-        mjtb.Simulation(BOX_AND_LEG, initial_conditions={"invalid_key": [1, 2, 3]})
+def test_runs_are_independent() -> None:
+    sim = mjtb.Simulation(BOX_AND_LEG, controller=mjtb.sin(amplitude=1))
+    first, second = sim.run(0.5), sim.run(0.5)
+    np.testing.assert_array_equal(first.data["qpos"], second.data["qpos"])
+    assert first is not second
 
 
-def test_invalid_controller() -> None:
-    """Test 9: Attempt to set a non-callable controller."""
-    with pytest.raises(ValueError, match="Controller must be a callable"):
-        mjtb.Simulation(BOX_AND_LEG, controller="not_a_function")
+def test_controller_called_every_step() -> None:
+    times: list[float] = []
+    sim = mjtb.Simulation(BOX_AND_LEG, controller=lambda _m, d: times.append(d.time))
+    sim.run(0.1)
+    assert len(times) == round(0.1 / sim.timestep)
 
 
-def test_large_duration_and_high_fps() -> None:
-    """Test 10: Run a simulation with a very large duration and high FPS."""
-    test = mjtb.Simulation(BOX_AND_LEG, duration=100, fps=100).run(render=False)
-    assert len(test.captured_data) == len(mjtb.CAPTURE_PARAMETERS), (
-        "Captured data size does not match the expected parameters for large duration and high FPS."
-    )
-    assert len(test.captured_data["time"]) == (test.duration * test.data_rate), (
-        "Captured data length does not match the expected simulation parameters for large duration and high FPS."
-    )
+def test_initial_conditions_and_keyframe() -> None:
+    keyed = DROPPED_BOX.replace("</mujoco>", '<keyframe><key name="high" qpos="0 0 2 1 0 0 0"/></keyframe></mujoco>')
+    assert mjtb.Simulation(keyed, keyframe="high").run(0.01).data["qpos"][0, 2] == pytest.approx(2)
+    sim = mjtb.Simulation(keyed, keyframe="high", initial_conditions={"qpos": [0, 0, 3, 1, 0, 0, 0]})
+    assert sim.run(0.01).data["qpos"][0, 2] == pytest.approx(3)
 
 
-def test_zero_gravity() -> None:
-    """Test 11: Run a simulation with zero gravity."""
-    test = mjtb.Simulation(BOX_AND_LEG, gravity=[0, 0, 0]).run(render=False)
-    assert np.allclose(test.gravity, [0, 0, 0]), "Gravity was not set to zero as expected."
+def test_record_when_gates_capture() -> None:
+    rec = mjtb.Simulation(BOX_AND_LEG).run(1, capture_rate=10, record_when=lambda d: d.time > 0.45)
+    assert len(rec.time) == 5
+    assert rec.time.min() > 0.45
 
 
-def test_extreme_gravity() -> None:
-    """Test 12: Run a simulation with extreme gravity values."""
-    extreme_gravity = [1e6, -1e6, 1e6]
-    test = mjtb.Simulation(BOX_AND_LEG, gravity=extreme_gravity).run(render=False)
-    assert np.allclose(test.gravity, extreme_gravity), "Gravity was not set to extreme values as expected."
+def test_settle_stores_resting_pose() -> None:
+    sim = mjtb.Simulation(DROPPED_BOX).settle()
+    assert sim.initial_conditions["qpos"][2] == pytest.approx(0.1, abs=1e-3)
+    assert np.abs(sim.run(0.5).data["qvel"]).max() < 1e-3
 
 
-def test_invalid_gravity() -> None:
-    """Test 13: Attempt to set an invalid gravity vector."""
-    with pytest.raises(ValueError, match="Gravity must be a 3D vector"):
-        mjtb.Simulation(BOX_AND_LEG, gravity=[0, 0])
+def test_settle_warns_when_never_at_rest() -> None:
+    with pytest.warns(mjtb.SimulationWarning, match="did not settle"):
+        mjtb.Simulation(DROPPED_BOX).settle(max_time=0.01)
+
+
+def test_sweep_matches_run() -> None:
+    sim = mjtb.Simulation(BOX_AND_LEG)
+    earth, moon = sim.sweep({"opt.gravity": [[0, 0, -9.81], [0, 0, -1.62]]}, 0.5, capture={"qpos"}, capture_rate=20)
+    expected = sim.run(0.5, capture={"qpos"}, capture_rate=20)
+    np.testing.assert_allclose(earth.time, expected.time)
+    np.testing.assert_allclose(earth.data["qpos"], expected.data["qpos"], atol=1e-9)
+    assert not np.allclose(moon.data["qpos"], expected.data["qpos"])
+    assert set(moon.data) == {"qpos"}
+
+
+def test_sweep_rejects_controller_and_mismatched_sizes() -> None:
+    with pytest.raises(mjtb.SimulationError, match="controller"):
+        mjtb.Simulation(BOX_AND_LEG, controller=mjtb.sin()).sweep({"opt.gravity": [[0, 0, -9.81]]})
+    with pytest.raises(ValueError, match="same number"):
+        mjtb.Simulation(BOX_AND_LEG).sweep({"opt.gravity": [[0, 0, -9.81]], "qvel": np.zeros((2, 3))})
+
+
+def test_studio_hot_reload_needs_model_file() -> None:
+    with pytest.raises(ValueError, match="single model file"):
+        mjtb.Simulation(DROPPED_BOX).studio(hot_reload=True)
+
+
+def test_controllers() -> None:
+    m = mujoco.MjModel.from_xml_path(str(BOX_AND_LEG))
+    d = mujoco.MjData(m)
+    for make in (mjtb.sin, mjtb.cos, mjtb.step, mjtb.random):
+        make()(m, d)
+    mjtb.step(amplitude=2, axis=0)(m, d)
+    assert d.qpos[0] == 2
+    assert mjtb.sin().__name__ == "sin"
+    with pytest.raises(TypeError, match="amplitud"):
+        mjtb.sin(amplitud=2)
+    with pytest.raises(ValueError, match="both"):
+        mjtb.step(joint=[0], axis=0)
+
+
+GRID_FLOOR = '<mujoco><worldbody><geom type="plane" size="1 1 .1" material="grid"/></worldbody></mujoco>'
+
+
+def test_merged_sources_share_assets() -> None:
+    sim = mjtb.Simulation(GRID_FLOOR, mjtb.WORLD_ASSETS, mjtb.glovebox())
+    assert sim.model.material("grid").id >= 0
+    assert sim.model.body("glovebox").id > 0
+    assert "<mujoco" in sim.xml
+
+
+def test_urdf_merged_into_scene() -> None:
+    ur5 = MODELS / "ur5"
+    sim = mjtb.Simulation(DROPPED_BOX, ur5 / "ur5.urdf", meshdir=str(ur5 / "meshes" / "collision"))
+    assert sim.model.body("shoulder_link").id > sim.model.body("world").id
+    assert sim.model.nbody > 2
+
+
+def test_spec_sources_are_copied() -> None:
+    spec = mujoco.MjSpec.from_string(DROPPED_BOX)
+    sim = mjtb.Simulation(spec, mjtb.glovebox())
+    assert spec.compile().nbody == 2
+    assert mjtb.Simulation(sim.spec).model.nbody == sim.model.nbody
+
+
+def test_duplicate_names_and_bad_xml_rejected() -> None:
+    with pytest.raises(ValueError, match="repeated name"):
+        mjtb.Simulation(mjtb.glovebox(), mjtb.glovebox())
+    with pytest.raises(ValueError, match="unrecognized element"):
+        mjtb.Simulation("<mujoco><worldbody><bodyy/></worldbody></mujoco>")
+
+
+def test_mjcf_keeps_mujoco_angle_default() -> None:
+    sim = mjtb.Simulation(MODELS / "humanoid.xml")
+    assert np.abs(sim.model.jnt_range).max() < math.pi

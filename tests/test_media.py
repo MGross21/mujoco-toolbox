@@ -1,32 +1,27 @@
 from pathlib import Path
 
 import pytest
+from helpers import MODELS
 
 import mujoco_toolbox as mjtb
 
-FILE_EXTENSIONS = ["mp4", "gif", "avi", "webm", "mov"]
+pytestmark = pytest.mark.render
 
 
-# Source: https://github.com/MGross21/mujoco-toolbox/issues/60
-MODEL = str(Path(__file__).parent / "models" / "humanoid.xml")
+# https://github.com/MGross21/mujoco-toolbox/issues/60
+@pytest.mark.parametrize("suffix", ["mp4", "gif", "avi", "webm", "mov"])
+def test_save_every_format(suffix: str, tmp_path: Path) -> None:
+    rec = mjtb.Simulation(MODELS / "humanoid.xml").run(1, render=True, fps=5)
+    assert Path(rec.save(tmp_path / f"render.{suffix}")).exists()
 
 
-@pytest.mark.skipif(
-    not mjtb.GUI_ENABLED,
-    reason="This test requires GUI rendering to save media files.",
-)
-def test_codec_error_mp4_issue_60(tmp_path: Path) -> None:
-    path = tmp_path / "render.mp4"
-    mjtb.Simulation(MODEL, fps=30, duration=3).run(render=mjtb.GUI_ENABLED).save(str(path))
-    assert path.exists(), "File render.mp4 was not created."
-
-
-@pytest.mark.skipif(
-    not mjtb.GUI_ENABLED,
-    reason="This test requires GUI rendering to save media files.",
-)
-@pytest.mark.parametrize("codec", FILE_EXTENSIONS)
-def test_all_codecs_save(codec: str, tmp_path: Path) -> None:
-    path = tmp_path / f"render.{codec}"
-    mjtb.Simulation(MODEL, fps=5, duration=1, data_rate=20).run(render=mjtb.GUI_ENABLED).save(title=str(path))
-    assert path.exists(), f"File render.{codec} was not created."
+def test_resolution_defaults_to_model() -> None:
+    xml = """
+    <mujoco>
+        <visual><global offwidth="80" offheight="60"/></visual>
+        <worldbody><geom type="plane" size="1 1 .1"/></worldbody>
+    </mujoco>
+    """
+    rec = mjtb.Simulation(xml).run(0.1, render=True)
+    assert rec.frames is not None
+    assert rec.frames.shape[1:] == (60, 80, 3)

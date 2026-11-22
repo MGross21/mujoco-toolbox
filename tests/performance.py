@@ -56,7 +56,7 @@ def mujoco_standard() -> float:
 
 def mujoco_tbx() -> float:
     start_time = time.time()
-    mjtb.Simulation(MODEL, duration=DURATION, data_rate=DATA_RATE).run()
+    mjtb.Simulation(MODEL).run(DURATION, capture_rate=DATA_RATE)
     end_time = time.time()
     return end_time - start_time
 
@@ -83,8 +83,7 @@ def generate_performance_chart() -> None:
     plt.title("Performance Comparison")
     plt.savefig(DATA_DIR / "performance_comparison.png")
 
-    if mjtb.GUI_ENABLED:
-        plt.show()
+    plt.show()
 
     # Generate CSV
     mujoco_version = mujoco.__version__.split(".")
@@ -177,8 +176,7 @@ def progress_over_time() -> None:
     plt.tight_layout()
     plt.savefig(DATA_DIR / "performance_over_time.png", dpi=300)
 
-    if mjtb.GUI_ENABLED:
-        plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":

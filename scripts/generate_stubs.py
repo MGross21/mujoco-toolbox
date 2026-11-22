@@ -42,6 +42,7 @@ def _fix_line(line: str) -> str:
 
     - Module-level constant values are machine-specific (paths, OS); keep the type.
     - Attributes named after keywords (``global``) cannot be declared; drop them.
+    - Attributes stubgen cannot render (``mujoco =``) are left empty; drop them.
     - Stubgen omits C++ defaults it cannot render, leaving required parameters
       after optional ones. Give those ``= ...``.
     """
@@ -49,7 +50,7 @@ def _fix_line(line: str) -> str:
         return f"{match.group(1)}\n"
     stripped = line.lstrip()
     name = stripped.split(":", 1)[0]
-    if ":" in stripped and keyword.iskeyword(name):
+    if (":" in stripped and keyword.iskeyword(name)) or stripped.rstrip().endswith(" ="):
         return ""
     if not stripped.startswith("def "):
         return line
@@ -107,7 +108,7 @@ def generate(out: Path) -> None:
 def main() -> int:
     """Regenerate ``typings/``."""
     generate(OUT)
-    print(f"Generated stubs for mujoco {version('mujoco')} in {OUT}")
+    print(f"Generated stubs for mujoco {version('mujoco-core')} in {OUT}")
     return 0
 
 
